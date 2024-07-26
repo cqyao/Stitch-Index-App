@@ -9,7 +9,13 @@ export default function RootLayout() {
           // Hide the header for this route
           headerShown: false,
         }}
-        />
+      />
+      <Stack.Screen
+        name="signup"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

@@ -1,5 +1,6 @@
 import { Text, TouchableOpacity, SafeAreaView, StyleSheet, View } from 'react-native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { router } from "expo-router";
 
 import Features from "../components/Features";
 import Appointment from "../components/Appointment";
@@ -9,7 +10,9 @@ const Dashboard = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.banner}>
         <Text>Stitch</Text>
-        <TouchableOpacity style={styles.profilePic}>
+        <TouchableOpacity style={styles.profilePic} onPress={() => router.push({
+          pathname: "./signup",
+        })}>
           <MaterialIcons name="face" size={40} color="black" />
         </TouchableOpacity>
       </View>
