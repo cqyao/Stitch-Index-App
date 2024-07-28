@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 export default function RootLayout() {
   return (
     <Stack>
-      <Stack.Screen 
+      <Stack.Screen  
         name="index" 
         options={{
           // Hide the header for this route
@@ -11,7 +11,7 @@ export default function RootLayout() {
         }}
       />
       <Stack.Screen
-        name="signup"
+        name="dashboard"
         options={{
           headerShown: false,
         }}
