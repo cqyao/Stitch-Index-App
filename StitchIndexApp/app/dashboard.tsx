@@ -1,33 +1,45 @@
-import { Text, TouchableOpacity, SafeAreaView, StyleSheet, View } from 'react-native';
+import { Text, TouchableOpacity, SafeAreaView, StyleSheet, View, Image } from 'react-native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { router } from "expo-router";
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Link, useNavigation, useRouter } from "expo-router";
+import Input from '../components/SearchInput'
+import { hp, wp } from '../helpers/common'
+import {Dimensions} from 'react-native';
 
 import Features from "../components/Features";
 import Appointment from "../components/Appointment";
 
+
 const Dashboard = () => {
+    const router = useRouter();
+    const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.container}>
+    <View style={styles.stitch}>
+        <Image resizeMode="contain" source={require('../assets/images/backgroundimage.png')}/>
+    </View>
       <View style={styles.banner}>
-        <Text>Stitch</Text>
-        <TouchableOpacity style={styles.profilePic} onPress={() => router.push({
-          pathname: "./signup",
-        })}>
+        <Text></Text>
+        <TouchableOpacity style={styles.profilePic} onPress={() => router.back()}>
           <MaterialIcons name="face" size={40} color="black" />
         </TouchableOpacity>
       </View>
 
       <View style={styles.panel}>
-        <View style={styles.search}>
-          <Text style={styles.h3}>Search</Text>
-          <FontAwesome name="search" size={20} />
+        <View style={styles.searchInput}>
+        <Input
+            placeholder='Enter your username'
+            onChangeText={()=>{}}
+        />
         </View>
         <View style={styles.features}>
           <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
           <View style={styles.row}>
-            <Features name="My Patients" /> 
-            <Features name="Research" /> 
-            <Features name="Calendar" />
+            <Features name="My Patients" icon="user" />
+            <Features name="Research" icon="book" /> 
+            <Features name="Calendar" icon="calendar" />
           </View>
         </View>
         <View style={styles.appointments}>
@@ -57,7 +69,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   panel: {
-    flex: 3,
+    flex: 2.5,
+    marginTop: 20,
     backgroundColor: "white",
     borderTopRightRadius: 35,
     borderTopLeftRadius: 35,
@@ -120,6 +133,18 @@ const styles = StyleSheet.create({
     fontWeight: "300",
     color: "#7D7D7D",
   },
+  searchInput: {
+    marginTop: 20,
+    marginHorizontal: 40,
+  },
+  stitch: {
+    position: 'absolute',
+    resizeMode: "contain",
+    width: Dimensions.get('window').width,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  }
 })
 
 export default Dashboard;
