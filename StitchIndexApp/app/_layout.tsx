@@ -23,19 +23,8 @@ export default function RootLayout() {
 
   return (
     <Stack>
-      <Stack.Screen
-        name="index"
-        options={{
-          // Hide the header for this route
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="dashboard"
-        options={{
-          headerShown: false,
-        }}
-      />
+      <Stack.Screen options={{ headerShown: false }} name="index" />
+      <Stack.Screen options={{ headerShown: false }} name="dashboard" />
     </Stack>
   );
 }
