@@ -5,6 +5,7 @@ import { router } from "expo-router";
 import Features from "../components/Features";
 import Appointment from "../components/Appointment";
 
+
 const Dashboard = () => {
   return (
     <SafeAreaView style={styles.container}>
@@ -25,9 +26,9 @@ const Dashboard = () => {
         <View style={styles.features}>
           <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
           <View style={styles.row}>
-            <Features name="My Patients" /> 
-            <Features name="Research" /> 
-            <Features name="Calendar" />
+            <Features name="My Patients" image={require("../assets/images/Patients.png")}/> 
+            <Features name="Research" image={require("../assets/images/Research.png")}/> 
+            <Features name="Calendar" image={require("../assets/images/Calendar.png")}/>
           </View>
         </View>
         <View style={styles.appointments}>
