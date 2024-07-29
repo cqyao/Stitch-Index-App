@@ -1,10 +1,14 @@
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, Image } from 'react-native'
 import React from 'react'
 
-const Features = ({ name }) => {
+const Features = ({ name, image }) => {
   return (
     <View style={styles.container}>
       <View style={styles.box}>
+        <Image 
+          style={{ alignSelf: "center", marginTop: 20, height: 70, width: 70 }}
+          source={image}
+        />
       </View>
       <Text style={styles.name}>{name}</Text>
     </View>
