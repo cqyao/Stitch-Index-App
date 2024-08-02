@@ -1,4 +1,6 @@
-(The Expo mobile app is required during this stage of the app development.)
+Prerequisites: <br />
+nodejs <br />
+Expo mobile app<br />
 
 Download and unzip folder. <br />
 Open terminal and navigate to the folder. <br />
