@@ -24,7 +24,7 @@ export default Input
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        height: hp(8.6),
+        height: hp(7.5),
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 0.4,
