@@ -52,23 +52,6 @@ const Signup = () => {
       });
   };
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      console.error("Email and password are required");
-      return;
-    }
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // Logged in
-        const user = userCredential.user;
-        console.log("Logged In With: ", user.email);
-        router.navigate("dashboard");
-      })
-      .catch((error) => {
-        console.error("Error signing in:", error);
-      });
-  };
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -88,20 +71,18 @@ const Signup = () => {
         <Image style={styles.logo} source={require("../assets/images/Logo.png")} />
         <View>
           <Text style={styles.loginText}>
-            {isSignUp ? "Sign Up" : "Login to Account"}
+            Create an Account 
           </Text>
         </View>
         <View style={styles.form}>
           <Text style={styles.formText}>
-            {isSignUp
-              ? "Create a new account"
-              : "Log in to continue with your account"}
+            Sign up now to get started with an account
           </Text>
         </View>
         <View style={styles.form}>
           <Image style={styles.google} source={require("../assets/images/Google.png")} />
           <Button
-            title={`Sign in With Google`}
+            title={`Sign Up With Google`}
             onPress={() => {}}
             buttonStyle={undefined}
             textStyle={undefined}
@@ -112,6 +93,15 @@ const Signup = () => {
           <Text style={styles.orText}>OR</Text>
           <View style={styles.line} />
         </View>
+        <KeyboardAvoidingView style={styles.form} behavior="padding">
+          <Text style={styles.label}>Full Name</Text>
+          <Input
+            placeholder="Enter your full name"
+            value={password}
+            secureTextEntry
+            onChangeText={(text: string) => setPassword(text)}
+          />
+        </KeyboardAvoidingView>
         <KeyboardAvoidingView style={styles.form}>
           <Text style={styles.label}>Email Address</Text>
           <Input
@@ -129,18 +119,21 @@ const Signup = () => {
             onChangeText={(text: string) => setPassword(text)}
           />
         </KeyboardAvoidingView>
-        <View style={styles.mainbutton}>
-          <MainButton
-            title={"Sign In"}
-            onPress={handleLogin}
-            buttonStyle={undefined}
-            textStyle={undefined}
+        <KeyboardAvoidingView style={styles.form} behavior="padding">
+          <Text style={styles.label}>Confirm Password</Text>
+          <Input
+            placeholder="Re-enter your password"
+            value={password}
+            secureTextEntry
+            onChangeText={(text: string) => setPassword(text)} // Check if passwords are equal
           />
+        </KeyboardAvoidingView>
+        <View style={styles.mainbutton}>
         </View>
         <View style={styles.mainbutton}>
           <MainButton
             title={"Sign Up"}
-            onPress={() => router.push("./signup")}
+            onPress={handleSignUp}
             buttonStyle={undefined}
             textStyle={undefined}
           />
@@ -153,9 +146,9 @@ const Signup = () => {
             <Text style={styles.footerText}>
               {isSignUp ? "Already have an account?" : "Don't have an account?"}
             </Text>
-            <Pressable onPress={() => setIsSignUp(!isSignUp)}>
+            <Pressable>
               <Text style={[styles.footerText, styles.signupText]}>
-                {isSignUp ? "Login" : "Sign-up"}
+                Sign Up
               </Text>
             </Pressable>
           </View>
@@ -170,7 +163,7 @@ export default Signup;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 15,
+    gap: 11,
     paddingHorizontal: wp(5),
   },
   logo: {
@@ -185,7 +178,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   mainbutton: {
-    top: hp(2.5),
+    top: hp(0.5),
   },
   formText: {
     fontSize: hp(1.5),
@@ -199,7 +192,6 @@ const styles = StyleSheet.create({
     textAlign: "left",
     fontFamily: "Inter",
     marginLeft: wp(2),
-    marginTop: hp(1),
   },
   line: {
     flex: 1,
@@ -226,7 +218,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   form: {
-    gap: 15,
+    gap: 3,
   },
   forgotPassword: {
     textAlign: "right",
@@ -236,8 +228,7 @@ const styles = StyleSheet.create({
   lineStyle: {
     flexDirection: "row",
     marginTop: 15,
-    marginLeft: 15,
-    marginRight: 15,
+    marginHorizontal: 15,
     alignItems: "center",
   },
   footer: {
