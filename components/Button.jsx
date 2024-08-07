@@ -39,11 +39,11 @@ export default Button
 const styles = StyleSheet.create({
     button:{
         backgroundColor: theme.colors.primary,
-        height: hp(8.6),
+        height: hp(7),
         justifyContent: 'center',
         alignItems: 'center',
         borderCurve: 'continuous',
-        borderRadius: theme.radius.xl
+        borderRadius: theme.radius.md
     },
     text: {
         fontSize: hp(2.5),

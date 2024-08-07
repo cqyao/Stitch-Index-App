@@ -5,14 +5,12 @@ import {
   Image,
   Pressable,
   KeyboardAvoidingView,
-  TouchableOpacity,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { theme } from "../constants/theme";
 import { StatusBar } from "expo-status-bar";
-import { router, useNavigation } from "expo-router";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import { hp, wp } from "../helpers/common";
 import Button from "../components/GoogleButton";
 import MainButton from "../components/Button";
@@ -20,22 +18,24 @@ import Input from "../components/Input";
 import { auth } from "../firebaseConfig";
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
   onAuthStateChanged,
 } from "firebase/auth";
 
 const Signup = () => {
   // const router = useRouter();
-
+  const [fName, setFName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(true); // Add a state to switch between sign up and login
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const nav = useNavigation();
 
   const handleSignUp = () => {
-    if (!email || !password) {
-      console.error("Email and password are required");
+    if (password != confirmPassword) {
+      console.error("Passwords do not match");
+      return;
+    }
+    if (!email || !password || !fName) {
+      console.error("Some fields are missing");
       return;
     }
     createUserWithEmailAndPassword(auth, email, password)
@@ -97,9 +97,8 @@ const Signup = () => {
           <Text style={styles.label}>Full Name</Text>
           <Input
             placeholder="Enter your full name"
-            value={password}
-            secureTextEntry
-            onChangeText={(text: string) => setPassword(text)}
+            value={fName}
+            onChangeText={(text: string) => setFName(text)}
           />
         </KeyboardAvoidingView>
         <KeyboardAvoidingView style={styles.form}>
@@ -107,6 +106,7 @@ const Signup = () => {
           <Input
             placeholder="Enter your email"
             value={email}
+            autoCapitalize="none"
             onChangeText={(text: string) => setEmail(text)}
           />
         </KeyboardAvoidingView>
@@ -123,9 +123,9 @@ const Signup = () => {
           <Text style={styles.label}>Confirm Password</Text>
           <Input
             placeholder="Re-enter your password"
-            value={password}
+            value={confirmPassword}
             secureTextEntry
-            onChangeText={(text: string) => setPassword(text)} // Check if passwords are equal
+            onChangeText={(text: string) => setConfirmPassword(text)} // Check if passwords are equal
           />
         </KeyboardAvoidingView>
         <View style={styles.mainbutton}>
@@ -138,17 +138,15 @@ const Signup = () => {
             textStyle={undefined}
           />
         </View>
-        <View>
-          <Text style={styles.forgotPassword}>Forgot Password?</Text>
-        </View>
+        
         <View style={styles.footer}>
           <View style={styles.bottomTextContainer}>
             <Text style={styles.footerText}>
-              {isSignUp ? "Already have an account?" : "Don't have an account?"}
+              Already have an account?
             </Text>
-            <Pressable>
+            <Pressable onPress={()=> router.back()}>
               <Text style={[styles.footerText, styles.signupText]}>
-                Sign Up
+                Sign In
               </Text>
             </Pressable>
           </View>
@@ -239,12 +237,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 5,
   },
   footerText: {
     textAlign: "center",
     color: theme.colors.text,
     fontSize: hp(1.6),
-    paddingVertical: 50,
   },
 });

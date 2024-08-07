@@ -137,25 +137,17 @@ const Signup = () => {
             textStyle={undefined}
           />
         </View>
-        <View style={styles.mainbutton}>
-          <MainButton
-            title={"Sign Up"}
-            onPress={() => router.push("./signup")}
-            buttonStyle={undefined}
-            textStyle={undefined}
-          />
-        </View>
         <View>
           <Text style={styles.forgotPassword}>Forgot Password?</Text>
         </View>
         <View style={styles.footer}>
           <View style={styles.bottomTextContainer}>
             <Text style={styles.footerText}>
-              {isSignUp ? "Already have an account?" : "Don't have an account?"}
+              Don't have an account?
             </Text>
-            <Pressable onPress={() => setIsSignUp(!isSignUp)}>
+            <Pressable onPress={()=> router.push("./signup")}>
               <Text style={[styles.footerText, styles.signupText]}>
-                {isSignUp ? "Login" : "Sign-up"}
+                Sign Up
               </Text>
             </Pressable>
           </View>
@@ -226,7 +218,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   form: {
-    gap: 15,
+    gap: 10,
   },
   forgotPassword: {
     textAlign: "right",

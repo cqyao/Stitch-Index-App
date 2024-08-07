@@ -39,11 +39,11 @@ export default GoogleButton
 const styles = StyleSheet.create({
     button:{
         backgroundColor: 'transparent',
-        height: hp(8.6),
+        height: hp(8),
         justifyContent: 'center',
         alignItems: 'center',
         borderCurve: 'continuous',
-        borderRadius: theme.radius.xl,
+        borderRadius: theme.radius.md,
         borderColor: '#00D6B5',
         borderWidth: 1,
 
