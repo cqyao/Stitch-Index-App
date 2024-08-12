@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, SafeAreaView, StyleSheet, View, Image } from 'react-native';
+import { Text, TouchableOpacity, SafeAreaView, StyleSheet, View, Image, Pressable } from 'react-native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { NavigationContainer } from '@react-navigation/native';
@@ -30,7 +30,7 @@ const Dashboard = () => {
       <View style={styles.panel}>
         <View style={styles.searchInput}>
         <Input
-            placeholder='Enter your username'
+            placeholder='Search'
             onChangeText={()=>{}}
         />
         </View>
@@ -39,7 +39,9 @@ const Dashboard = () => {
           <View style={styles.row}>
             <Features name="My Patients" icon="user" />
             <Features name="Research" icon="book" /> 
-            <Features name="Calendar" icon="calendar" />
+            <Pressable style={styles.featurePressable} onPress={() => router.navigate("calendar")}>
+              <Features name="Calendar" icon="calendar" />
+            </Pressable>
           </View>
         </View>
         <View style={styles.appointments}>
@@ -144,6 +146,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
+  },
+  featurePressable: {
+    width: '100%'
   }
 })
 

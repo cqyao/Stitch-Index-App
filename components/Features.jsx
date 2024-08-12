@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet} from 'react-native'
 import React from 'react'
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 
-const Features = ({ name, icon }) => {
+const Features = ({ name, icon}) => {
   return (
     <View style={styles.container}>
       <View style={styles.box}>
