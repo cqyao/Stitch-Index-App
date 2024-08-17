@@ -24,13 +24,13 @@ export default Input
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        height: hp(8.6),
+        height: hp(7),
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 0.4,
         borderColor: '#00D6B5',
         borderWidth: 1,
-        borderRadius: theme.radius.xxl,
+        borderRadius: theme.radius.md,
         borderCurve: 'continuous',
         paddingHorizontal: 18,
         gap: 12

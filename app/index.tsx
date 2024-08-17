@@ -80,69 +80,72 @@ const Signup = () => {
   // }, []);
 
   return (
-      <ScreenWrapper bg="white">
-        <StatusBar style="dark" />
-        <View style={styles.container}>
-          <Animated.Image entering={FadeInUp.delay(200).duration(1000).springify()} style={styles.logo} source={require("../assets/images/Logo.png")} />
-          <Animated.View entering={FadeInUp.delay(400).duration(1000).springify()}>
-            <Text style={styles.loginText}>
-              {isSignUp ? "Sign Up" : "Login to Account"}
+    <ScreenWrapper bg="white">
+      <StatusBar style="dark" />
+      <View style={styles.container}>
+        <Image style={styles.logo} source={require("../assets/images/Logo.png")} />
+        <View>
+          <Text style={styles.loginText}>
+            {isSignUp ? "Sign Up" : "Login to Account"}
+          </Text>
+        </View>
+        <View style={styles.form}>
+          <Text style={styles.formText}>
+            {isSignUp
+              ? "Create a new account"
+              : "Log in to continue with your account"}
+          </Text>
+        </View>
+        <View style={styles.form}>
+          <Image style={styles.google} source={require("../assets/images/Google.png")} />
+          <Button
+            title={`Sign in With Google`}
+            onPress={() => {}}
+            buttonStyle={undefined}
+            textStyle={undefined}
+          />
+        </View>
+        <View style={styles.lineStyle}>
+          <View style={styles.line} />
+          <Text style={styles.orText}>OR</Text>
+          <View style={styles.line} />
+        </View>
+        <KeyboardAvoidingView style={styles.form}>
+          <Text style={styles.label}>Email Address</Text>
+          <Input
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={(text: string) => setEmail(text)}
+          />
+        </KeyboardAvoidingView>
+        <KeyboardAvoidingView style={styles.form} behavior="padding">
+          <Text style={styles.label}>Password</Text>
+          <Input
+            placeholder="Enter your password"
+            value={password}
+            secureTextEntry
+            onChangeText={(text: string) => setPassword(text)}
+          />
+        </KeyboardAvoidingView>
+        <View style={styles.mainbutton}>
+          <MainButton
+            title={"Sign In"}
+            onPress={handleLogin}
+            buttonStyle={undefined}
+            textStyle={undefined}
+          />
+        </View>
+        <View>
+          <Text style={styles.forgotPassword}>Forgot Password?</Text>
+        </View>
+        <View style={styles.footer}>
+          <View style={styles.bottomTextContainer}>
+            <Text style={styles.footerText}>
+              Don't have an account?
             </Text>
-          </Animated.View>
-          <View style={styles.form}>
-            <Text style={styles.formText}>
-              {/*{isSignUp*/}
-              {/*    ? "Create a new account"*/}
-              {/*    : "Log in to continue with your account"}*/}
-            </Text>
-          </View>
-          <Animated.View entering={FadeInUp.delay(600).duration(1000).springify()} style={styles.form}>
-            <Image style={styles.google} source={require("../assets/images/Google.png")} />
-            <Button
-                title={`Sign in With Google`}
-                onPress={() => {}}
-                buttonStyle={undefined}
-                textStyle={undefined}
-            />
-          </Animated.View>
-          <Animated.View entering={FadeIn.delay(200).duration(1000).springify()} style={styles.lineStyle}>
-            <View style={styles.line} />
-            <Text style={styles.orText}>OR</Text>
-            <View style={styles.line} />
-          </Animated.View>
-          <Animated.View entering={FadeInDown.duration(1000).springify()}>
-            <KeyboardAvoidingView style={styles.form}>
-              <Text style={styles.label}>Email Address</Text>
-              <Input
-                  placeholder="Enter your email"
-                  value={email}
-                  onChangeText={(text: string) => setEmail(text)}
-              />
-            </KeyboardAvoidingView>
-          </Animated.View>
-          <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()}>
-            <KeyboardAvoidingView style={styles.form} behavior="padding">
-              <Text style={styles.label}>Password</Text>
-              <Input
-                  placeholder="Enter your password"
-                  value={password}
-                  secureTextEntry
-                  onChangeText={(text: string) => setPassword(text)}
-              />
-            </KeyboardAvoidingView>
-          </Animated.View>
-          <Animated.View entering={FadeInDown.delay(400).duration(1000).springify()} style={styles.mainbutton}>
-            <MainButton
-                title={"Sign In"}
-                onPress={handleLogin}
-                buttonStyle={undefined}
-                textStyle={undefined}
-            />
-          </Animated.View>
-          <View style={styles.footer}>
-            <Animated.View entering={FadeInDown.delay(600).duration(1000).springify()} style={styles.bottomTextContainer}>
-              <Text style={styles.footerText}>
-                {isSignUp ? "Already have an account?" : "Don't have an account?"}
+            <Pressable onPress={()=> router.push("./signup")}>
+              <Text style={[styles.footerText, styles.signupText]}>
+                Sign Up
               </Text>
               <Pressable onPress={() => router.push({pathname: "./signup"})}>
                 <Text style={[styles.footerText, styles.signupText]}>
@@ -224,7 +227,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   form: {
-    gap: 20,
+    gap: 10,
+  },
+  forgotPassword: {
+    textAlign: "right",
+    fontWeight: "semibold",
+    color: theme.colors.text,
   },
   lineStyle: {
     flexDirection: "row",

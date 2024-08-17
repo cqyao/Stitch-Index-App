@@ -1,7 +1,10 @@
 /* eslint-disable */
 import * as Router from 'expo-router';
 
-export * from 'expo-router';
+export namespace ExpoRouter {
+  type StaticRoutes = `/` | `/_sitemap` | `/dashboard` | `/signup`;
+  type DynamicRoutes<T extends string> = never;
+  type DynamicRouteTemplate = never;
 
 declare module 'expo-router' {
   export namespace ExpoRouter {
