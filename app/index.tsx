@@ -62,7 +62,7 @@ const Signup = () => {
         // Logged in
         const user = userCredential.user;
         console.log("Logged In With: ", user.email);
-        router.navigate("dashboard");
+        router.navigate("./dashboard");
       })
       .catch((error) => {
         console.error("Error signing in:", error);
@@ -73,7 +73,7 @@ const Signup = () => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("User Logged In: ", user.email);
-        router.push("/home");
+        router.push("./home");
       } else {
         console.log("User Logged Out");
       }
