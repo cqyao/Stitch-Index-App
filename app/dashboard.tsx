@@ -10,11 +10,25 @@ import {Dimensions} from 'react-native';
 
 import Features from "../components/Features";
 import Appointment from "../components/Appointment";
+import { auth } from "../firebaseConfig";
+import { Button, Alert } from 'react-native';
 
 
 const Dashboard = () => {
     const router = useRouter();
     const navigation = useNavigation();
+
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut();
+      Alert.alert("Success", "You have been signed out.");
+      router.navigate({pathname: './index'});
+    } catch (error) {
+      Alert.alert("Error", "An error occurred while signing out.");
+      console.error("Error signing out: ", error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
     <View style={styles.stitch}>
@@ -22,7 +36,7 @@ const Dashboard = () => {
     </View>
       <View style={styles.banner}>
         <Text></Text>
-        <TouchableOpacity style={styles.profilePic} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.profilePic} onPress={() => handleSignOut()}>
           <MaterialIcons name="face" size={40} color="black" />
         </TouchableOpacity>
       </View>
@@ -39,7 +53,7 @@ const Dashboard = () => {
           <View style={styles.row}>
             <Features name="My Patients" icon="user" />
             <Features name="Research" icon="book" /> 
-            <Pressable style={styles.featurePressable} onPress={() => router.navigate("calendar")}>
+            <Pressable style={styles.featurePressable} onPress={() => router.push({pathname: "./calendar"})}>
               <Features name="Calendar" icon="calendar" />
             </Pressable>
           </View>
