@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     form: {
-        gap: 20,
+        gap: 5,
     },
     lineStyle: {
         flexDirection: "row",
