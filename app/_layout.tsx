@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import React from "react";
+import SignIn from "@/app/signIn";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,6 +29,7 @@ export default function RootLayout() {
         <Stack initialRouteName={"index"}>
           {/*<Stack.Screen options={{ headerShown: false }} name="app" />*/}
           <Stack.Screen options={{ headerShown: false }} name="index" />
+          <Stack.Screen options={{ headerShown: false }} name="signIn" />
           <Stack.Screen options={{ headerShown: false }} name="signup" />
           <Stack.Screen options={{ headerShown: false }} name="dashboard" />
           <Stack.Screen options={{ headerShown: false }} name="calendar" />
