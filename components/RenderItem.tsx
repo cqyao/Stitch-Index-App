@@ -9,6 +9,7 @@ import Animated, {
 import {OnboardingData} from './data';
 import LottieView from 'lottie-react-native';
 
+
 type Props = {
     index: number;
     x: SharedValue<number>;
