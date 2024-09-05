@@ -71,7 +71,7 @@ const Signup = () => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("User Logged In: ", user.email);
-        router.push("./home");
+        router.push("./dashboard");
       } else {
         console.log("User Logged Out");
       }
