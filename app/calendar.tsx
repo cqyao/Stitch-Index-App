@@ -7,6 +7,7 @@ import MainButton from "../components/Button";
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { Link, useNavigation, useRouter } from "expo-router";
 import { todayString } from 'react-native-calendars/src/expandableCalendar/commons';
+import AppointmentCard from '@/components/AppointmentCard';
 
 export default function CalendarPage() {
 
@@ -71,7 +72,7 @@ export default function CalendarPage() {
 
                 // Setup the marked dates feature to be the date selected by user (NOTE** We will also have to set up marked dates for appoinment dates)
                 markedDates={{
-                    [selectedDate]: { selected: true, marked: false, selectedColor: '#ffffff' },
+                    [selectedDate || '']: { selected: true, marked: false, selectedColor: '#ffffff' },
                 }}
 
                 // On Date Changed Functions -> We can use this to gather the current selectd date to search for appointments
@@ -122,79 +123,7 @@ export default function CalendarPage() {
 
                     {/*This is the beginning of the scroll view*/}
                     <ScrollView>
-
-                    {/*This is an appointment object to demonstrate appointment populating*/}
-                    <View style={styles.container}>
-                        <View style={{flexDirection: "row"}}>
-                            <MaterialIcons style={{padding: 1}} name="access-time" size={15} color="#7D7D7D" />
-                            <Text style={styles.timeText}>Time</Text>
-                        </View>
-                        <View style={{marginTop: 4, borderBottomColor: 'orange', borderBottomWidth: 2,}}/>
-                        <View style={{flexDirection: "row"}}>
-                            <MaterialIcons style={{marginTop: 10,}}name="face" size={60} color="black" />
-                            <Text style={[styles.timeText, {marginTop: 20, marginLeft: 10,}]}>Name</Text>
-                            <TouchableOpacity style={{marginTop: 20, marginLeft: 130,}} onPress={() => router.back()}>
-                                <MaterialIcons name="arrow-forward-ios" size={40} color="#808080" />
-                            </TouchableOpacity>
-                        </View>
-                            <Text style={[styles.timeText, {marginTop: -30, marginLeft: 70, color: '#808080', fontWeight: 'normal'}]}>Appointment Type</Text>
-                            <View style={{marginTop: 20, borderBottomColor: 'orange', borderBottomWidth: 2,}}/>
-                    </View>
-
-                    {/*This is an appointment object to demonstrate appointment populating*/}
-                    <View style={styles.container}>
-                        <View style={{flexDirection: "row"}}>
-                            <MaterialIcons style={{padding: 1}} name="access-time" size={15} color="#7D7D7D" />
-                            <Text style={styles.timeText}>Time</Text>
-                        </View>
-                        <View style={{marginTop: 4, borderBottomColor: 'orange', borderBottomWidth: 2,}}/>
-                        <View style={{flexDirection: "row"}}>
-                            <MaterialIcons style={{marginTop: 10,}}name="face" size={60} color="black" />
-                            <Text style={[styles.timeText, {marginTop: 20, marginLeft: 10,}]}>Name</Text>
-                            <TouchableOpacity style={{marginTop: 20, marginLeft: 130,}} onPress={() => router.back()}>
-                                <MaterialIcons name="arrow-forward-ios" size={40} color="#808080" />
-                            </TouchableOpacity>
-                        </View>
-                            <Text style={[styles.timeText, {marginTop: -30, marginLeft: 70, color: '#808080', fontWeight: 'normal'}]}>Appointment Type</Text>
-                            <View style={{marginTop: 20, borderBottomColor: 'orange', borderBottomWidth: 2,}}/>
-                    </View>
-
-                    {/*This is an appointment object to demonstrate appointment populating*/}
-                    <View style={styles.container}>
-                        <View style={{flexDirection: "row"}}>
-                            <MaterialIcons style={{padding: 1}} name="access-time" size={15} color="#7D7D7D" />
-                            <Text style={styles.timeText}>Time</Text>
-                        </View>
-                        <View style={{marginTop: 4, borderBottomColor: 'orange', borderBottomWidth: 2,}}/>
-                        <View style={{flexDirection: "row"}}>
-                            <MaterialIcons style={{marginTop: 10,}}name="face" size={60} color="black" />
-                            <Text style={[styles.timeText, {marginTop: 20, marginLeft: 10,}]}>Name</Text>
-                            <TouchableOpacity style={{marginTop: 20, marginLeft: 130,}} onPress={() => router.back()}>
-                                <MaterialIcons name="arrow-forward-ios" size={40} color="#808080" />
-                            </TouchableOpacity>
-                        </View>
-                            <Text style={[styles.timeText, {marginTop: -30, marginLeft: 70, color: '#808080', fontWeight: 'normal'}]}>Appointment Type</Text>
-                            <View style={{marginTop: 20, borderBottomColor: 'orange', borderBottomWidth: 2,}}/>
-                    </View>
-
-                    {/*This is an appointment object to demonstrate appointment populating*/}
-                    <View style={styles.container}>
-                        <View style={{flexDirection: "row"}}>
-                            <MaterialIcons style={{padding: 1}} name="access-time" size={15} color="#7D7D7D" />
-                            <Text style={styles.timeText}>Time</Text>
-                        </View>
-                        <View style={{marginTop: 4, borderBottomColor: 'orange', borderBottomWidth: 2,}}/>
-                        <View style={{flexDirection: "row"}}>
-                            <MaterialIcons style={{marginTop: 10,}}name="face" size={60} color="black" />
-                            <Text style={[styles.timeText, {marginTop: 20, marginLeft: 10,}]}>Name</Text>
-                            <TouchableOpacity style={{marginTop: 20, marginLeft: 130,}} onPress={() => router.back()}>
-                                <MaterialIcons name="arrow-forward-ios" size={40} color="#808080" />
-                            </TouchableOpacity>
-                        </View>
-                            <Text style={[styles.timeText, {marginTop: -30, marginLeft: 70, color: '#808080', fontWeight: 'normal'}]}>Appointment Type</Text>
-                            <View style={{marginTop: 20, borderBottomColor: 'orange', borderBottomWidth: 2,}}/>
-                    </View>
-
+					    <AppointmentCard time="Fri Nov1 - 8:30am : 9:30pm" name="Dr John Le"/>
                     </ScrollView>
                 </BottomSheetView>
             </BottomSheet>
@@ -220,9 +149,11 @@ const styles = StyleSheet.create({
     toggle: {
         flexDirection:"row", 
         marginTop: 15,
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         backgroundColor: '#d9e1e8',
         borderRadius: 17,
+        height: 60,
+        alignItems: "center",
     },
     container: {
         backgroundColor: '#ffffff',
@@ -242,7 +173,7 @@ const styles = StyleSheet.create({
     buttonStyle: {
         height: 50,
         width: 150,
-        marginHorizontal: 3,
+        margin: 10,
     },
     buttonBacking: {
         backgroundColor: '#808080',
