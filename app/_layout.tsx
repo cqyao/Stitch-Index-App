@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import React from "react";
+import SignIn from "@/app/signIn";
 
 SplashScreen.preventAutoHideAsync();
 

@@ -22,7 +22,7 @@ const Dashboard = () => {
     try {
       await auth.signOut();
       Alert.alert("Success", "You have been signed out.");
-      router.navigate({pathname: './index'});
+      router.navigate({pathname: './signIn'});
     } catch (error) {
       Alert.alert("Error", "An error occurred while signing out.");
       console.error("Error signing out: ", error);
