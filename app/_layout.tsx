@@ -30,11 +30,13 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Stack initialRouteName={"index"}>
           {/*<Stack.Screen options={{ headerShown: false }} name="app" />*/}
+
           <Stack.Screen options={{ headerShown: showHeader }} name="index" />
           <Stack.Screen options={{ headerShown: showHeader }} name="signup" />
           <Stack.Screen options={{ headerShown: showHeader }} name="dashboard" />
           <Stack.Screen options={{ headerShown: showHeader }} name="calendar" />
           <Stack.Screen options={{ headerShown: showHeader }} name="appointment" />
+
         </Stack>
       </GestureHandlerRootView>
   );
