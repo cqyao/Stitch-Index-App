@@ -52,7 +52,9 @@ const Dashboard = () => {
           <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
           <View style={styles.row}>
             <Features name="My Patients" icon="user" />
-            <Features name="Research" icon="book" /> 
+            <Pressable style={styles.featurePressable} onPress={() => router.push({pathname: './research'})}>
+              <Features name="Research" icon="book" /> 
+            </Pressable>
             <Pressable style={styles.featurePressable} onPress={() => router.push({pathname: "./calendar"})}>
               <Features name="Calendar" icon="calendar" />
             </Pressable>
