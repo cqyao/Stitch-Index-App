@@ -1,5 +1,5 @@
 import {StyleSheet, View, FlatList, ViewToken} from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import Animated, {
     useSharedValue,
     useAnimatedScrollHandler,
@@ -29,6 +29,7 @@ const OnboardingScreen = () => {
         onScroll: event => {
             x.value = event.contentOffset.x;
         },
+
     });
 
     return (

@@ -9,7 +9,7 @@ const Button = ({
     title='',
     onPress=()=>{},
     loading = false,
-    hasShadow = true,
+    hasShadow = false,
 }) => {
     const shadowStyle = {
         shadowColor: theme.colors.dark,
