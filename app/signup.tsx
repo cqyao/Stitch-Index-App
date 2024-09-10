@@ -5,6 +5,7 @@ import {
     Image,
     Pressable,
     KeyboardAvoidingView,
+    Alert
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import ScreenWrapper from "../components/ScreenWrapper";
@@ -15,115 +16,195 @@ import { hp, wp } from "../helpers/common";
 import Button from "../components/GoogleButton";
 import MainButton from "../components/Button";
 import Input from "../components/Input";
-import { auth } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig";
+import { doc, setDoc } from 'firebase/firestore';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     onAuthStateChanged,
 } from "firebase/auth";
-import Animated, {FadeIn, FadeOut, FadeInUp, FadeInDown} from "react-native-reanimated";
-
+import Animated, {FadeIn, FadeOut, FadeInUp, FadeInDown, FadeOutUp, FadeOutDown} from "react-native-reanimated";
 
 const Signup = () => {
 
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [firstName, setFirstName] = useState(''); // First Name input state
+    const [lastName, setLastName] = useState('');   // Last Name input state
     const [isSignUp, setIsSignUp] = useState(true); // Add a state to switch between sign up and login
+    const [visible, setVisibleSignup] = useState(false);
+    const [visibleV2, setVisibleSignupV2] = useState(false);
 
-    const handleSignUp = () => {
-        if (!email || !password) {
-            console.error("Email and password are required");
-            return;
-        }
-        createUserWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                // Signed up
-                const user = userCredential.user;
-                console.log("User Signed Up: ", user.email);
-                router.push({
-                    pathname: "./dashboard",
-                });
-            })
-            .catch((error) => {
-                console.error("Error signing up:", error);
-            });
+    const [loading, setLoading] = useState(false);  // Loading state
+
+    const handleToggle = () => {
+        setVisibleSignup(!visible);
     };
 
-    // useEffect(() => {
-    //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-    //     if (user) {
-    //       console.log("User Logged In: ", user.email);
-    //       router.push("/home");
-    //     } else {
-    //       console.log("User Logged Out");
-    //     }
-    //   });
-    //   return unsubscribe;
-    // }, []);
+    const handleToggleV2 = () => {
+        setVisibleSignupV2(!visibleV2);
+    };
+
+    const handleSignUp = async () => {
+        if (!firstName || !lastName || !email || !password) {
+            Alert.alert('Error', 'Please fill in all fields.');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            // Create user with Firebase Authentication
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            // Store user details (First Name and Last Name) in Firestore
+            await setDoc(doc(db, 'users', user.uid), {
+                firstName: firstName,
+                lastName: lastName,
+                email: user.email,
+                uid: user.uid,
+                createdAt: new Date(),
+            });
+
+            router.push({pathname: "./dashboard"})
+        } catch (error) {
+            console.error('Error signing up:', error);
+            Alert.alert('Error');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <ScreenWrapper bg="white">
             <StatusBar style="dark" />
             <View style={styles.container}>
-                <Animated.Image entering={FadeInUp.delay(300).duration(1000).springify()} style={styles.logo} source={require("../assets/images/Logo.png")} />
-                <Animated.View entering={FadeInUp.delay(500).duration(1000).springify()}>
-                    <Text style={styles.loginText}>
-                        {isSignUp ? "Sign Up" : "Login to Account"}
-                    </Text>
-                </Animated.View>
+                <Animated.Image
+                    exiting={FadeOutUp.delay(300).duration(1000).springify()}
+                    entering={FadeInUp.delay(300).duration(1000).springify()}
+                    style={styles.logo}
+                    source={require("../assets/images/Logo.png")}
+                />
+
+                {!visible && (
+                    <Animated.View
+                        entering={FadeInUp.delay(500).duration(1000).springify()}
+                        exiting={FadeOutUp.delay(0).duration(1000).springify()}
+                    >
+                        <Text style={styles.loginText}>
+                            {isSignUp ? "Sign Up" : "Login to Account"}
+                        </Text>
+                    </Animated.View>
+                )}
+                {visible && (
+                    <Animated.View
+                        entering={FadeInUp.delay(500).duration(1000).springify()}
+                        exiting={FadeOutUp.delay(0).duration(1000).springify()}
+                    >
+                        <Text style={styles.loginText}>
+                            Welcome {firstName}
+                        </Text>
+                    </Animated.View>
+                )}
                 <View style={styles.form}>
-                    <Text style={styles.formText}>
-                        {/*{isSignUp*/}
-                        {/*    ? "Create a new account"*/}
-                        {/*    : "Log in to continue with your account"}*/}
-                    </Text>
+                    <Text style={styles.formText}></Text>
                 </View>
-                {/*<Animated.View entering={FadeInUp.delay(600).duration(1000).springify()} style={styles.form}>*/}
-                {/*  <Image style={styles.google} source={require("../assets/images/Google.png")} />*/}
-                {/*  <Button*/}
-                {/*      title={`Sign Up With Google`}*/}
-                {/*      onPress={() => {}}*/}
-                {/*      buttonStyle={undefined}*/}
-                {/*      textStyle={undefined}*/}
-                {/*  />*/}
-                {/*</Animated.View>*/}
-                {/*<Animated.View entering={FadeIn.delay(200).duration(1000).springify()} style={styles.lineStyle}>*/}
-                {/*  <View style={styles.line} />*/}
-                {/*  <Text style={styles.orText}>OR</Text>*/}
-                {/*  <View style={styles.line} />*/}
-                {/*</Animated.View>*/}
-                <Animated.View entering={FadeInDown.delay(100).duration(1000).springify()}>
-                    <KeyboardAvoidingView style={styles.form}>
-                        <Text style={styles.label}>Email Address</Text>
-                        <Input
-                            placeholder="Enter your email"
-                            value={email}
-                            onChangeText={(text: string) => setEmail(text)}
+                {visible && (
+                    <Animated.View
+                        entering={FadeInDown.delay(400).duration(1000).springify()}
+                        exiting={FadeOutDown.delay(0).duration(1000).springify()}
+                    >
+                        <KeyboardAvoidingView style={styles.form}>
+                            <Text style={styles.label}>Email Address</Text>
+                            <Input
+                                placeholder="Enter your email"
+                                value={email}
+                                onChangeText={(text: string) => setEmail(text)}
+                            />
+                        </KeyboardAvoidingView>
+                    </Animated.View>
+                )}
+                {visible && (
+                    <Animated.View
+                        entering={FadeInDown.delay(500).duration(1000).springify()}
+                        exiting={FadeOutDown.delay(250).duration(1000).springify()}
+                    >
+                        <KeyboardAvoidingView style={styles.form} behavior="padding">
+                            <Text style={styles.label}>Password</Text>
+                            <Input
+                                placeholder="Enter your password"
+                                value={password}
+                                secureTextEntry
+                                onChangeText={(text: string) => setPassword(text)}
+                            />
+                        </KeyboardAvoidingView>
+                    </Animated.View>
+                )}
+                {!visible && (
+                    <Animated.View
+                        entering={FadeInDown.delay(400).duration(1000).springify()}
+                        exiting={FadeOutDown.delay(0).duration(1000).springify()}
+                    >
+                        <KeyboardAvoidingView style={styles.form}>
+                            <Text style={styles.label}>First Name</Text>
+                            <Input
+                                placeholder="Enter your First Name"
+                                value={firstName}
+                                onChangeText={(text: string) => setFirstName(text)}
+                            />
+                        </KeyboardAvoidingView>
+                    </Animated.View>
+                )}
+                {!visible && (
+                    <Animated.View
+                        entering={FadeInDown.delay(500).duration(1000).springify()}
+                        exiting={FadeOutDown.delay(250).duration(1000).springify()}
+                    >
+                        <KeyboardAvoidingView style={styles.form} behavior="padding">
+                            <Text style={styles.label}>Last Name</Text>
+                            <Input
+                                placeholder="Last Name"
+                                value={lastName}
+                                onChangeText={(text: string) => setLastName(text)}
+                            />
+                        </KeyboardAvoidingView>
+                    </Animated.View>
+                )}
+                {!visible && (
+                    <Animated.View
+                        entering={FadeInDown.delay(500).duration(1000).springify()}
+                        // exiting={FadeOutDown.delay(500).duration(1000).springify()}
+                        style={styles.mainbutton}
+                    >
+                        <MainButton
+                            title={"Sign Up"}
+                            onPress={handleToggle}
+                            buttonStyle={undefined}
+                            textStyle={undefined}
                         />
-                    </KeyboardAvoidingView>
-                </Animated.View>
-                <Animated.View entering={FadeInDown.delay(300).duration(1000).springify()}>
-                    <KeyboardAvoidingView style={styles.form} behavior="padding">
-                        <Text style={styles.label}>Password</Text>
-                        <Input
-                            placeholder="Enter your password"
-                            value={password}
-                            secureTextEntry
-                            onChangeText={(text: string) => setPassword(text)}
+                    </Animated.View>
+                )}
+                {visible && (
+                    <Animated.View
+                        // entering={FadeInDown.delay(500).duration(1000).springify()}
+                        // exiting={FadeOutDown.delay(500).duration(1000).springify()}
+                        style={styles.mainbutton}
+                    >
+                        <MainButton
+                            title={"Sign Up"}
+                            onPress={handleToggle}
+                            buttonStyle={undefined}
+                            textStyle={undefined}
                         />
-                    </KeyboardAvoidingView>
-                </Animated.View>
-                <Animated.View entering={FadeInDown.delay(500).duration(1000).springify()} style={styles.mainbutton}>
-                    <MainButton
-                        title={"Sign Up"}
-                        onPress={handleSignUp}
-                        buttonStyle={undefined}
-                        textStyle={undefined}
-                    />
-                </Animated.View>
+                    </Animated.View>
+                )}
                 <View style={styles.footer}>
-                    <Animated.View entering={FadeInDown.delay(700).duration(1000).springify()} style={styles.bottomTextContainer}>
+                    <Animated.View
+                        entering={FadeInDown.delay(700).duration(1000).springify()}
+                        exiting={FadeOutDown.delay(700).duration(1000).springify()}
+                        style={styles.bottomTextContainer}
+                    >
                         <Text style={styles.footerText}>
                             {isSignUp ? "Already have an account?" : "Don't have an account?"}
                         </Text>
@@ -150,8 +231,6 @@ const styles = StyleSheet.create({
     },
     logo: {
         alignSelf: "center",
-        // width: wp(40),
-        // height: hp(20),
         resizeMode: "contain",
     },
     google: {
@@ -177,7 +256,7 @@ const styles = StyleSheet.create({
         textAlign: "left",
         fontFamily: "Inter",
         marginLeft: wp(2),
-        marginTop: hp(1),
+        marginTop: hp(3),
     },
     line: {
         flex: 1,
@@ -205,7 +284,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     form: {
-        gap: 5,
+        gap: 10,
     },
     lineStyle: {
         flexDirection: "row",
@@ -215,31 +294,29 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     textContainer: {
-        marginTop: hp(4), // Adjust this value to increase/decrease the space between "Sign In" button and texts
+        marginTop: hp(4),
     },
     footer: {
         gap: 10,
         width: "100%",
-        marginTop: hp(2), // Adjust this value to increase/decrease the space between the texts
+        marginTop: hp(2),
     },
     bottomTextContainer: {
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
         gap: 5,
-        marginTop: hp(2), // Adjust this value to increase/decrease the space between the texts
+        marginTop: hp(2),
     },
     footerText: {
         textAlign: "center",
         color: theme.colors.text,
         fontSize: hp(1.6),
-        paddingVertical: 20, // Adjust padding if needed
+        paddingVertical: 20,
     },
     forgotPassword: {
         textAlign: "center",
         fontWeight: "semibold",
         color: theme.colors.text,
-        // marginTop: hp(1), // Add marginTop to create space below "Forgot Password?"
     },
 });
-
