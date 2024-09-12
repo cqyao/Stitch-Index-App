@@ -51,7 +51,9 @@ const Dashboard = () => {
         <View style={styles.features}>
           <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
           <View style={styles.row}>
-            <Features name="My Patients" icon="user" />
+            <Pressable style={styles.featurePressable}>
+              <Features name="My Patients" icon="user" />
+            </Pressable>
             <Pressable style={styles.featurePressable} onPress={() => router.push({pathname: './research'})}>
               <Features name="Research" icon="book" /> 
             </Pressable>
@@ -132,7 +134,6 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row", 
     justifyContent: "space-between", 
-    gap: 10
   },
   appointments: {
     marginHorizontal: 40,
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   featurePressable: {
-    width: '100%'
+    width: '30%',
   }
 })
 

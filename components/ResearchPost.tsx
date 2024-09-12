@@ -10,6 +10,21 @@ interface ResearchPostProps {
 }
 
 const ResearchPost: React.FC<ResearchPostProps> = ({ name, likes, comments, imageSource }) => {
+  function RenderImage() {
+    return (
+      <View>
+        {imageSource != "" ? (
+          <Image 
+          source={typeof imageSource === 'string' ? { uri: imageSource } : imageSource}
+          style={{height: 200, width: '100%', marginTop: 10, borderRadius: 5}}
+          />
+        ) : (
+          <View />
+        )
+        }
+      </View>
+    )
+  }
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -32,10 +47,7 @@ const ResearchPost: React.FC<ResearchPostProps> = ({ name, likes, comments, imag
           nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in 
           reprehender
         </Text>
-        <Image 
-          source={typeof imageSource === 'string' ? { uri: imageSource } : imageSource}
-          style={{height: 200, width: '100%', marginTop: 10, borderRadius: 5}}
-        />
+        <RenderImage />
       </View>
       {/* Interactions */}
       <View style={styles.interactions}>

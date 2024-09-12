@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Pressable } from 'react-native';
 import React, { useCallback, useRef, useState } from 'react';
 import { Calendar } from 'react-native-calendars';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet'
@@ -8,6 +8,7 @@ import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { Link, useNavigation, useRouter } from "expo-router";
 import { todayString } from 'react-native-calendars/src/expandableCalendar/commons';
 import AppointmentCard from '@/components/AppointmentCard';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function CalendarPage() {
 
@@ -30,13 +31,20 @@ export default function CalendarPage() {
 
     return (
         <View style={{flex: 1,backgroundColor: '#02D6B6'}}>
-            <TouchableOpacity style={styles.backArrow} onPress={() => router.back()}>
-                <MaterialIcons name="arrow-back-ios" size={40} color="#ffffff" />
-            </TouchableOpacity>
-            <Image style={styles.logo} resizeMode="contain" source={require('../assets/images/LogoWhite.png')}/>
-            <TouchableOpacity style={styles.profilePic} onPress={() => router.back()}>
-                <MaterialIcons name="face" size={40} color="black" />
-            </TouchableOpacity>
+          <View style={styles.banner}>
+            <Pressable onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={35} color="white" />
+            </Pressable>
+          <Image
+            source={require('../assets/images/LogoWhite.png')} 
+            resizeMode='contain'
+            style={styles.logo}
+          />
+          <Image 
+            source={require('../assets/images/profilePics/dwayneJo.jpg')}
+            style={{height: 45, width: 45, borderRadius: 90}}
+          />
+      </View>
             <Calendar 
                 // Style
                 style={[styles.calendar, {opacity: isOpen ? 0.2 : 1}]}
@@ -137,10 +145,8 @@ const styles = StyleSheet.create({
         marginTop: -40,
     },
     logo: {
-        alignSelf: "center",
-        flex: 0.3,
-        height: "45%",
-        width: "45%",
+      width: 200,
+      height: 70,
     },
     slide: {
         marginTop: 50,
@@ -203,5 +209,15 @@ const styles = StyleSheet.create({
         color: '#7D7D7D',
         fontSize: 14,
         fontWeight: 'bold',
-    }
+    },
+    banner: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 30,
+        paddingHorizontal: 30,
+        paddingTop: 60,
+        paddingBottom: 30,
+        backgroundColor: "#00D6B5"
+      },
 })
