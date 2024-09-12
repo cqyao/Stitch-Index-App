@@ -17,7 +17,7 @@ const Features = ({ name, icon}) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: "30%",
+    width: "100%",
     alignItems: "center",
   },
   box: {
