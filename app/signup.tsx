@@ -16,14 +16,16 @@ import { hp, wp } from "../helpers/common";
 import Button from "../components/GoogleButton";
 import MainButton from "../components/Button";
 import Input from "../components/Input";
-import { auth, db } from "../firebaseConfig";
+import { auth, db, storage } from "../firebaseConfig";
 import { doc, setDoc } from 'firebase/firestore';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     onAuthStateChanged,
 } from "firebase/auth";
+import ImagePicker from 'react-native-image-picker';
 import Animated, {FadeIn, FadeOut, FadeInUp, FadeInDown, FadeOutUp, FadeOutDown} from "react-native-reanimated";
+import UploadScreen from "@/components/Uploader";
 
 const Signup = () => {
 
@@ -34,15 +36,19 @@ const Signup = () => {
     const [isSignUp, setIsSignUp] = useState(true); // Add a state to switch between sign up and login
     const [visible, setVisibleSignup] = useState(false);
     const [visibleV2, setVisibleSignupV2] = useState(false);
+    const [visibleV3, setVisibleSignupV3] = useState(false);
 
     const [loading, setLoading] = useState(false);  // Loading state
 
     const handleToggle = () => {
         setVisibleSignup(!visible);
+        setVisibleSignupV3(!visibleV3);
+        handleSignUp();
     };
 
     const handleToggleV2 = () => {
         setVisibleSignupV2(!visibleV2);
+        setVisibleSignup(!visible);
     };
 
     const handleSignUp = async () => {
@@ -59,7 +65,7 @@ const Signup = () => {
             const user = userCredential.user;
 
             // Store user details (First Name and Last Name) in Firestore
-            await setDoc(doc(db, 'users', user.uid), {
+            await setDoc(doc(db, 'Users', user.uid), {
                 firstName: firstName,
                 lastName: lastName,
                 email: user.email,
@@ -87,7 +93,7 @@ const Signup = () => {
                     source={require("../assets/images/Logo.png")}
                 />
 
-                {!visible && (
+                {!visibleV2 && (
                     <Animated.View
                         entering={FadeInUp.delay(500).duration(1000).springify()}
                         exiting={FadeOutUp.delay(0).duration(1000).springify()}
@@ -106,6 +112,18 @@ const Signup = () => {
                             Welcome {firstName}
                         </Text>
                     </Animated.View>
+
+                )}
+                {visibleV3 && (
+                    <Animated.View
+                        entering={FadeInUp.delay(500).duration(1000).springify()}
+                        exiting={FadeOutUp.delay(0).duration(1000).springify()}
+                    >
+                        <Text style={styles.loginText}>
+                            Upload a pfp???
+                        </Text>
+                    </Animated.View>
+
                 )}
                 <View style={styles.form}>
                     <Text style={styles.formText}></Text>
@@ -141,7 +159,7 @@ const Signup = () => {
                         </KeyboardAvoidingView>
                     </Animated.View>
                 )}
-                {!visible && (
+                {!visibleV2 && (
                     <Animated.View
                         entering={FadeInDown.delay(400).duration(1000).springify()}
                         exiting={FadeOutDown.delay(0).duration(1000).springify()}
@@ -156,7 +174,7 @@ const Signup = () => {
                         </KeyboardAvoidingView>
                     </Animated.View>
                 )}
-                {!visible && (
+                {!visibleV2 && (
                     <Animated.View
                         entering={FadeInDown.delay(500).duration(1000).springify()}
                         exiting={FadeOutDown.delay(250).duration(1000).springify()}
@@ -171,7 +189,7 @@ const Signup = () => {
                         </KeyboardAvoidingView>
                     </Animated.View>
                 )}
-                {!visible && (
+                {!visibleV2 && (
                     <Animated.View
                         entering={FadeInDown.delay(500).duration(1000).springify()}
                         // exiting={FadeOutDown.delay(500).duration(1000).springify()}
@@ -179,7 +197,44 @@ const Signup = () => {
                     >
                         <MainButton
                             title={"Sign Up"}
-                            onPress={handleToggle}
+                            onPress={handleToggleV2}
+                            buttonStyle={undefined}
+                            textStyle={undefined}
+                        />
+                    </Animated.View>
+                )}
+                {visibleV3 && (
+                    <Animated.View
+                        style={styles.pfpPlaceholder}
+                        entering={FadeInDown.delay(700).duration(1000).springify()}
+                    >
+                        <Image source={require('../assets/images/club-penguin-ghosthy.gif')} style={styles.pfpImage} />
+                        <UploadScreen/>
+                    </Animated.View>
+                )}
+                {visibleV3 && (
+                    <Animated.View
+                        entering={FadeInDown.delay(500).duration(1000).springify()}
+                        // exiting={FadeOutDown.delay(500).duration(1000).springify()}
+                        style={styles.mainbutton}
+                    >
+                        <MainButton
+                            title={"Upload an Image"}
+                            // onPress={handleSignUp}
+                            buttonStyle={undefined}
+                            textStyle={undefined}
+                        />
+                    </Animated.View>
+                )}
+                {visibleV3 && (
+                    <Animated.View
+                        entering={FadeInDown.delay(500).duration(1000).springify()}
+                        // exiting={FadeOutDown.delay(500).duration(1000).springify()}
+                        style={styles.mainbutton}
+                    >
+                        <MainButton
+                            title={"Sign Up"}
+                            // onPress={handleSignUp}
                             buttonStyle={undefined}
                             textStyle={undefined}
                         />
@@ -318,5 +373,20 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontWeight: "semibold",
         color: theme.colors.text,
+    },
+    pfpImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 100,
+        resizeMode: 'cover', // Adjust if needed
+    },
+    pfpPlaceholder: {
+        alignSelf: "center",
+        width: 200,
+        height: 200,
+        borderRadius: 100,
+        backgroundColor: 'transparent', // Adjust background color if necessary
+        borderWidth: 2,
+        borderColor: '#ddd',
     },
 });

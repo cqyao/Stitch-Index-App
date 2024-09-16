@@ -4,6 +4,7 @@ import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { isSupported, getAnalytics } from "firebase/analytics";
 import Constants from "expo-constants";
 import {getFirestore} from "@firebase/firestore";
+import {getStorage} from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -26,6 +27,7 @@ const auth = initializeAuth(app, {
 // Initalize Firestore
 
 const db = getFirestore()
+const storage = getStorage();
 
 // Initialize Firebase Analytics conditionally
 let analytics;
@@ -41,4 +43,4 @@ if (typeof window !== "undefined") {
         });
 }
 
-export { app, auth, analytics, db};
+export { app, auth, analytics, db, storage};
