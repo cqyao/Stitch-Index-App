@@ -4,6 +4,7 @@ import {
   View,
   Image,
   Pressable,
+  Alert,
   KeyboardAvoidingView,
 } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -17,10 +18,10 @@ import MainButton from "../components/Button";
 import Input from "../components/Input";
 import { auth } from "../firebaseConfig";
 import {
-  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged,
 } from "firebase/auth";
+import { FirebaseError } from "@firebase/app";
 import Animated, {FadeIn, FadeOut, FadeInUp, FadeInDown} from "react-native-reanimated";
 
 
@@ -31,40 +32,49 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false); // Add a state to switch between sign up and login
 
-  const handleSignUp = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
-      console.error("Email and password are required");
+      Alert.alert("Error", "Email and password are required");
       return;
     }
-    createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          // Signed up
-          const user = userCredential.user;
-          console.log("User Signed Up: ", user.email);
-          router.push({
-            pathname: "./dashboard",
-          });
-        })
-        .catch((error) => {
-          console.error("Error signing up:", error);
-        });
-  };
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      console.error("Email and password are required");
-      return;
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Logged in
+      const user = userCredential.user;
+      console.log("Logged In With: ", user.email);
+      router.push({ pathname: "./dashboard" });
+    } catch (error: unknown) {
+      if (error instanceof FirebaseError) {
+        // Check for Firebase Auth error codes
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            Alert.alert('Error', 'The email address is already in use.');
+            break;
+          case 'auth/invalid-email':
+            Alert.alert('Error', 'The email address is invalid.');
+            break;
+          case 'auth/operation-not-allowed':
+            Alert.alert('Error', 'Email/password accounts are not enabled.');
+            break;
+          case 'auth/weak-password':
+            Alert.alert('Error', 'The password is too weak.');
+            break;
+          case 'auth/user-not-found':
+            Alert.alert('Error', 'User not found.');
+            break;
+          case 'auth/wrong-password':
+            Alert.alert('Error', 'Incorrect password.');
+            break;
+          default:
+            Alert.alert('Error', 'Incorrect Email or Password. Please try again.');
+            break;
+        }
+      } else {
+        console.error('Unknown error signing in:', error);
+        Alert.alert('Error', 'An unexpected error occurred.');
+      }
     }
-    signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          // Logged in
-          const user = userCredential.user;
-          console.log("Logged In With: ", user.email);
-          router.push({pathname: "./dashboard"});
-        })
-        .catch((error) => {
-          console.error("Error signing in:", error);
-        });
   };
 
   // useEffect(() => {
