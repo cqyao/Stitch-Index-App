@@ -1,10 +1,12 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { StyleSheet, Text, TextInput, View, Pressable } from 'react-native'
 import React from 'react'
 import { hp } from '../helpers/common'
 import { theme } from '../constants/theme'
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { Link, useNavigation, useRouter } from "expo-router";
 
 const Input = (props) => {
+  const router = useRouter();
   return (
     <View style={[styles.container, props.containerStyles && props.containerStyles]}>
       {
@@ -16,7 +18,10 @@ const Input = (props) => {
         ref={props.inputRef && props.inputRef}
         {...props}
       />
-      <FontAwesome name="search" size={20} />
+      {/* CAN ADD THE QUERY INSERTION HERE TO LOAD SEARCH WITH INPUT PARAMETERS*/}
+      <Pressable onPress={() => router.push({pathname: './search'})}>
+        <FontAwesome name="search" size={20}/>
+      </Pressable>
     </View>
   )
 }

@@ -27,7 +27,7 @@ export default function CalendarPage() {
     const [isSelected, setIsSelected] = useState(false);
 
     // Where the fold up menu snaps
-    const snapPoints = ["50%", "91%"];
+    const snapPoints = ["46%", "90%"];
 
     return (
         <View style={{flex: 1,backgroundColor: '#02D6B6'}}>
