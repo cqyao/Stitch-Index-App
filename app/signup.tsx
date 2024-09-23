@@ -25,7 +25,9 @@ import {
 } from "firebase/auth";
 import ImagePicker from 'react-native-image-picker';
 import Animated, {FadeIn, FadeOut, FadeInUp, FadeInDown, FadeOutUp, FadeOutDown} from "react-native-reanimated";
-import UploadScreen from "@/components/Uploader";
+import { pickImage, uploadImage } from "@/components/UploadScreen";
+import {toKeyAlias} from "@babel/types";
+import {FirebaseError} from "@firebase/app";
 
 const Signup = () => {
 
@@ -37,12 +39,13 @@ const Signup = () => {
     const [visible, setVisibleSignup] = useState(false);
     const [visibleV2, setVisibleSignupV2] = useState(false);
     const [visibleV3, setVisibleSignupV3] = useState(false);
+    const [userId, setUserId] = useState(""); // Store UID here
 
     const [loading, setLoading] = useState(false);  // Loading state
 
+
+
     const handleToggle = () => {
-        setVisibleSignup(!visible);
-        setVisibleSignupV3(!visibleV3);
         handleSignUp();
     };
 
@@ -73,14 +76,39 @@ const Signup = () => {
                 createdAt: new Date(),
             });
 
-            router.push({pathname: "./dashboard"})
-        } catch (error) {
-            console.error('Error signing up:', error);
-            Alert.alert('Error');
+            setUserId(user.uid);
+            setVisibleSignup(!visible);
+            setVisibleSignupV3(!visibleV3);
+            // router.push({pathname: "./dashboard"})
+        } catch (error: unknown) {
+            if (error instanceof FirebaseError) {
+                // Check for Firebase Auth error codes
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        Alert.alert('Error', 'The email address is already in use.');
+                        break;
+                    case 'auth/invalid-email':
+                        Alert.alert('Error', 'The email address is invalid.');
+                        break;
+                    case 'auth/operation-not-allowed':
+                        Alert.alert('Error', 'Email/password accounts are not enabled.');
+                        break;
+                    case 'auth/weak-password':
+                        Alert.alert('Error', 'The password is too weak.');
+                        break;
+                    default:
+                        Alert.alert('Error', 'Something went wrong. Please try again.');
+                }
+            } else {
+                console.error('Unknown error signing up:', error);
+                Alert.alert('Error', 'An unexpected error occurred.');
+            }
         } finally {
             setLoading(false);
         }
     };
+
+
 
     return (
         <ScreenWrapper bg="white">
@@ -209,7 +237,6 @@ const Signup = () => {
                         entering={FadeInDown.delay(700).duration(1000).springify()}
                     >
                         <Image source={require('../assets/images/club-penguin-ghosthy.gif')} style={styles.pfpImage} />
-                        <UploadScreen/>
                     </Animated.View>
                 )}
                 {visibleV3 && (
@@ -220,7 +247,7 @@ const Signup = () => {
                     >
                         <MainButton
                             title={"Upload an Image"}
-                            // onPress={handleSignUp}
+                             onPress={() => pickImage(userId)}
                             buttonStyle={undefined}
                             textStyle={undefined}
                         />
@@ -233,8 +260,8 @@ const Signup = () => {
                         style={styles.mainbutton}
                     >
                         <MainButton
-                            title={"Sign Up"}
-                            // onPress={handleSignUp}
+                            title={"Continue"}
+                            onPress={() => router.push({ pathname: "./dashboard" })}
                             buttonStyle={undefined}
                             textStyle={undefined}
                         />
