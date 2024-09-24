@@ -1,4 +1,5 @@
 import { Text, TouchableOpacity, SafeAreaView, StyleSheet, View, Image, Pressable } from 'react-native';
+import {  ScrollView } from 'react-native-gesture-handler'
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { NavigationContainer } from '@react-navigation/native';
@@ -51,16 +52,22 @@ const Dashboard = () => {
         <View style={styles.features}>
           <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
           <View style={styles.row}>
-            <Pressable style={styles.featurePressable}>
-              <Features name="My Patients" icon="user" />
-            </Pressable>
-            <Pressable style={styles.featurePressable} onPress={() => router.push({pathname: './research'})}>
-              <Features name="Research" icon="book" /> 
-            </Pressable>
-            <Pressable style={styles.featurePressable} onPress={() => router.push({pathname: "./calendar"})}>
-              <Features name="Calendar" icon="calendar" />
-            </Pressable>
+            <ScrollView horizontal>
+                <Pressable style={styles.featurePressable} onPress={() => router.push({pathname: './patient'})}>
+                  <Features name="My Patients" icon="user" />
+                </Pressable>
+                <Pressable style={styles.featurePressable} onPress={() => router.push({pathname: './research'})}>
+                  <Features name="Research" icon="book" /> 
+                </Pressable>
+                <Pressable style={styles.featurePressable} onPress={() => router.push({pathname: "./calendar"})}>
+                  <Features name="Calendar" icon="calendar" />
+                </Pressable>
+                <Pressable style={styles.featurePressable} onPress={() => router.push({pathname: "./courses"})}>
+                  <Features name="Courses" icon="graduation-cap" />
+                </Pressable>
+            </ScrollView>
           </View>
+
         </View>
         <View style={styles.appointments}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline"  }}>
@@ -165,7 +172,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   featurePressable: {
-    width: '30%',
+    width: 150,
+    paddingHorizontal: 2,
   }
 })
 
