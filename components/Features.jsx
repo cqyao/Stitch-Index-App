@@ -17,14 +17,13 @@ const Features = ({ name, icon}) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
     alignItems: "center",
   },
   box: {
     borderWidth: 2,
     borderColor: "#FF6231",
     borderRadius: 15,
-    width: "100%",
+    width: 120,
     height: 120,
     marginTop: 10,
     backgroundColor: "white",

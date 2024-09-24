@@ -6,7 +6,6 @@ import Input from '../components/SearchInput'
 import TagsInput from '../components/TagsInput'
 import { theme } from "../constants/theme";
 import { hp, wp } from "../helpers/common";
-import entitycomponent from '@/components/entitycomponent';
 import EntityComponent from '@/components/entitycomponent';
 
 const search = () => {
@@ -44,14 +43,17 @@ const search = () => {
                     <Text style={styles.seeall}> See All</Text>
                 </Pressable>
             </View>
-          {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO */}
+          {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO, THE IMAGES AND TITLE VALUES SHOULD BE RETRIEVED FROM DB BASED ON SEARCH */}
             <View style={styles.section}>
+              {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
             <Pressable onPress={() => ({})}>
                 <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title="Dr. John Le"/>
             </Pressable>
+            {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
             <Pressable onPress={() => ({})}>
                 <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title="Aneta Guzowska"/>
             </Pressable>
+            {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
             <Pressable onPress={() => ({})}>
                 <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title="Drake Graham"/>
             </Pressable>
