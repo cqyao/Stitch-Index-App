@@ -4,12 +4,12 @@ import React from 'react'
 import { getNormalizedStatePath } from 'expo-router/build/LocationProvider';
 import TagsInput from '../components/TagsInput'
 
-interface PatientProps {
+export interface PatientProps {
   picture: string | ImageRequireSource; // Use string for URI or ImageRequireSource for local images
   name: string;
   gender: string;
   birthdateString: string;
-  mobile: number
+  mobile: string
   email: string;
   symptoms: string[];
   tags: string[];
@@ -47,10 +47,10 @@ const PatientInfo: React.FC<PatientProps> = ({ picture, name, gender, birthdateS
             <Text>Gender: {gender}</Text>
             <Text>DOB: {birthdateString}</Text>
             <Text style={styles.heading}>Contact Information</Text>
-            <Text>Mobile: {mobile.toString()}</Text>
+            <Text>Mobile: {mobile}</Text>
             <Text>Email: {email}</Text>
             <Text style={styles.heading}>Symptoms</Text>
-            <Text>Symptoms: {symptoms}</Text>
+            <Text>Symptoms: {symptoms.join(', ')}</Text>
             <Text style={styles.heading}>Tags</Text>
             <TagsInput/>
         </View>

@@ -46,15 +46,15 @@ const search = () => {
           {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO, THE IMAGES AND TITLE VALUES SHOULD BE RETRIEVED FROM DB BASED ON SEARCH */}
             <View style={styles.section}>
               {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
-            <Pressable onPress={() => ({})}>
-                <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title="Dr. John Le"/>
+            <Pressable onPress={() => router.push('/patient?patientId=test1')}>
+              <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title="Dr. John Le" />
             </Pressable>
             {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
-            <Pressable onPress={() => ({})}>
+            <Pressable onPress={() => router.push('/patient?patientId=test2')}>
                 <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title="Aneta Guzowska"/>
             </Pressable>
             {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
-            <Pressable onPress={() => ({})}>
+            <Pressable onPress={() => router.push('/patient?patientId=test3')}>
                 <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title="Drake Graham"/>
             </Pressable>
             </View>
