@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, Image, Pressable, ImageRequireSource } from 'react-native'
 import { Entypo, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react'
 
 interface ResearchPostProps {
@@ -25,48 +26,55 @@ const ResearchPost: React.FC<ResearchPostProps> = ({ name, likes, comments, imag
       </View>
     )
   }
+
+  function expandPost() {
+    router.push({
+      pathname: "./post",
+      params: { name: name, likes: likes, comments: comments, imageSource: imageSource }
+    })
+  }
+
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={{ flexDirection: 'row' }}>
-          <Image 
-            source={require('../assets/images/profilePics/dwayneJo.jpg')}
-            style={{height: 35, width: 35, borderRadius: 90, marginRight: 10 }}
-          />
-          <Text style={styles.h3}>{name}</Text>
+    <Pressable onPress={expandPost}>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={{ flexDirection: 'row' }}>
+            <Image 
+              source={require('../assets/images/profilePics/dwayneJo.jpg')}
+              style={{height: 35, width: 35, borderRadius: 90, marginRight: 10 }}
+            />
+            <Text style={styles.h3}>{name}</Text>
+          </View>
+          <Entypo name="dots-three-vertical" size={20} color="#7D7D7D" />
         </View>
-        <Entypo name="dots-three-vertical" size={20} color="#7D7D7D" />
-      </View>
-      {/* Body */}
-      <View>
-        <Text>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-          sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-          Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris 
-          nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in 
-          reprehender
-        </Text>
-        <RenderImage />
-      </View>
-      {/* Interactions */}
-      <View style={styles.interactions}>
-        <View style={styles.interactionSect}>
-          <Entypo name="heart" size={30} color="red" />
-          <Text style={{ fontSize: 15, marginLeft: 5, color: "#7D7D7D" }}>{likes}</Text>
+        {/* Body */}
+        <View>
+          <Text>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
+            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua....
+          </Text>
+          <RenderImage />
         </View>
-        <View style={styles.interactionSect}>
-          <MaterialIcons name="comment" size={30} color="grey" />
-          <Text style={{ fontSize: 15, marginLeft: 5, color: "#7D7D7D" }}>{comments}</Text>
+        {/* Interactions */}
+        <View style={styles.interactions}>
+          <View style={styles.interactionSect}>
+            <Entypo name="heart" size={30} color="red" />
+            <Text style={{ fontSize: 15, marginLeft: 5, color: "#7D7D7D" }}>{likes}</Text>
+          </View>
+          <View style={styles.interactionSect}>
+            <MaterialIcons name="comment" size={30} color="grey" />
+            <Text style={{ fontSize: 15, marginLeft: 5, color: "#7D7D7D" }}>{comments}</Text>
+          </View>
+          <View style={styles.bookmark}>
+            <Pressable>
+              <Ionicons name="bookmark" size={30} color="green" />
+            </Pressable>
+          </View>
         </View>
-        <View style={styles.bookmark}>
-        <Pressable>
-          <Ionicons name="bookmark" size={30} color="green" />
-        </Pressable>
+        
       </View>
-      </View>
-      
-    </View>
+    </Pressable>
   )
 }
 
