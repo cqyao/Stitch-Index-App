@@ -61,6 +61,7 @@ export const pickImage = async (uid) => {
         const downloadURL = await uploadImage(source, uid);
 
         // Return the download URL
+        console.log(downloadURL);
         return downloadURL;
     }
 };
