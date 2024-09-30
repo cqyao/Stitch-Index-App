@@ -19,7 +19,8 @@ import MainButton from '../components/Button';
 import Input from '../components/Input';
 import { auth, db } from '../firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import {createUserWithEmailAndPassword, User} from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
     FadeInUp,
     FadeOutUp,
@@ -43,6 +44,14 @@ const Signup = () => {
     const [userId, setUserId] = useState(''); // Store UID here
     const [loading, setLoading] = useState(false); // Loading state
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+    const saveUserToAsyncStorage = async (user: User) => {
+        try {
+            await AsyncStorage.setItem('user', JSON.stringify(user));
+        } catch (error) {
+            console.error("Error saving user to AsyncStorage", error);
+        }
+    };
 
     const handleImg = async () => {
         const downloadURL = await pickImage(userId);
@@ -76,7 +85,7 @@ const Signup = () => {
                 password
             );
             const user = userCredential.user;
-
+            await saveUserToAsyncStorage(user);
             // Store user details (First Name and Last Name) in Firestore
             await setDoc(doc(db, 'Users', user.uid), {
                 firstName: firstName,

@@ -20,17 +20,61 @@ import { auth } from "../firebaseConfig";
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
+    User
 } from "firebase/auth";
 import { FirebaseError } from "@firebase/app";
 import Animated, {FadeIn, FadeOut, FadeInUp, FadeInDown} from "react-native-reanimated";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-const Signup = () => {
+
+
+const SignIn = () => {
 
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false); // Add a state to switch between sign up and login
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const checkUserInAsyncStorage = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+        router.push({ pathname: "./dashboard" });
+      }
+    } catch (error) {
+      console.error("Error retrieving user from AsyncStorage", error);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    checkUserInAsyncStorage(); // Run check on component mount
+
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        setUser(user);
+        saveUserToAsyncStorage(user); // Optionally save the user on any auth state change
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup listener on unmount
+  }, []);
+
+
+
+  const saveUserToAsyncStorage = async (user: User) => {
+    try {
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+    } catch (error) {
+      console.error("Error saving user to AsyncStorage", error);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -42,6 +86,7 @@ const Signup = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       // Logged in
       const user = userCredential.user;
+      await saveUserToAsyncStorage(user);
       console.log("Logged In With: ", user.email);
       router.push({ pathname: "./dashboard" });
     } catch (error: unknown) {
@@ -169,7 +214,7 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default SignIn;
 
 const styles = StyleSheet.create({
   container: {
