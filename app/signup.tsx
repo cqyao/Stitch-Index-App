@@ -45,7 +45,15 @@ const Signup = () => {
     const [loading, setLoading] = useState(false); // Loading state
     const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-    const saveUserToAsyncStorage = async (user: User) => {
+    interface UserData {
+        firstName: string;
+        lastName: string;
+        email: string | null;
+        uid: string;
+        createdAt: Date;
+    }
+
+    const saveUserToAsyncStorage = async (user: UserData) => {
         try {
             await AsyncStorage.setItem('user', JSON.stringify(user));
         } catch (error) {
@@ -85,15 +93,30 @@ const Signup = () => {
                 password
             );
             const user = userCredential.user;
-            await saveUserToAsyncStorage(user);
+            // await saveUserToAsyncStorage(user);
             // Store user details (First Name and Last Name) in Firestore
-            await setDoc(doc(db, 'Users', user.uid), {
+            // await setDoc(doc(db, 'Users', user.uid), {
+            //     firstName: firstName,
+            //     lastName: lastName,
+            //     email: user.email,
+            //     uid: user.uid,
+            //     createdAt: new Date(),
+            // });
+
+            const userData: UserData = {
                 firstName: firstName,
                 lastName: lastName,
                 email: user.email,
                 uid: user.uid,
                 createdAt: new Date(),
-            });
+            };
+
+            await saveUserToAsyncStorage(userData);
+
+
+            await setDoc(doc(db, 'Users', user.uid), userData);
+
+
 
             setUserId(user.uid);
             setVisibleSignup(!visible);
@@ -117,6 +140,10 @@ const Signup = () => {
                     case 'auth/weak-password':
                         Alert.alert('Error', 'The password is too weak.');
                         break;
+                    case 'auth/insufficient-permission':
+                        Alert.alert('Error', 'insufficient permission to create account');
+                        break;
+
                     default:
                         Alert.alert(
                             'Error',
