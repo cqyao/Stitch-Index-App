@@ -4,7 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import Comment from '@/components/Comment';
 import { collection, addDoc, doc, getDoc, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { db } from '@/firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const Post = () => {
   const params = useLocalSearchParams<{
@@ -15,6 +17,23 @@ const Post = () => {
   const [post, setPost] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [commentText, setCommentText] = useState('');
+  const [author, setAuthor] = useState<string | null>(null);
+
+  const getAuthorFromAsyncStorage = async () => {
+    try {
+      const userString = await AsyncStorage.getItem('user');
+      if (userString) {
+        const userData = JSON.parse(userString);
+        setAuthor(`${userData.firstName} ${userData.lastName}`);
+      }
+    } catch (error) {
+      console.error('Error fetching author data from AsyncStorage', error);
+    }
+  };
+
+  useEffect(() => {
+    getAuthorFromAsyncStorage();
+  }, [])
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -66,7 +85,7 @@ const Post = () => {
     try {
       const commentsRef = collection(db, 'posts', postId, 'comments');
       await addDoc(commentsRef, {
-        author: 'Current User', // Replace with actual user data i will do this stuff later
+        author: author,
         content: commentText,
         timestamp: Timestamp.now(),
       });
