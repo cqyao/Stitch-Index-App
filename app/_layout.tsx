@@ -28,7 +28,7 @@ export default function RootLayout() {
 
   return (
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <Stack initialRouteName={"post"}>
+        <Stack initialRouteName={"research"}>
           {/* <Stack.Screen options={{ headerShown: showHeader }} name="app" /> */}
           <Stack.Screen options={{ headerShown: showHeader }} name="post" />
           <Stack.Screen options={{ headerShown: showHeader }} name="index" />
