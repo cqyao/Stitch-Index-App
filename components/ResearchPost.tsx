@@ -1,89 +1,80 @@
-import { View, Text, StyleSheet, Image, Pressable, ImageRequireSource } from 'react-native'
-import { Entypo, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import React from 'react'
+import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {Entypo} from "@expo/vector-icons";
+import {router} from "expo-router";
 
 interface ResearchPostProps {
+  postId: string;
   name: string;
   likes: number;
   comments: number;
-  imageSource: string | ImageRequireSource; // Use string for URI or ImageRequireSource for local images
+  imageSource: string;
+  title: string;
+  content: string;
 }
 
-const ResearchPost: React.FC<ResearchPostProps> = ({ name, likes, comments, imageSource }) => {
-  function RenderImage() {
-    return (
-      <View>
-        {imageSource != "" ? (
-          <Image 
-          source={typeof imageSource === 'string' ? { uri: imageSource } : imageSource}
-          style={{height: 200, width: '100%', marginTop: 10, borderRadius: 5}}
-          />
-        ) : (
-          <View />
-        )
-        }
-      </View>
-    )
-  }
+const ResearchPost: React.FC<ResearchPostProps> = ({
+                                                     postId,
+                                                     name,
+                                                     likes,
+                                                     comments,
+                                                     imageSource,
+                                                     title,
+                                                     content,
+                                                   }) => {
+  const [liked, setLiked] = useState(false);
 
   function expandPost() {
+    if (!postId) {
+      console.error('postId is undefined in ResearchPost');
+      return;
+    }
     router.push({
-      pathname: "./post",
-      params: { name: name, likes: likes, comments: comments, imageSource: imageSource }
-    })
+      pathname: './post',
+      params: { postId: postId },
+    });
   }
 
   return (
-    <Pressable onPress={expandPost}>
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={{ flexDirection: 'row' }}>
-            <Image 
-              source={require('../assets/images/profilePics/dwayneJo.jpg')}
-              style={{height: 35, width: 35, borderRadius: 90, marginRight: 10 }}
-            />
-            <Text style={styles.h3}>{name}</Text>
+      <Pressable onPress={expandPost}>
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={{ flexDirection: 'row' }}>
+              <Image
+                  source={require('../assets/images/profilePics/dwayneJo.jpg')}
+                  style={{ height: 35, width: 35, borderRadius: 90, marginRight: 10 }}
+              />
+              <Text style={styles.h3}>{name}</Text>
+            </View>
+            <Entypo name="dots-three-vertical" size={20} color="#7D7D7D" />
           </View>
-          <Entypo name="dots-three-vertical" size={20} color="#7D7D7D" />
-        </View>
-        {/* Body */}
-        <View>
-          <Text>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua....
-          </Text>
-          <RenderImage />
-        </View>
-        {/* Interactions */}
-        <View style={styles.interactions}>
-          <View style={styles.interactionSect}>
-            <Entypo name="heart" size={30} color="red" />
-            <Text style={{ fontSize: 15, marginLeft: 5, color: "#7D7D7D" }}>{likes}</Text>
+          {/* Body */}
+          <View>
+            <Text style={styles.h3}>{title}</Text>
+            <Text>{content}</Text>
+            {imageSource ? (
+                <Image
+                    source={{ uri: imageSource }}
+                    style={{ height: 200, width: '100%', borderRadius: 10, marginTop: 10 }}
+                />
+            ) : null}
           </View>
-          <View style={styles.interactionSect}>
-            <MaterialIcons name="comment" size={30} color="grey" />
-            <Text style={{ fontSize: 15, marginLeft: 5, color: "#7D7D7D" }}>{comments}</Text>
-          </View>
-          <View style={styles.bookmark}>
-            <Pressable>
-              <Ionicons name="bookmark" size={30} color="green" />
-            </Pressable>
-          </View>
-        </View>
-        
-      </View>
-    </Pressable>
-  )
-}
 
-export default ResearchPost
+          <View style={styles.interactions}>
+
+          </View>
+        </View>
+      </Pressable>
+  );
+};
+
+export default ResearchPost;
 
 const styles = StyleSheet.create({
   container: {
     margin: 30,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     padding: 15,
     borderRadius: 10,
   },
@@ -95,21 +86,12 @@ const styles = StyleSheet.create({
   },
   h3: {
     fontSize: 15,
-    fontWeight: "600",
-    color: "#7D7D7D",
+    fontWeight: '600',
+    color: '#7D7D7D',
   },
   interactions: {
-    marginTop: 20, 
-    flexDirection: 'row',
-    alignItems: "center",
-  }, 
-  interactionSect: {
+    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
-  bookmark: {
-    flexDirection: "row-reverse",
-    flex: 3,
-  }
-})
+});

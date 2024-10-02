@@ -20,7 +20,7 @@ import { Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Features from "../components/Features";
 import Appointment from "../components/Appointment";
-import { auth } from "../firebaseConfig";
+import { auth } from "@/firebaseConfig";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 
