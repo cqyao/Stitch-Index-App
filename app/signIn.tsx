@@ -9,14 +9,14 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import ScreenWrapper from "../components/ScreenWrapper";
-import { theme } from "../constants/theme";
+import { theme } from "@/constants/theme";
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
-import { hp, wp } from "../helpers/common";
+import { hp, wp } from "@/helpers/common";
 import Button from "../components/GoogleButton";
 import MainButton from "../components/Button";
 import Input from "../components/Input";
-import { auth } from "../firebaseConfig";
+import { auth } from "@/firebaseConfig";
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
