@@ -11,6 +11,23 @@ const CreatePost = () => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [user, setUser] = useState(null);
+    const [author, setAuthor] = useState<string | null>(null);
+
+    const getAuthorFromAsyncStorage = async () => {
+        try {
+            const userString = await AsyncStorage.getItem('user');
+            if (userString) {
+                const userData = JSON.parse(userString);
+                setAuthor(`${userData.firstName} ${userData.lastName}`);
+            }
+        } catch (error) {
+            console.error('Error fetching author data from AsyncStorage', error);
+        }
+    };
+
+    useEffect(() => {
+        getAuthorFromAsyncStorage();
+    }, [])
 
     useEffect(() => {
         const getUser = async () => {
@@ -64,7 +81,7 @@ const CreatePost = () => {
             }
 
             await addDoc(collection(db, 'posts'), {
-                author: "user", // Replace with actual user data
+                author: author, // Replace with actual user data
                 title,
                 content,
                 timestamp: Timestamp.now(),
