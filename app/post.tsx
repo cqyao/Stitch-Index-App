@@ -1,98 +1,284 @@
-import { View, Text, Image, Pressable, StyleSheet, TextInput } from 'react-native'
-import { Ionicons, MaterialIcons, Entypo } from '@expo/vector-icons'
-import React from 'react'
+import { View, Text, Image, Pressable, StyleSheet, TextInput } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import Comment from '@/components/Comment';
+import {
+  collection,
+  addDoc,
+  doc,
+  getDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  updateDoc,
+  increment,
+  deleteDoc,
+  setDoc,
+  Timestamp
+} from 'firebase/firestore';
+import { db } from '@/firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Animated, {FadeIn, FadeOut, FadeInUp, FadeInDown} from "react-native-reanimated";
 
-const post = () => {
-  const params = useLocalSearchParams<{ name: string, likes: string, comments: string, imageSource: string }>();
-  
+
+const Post = () => {
+  const params = useLocalSearchParams<{
+    postId: string;
+  }>();
+  const { postId } = params;
+
+  const [post, setPost] = useState<any>(null);
+  const [comments, setComments] = useState<any[]>([]);
+  const [commentText, setCommentText] = useState('');
+  const [author, setAuthor] = useState<string | null>(null);
+  const [likes, setLikes] = useState<number>(0);
+  const [liked, setLiked] = useState<boolean>(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  const getAuthorFromAsyncStorage = async () => {
+    try {
+      const userString = await AsyncStorage.getItem('user');
+      if (userString) {
+        const userData = JSON.parse(userString);
+        setAuthor(`${userData.firstName} ${userData.lastName}`);
+        setUserId(userData.uid); // Store user ID
+      }
+    } catch (error) {
+      console.error('Error fetching author data from AsyncStorage', error);
+    }
+  };
+
+  useEffect(() => {
+    getAuthorFromAsyncStorage();
+  }, []);
+
+  useEffect(() => {
+    if (!postId) return;
+
+    const postRef = doc(db, 'posts', postId);
+    const unsubscribePost = onSnapshot(postRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const postData = docSnap.data();
+        setPost({ id: docSnap.id, ...postData });
+        setLikes(postData.likes || 0);
+      }
+    }, (error) => {
+      console.error('Error fetching post:', error);
+    });
+
+    const commentsRef = collection(db, 'posts', postId, 'comments');
+    const q = query(commentsRef, orderBy('timestamp', 'desc'));
+    const unsubscribeComments = onSnapshot(q, (querySnapshot) => {
+      const commentsData = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          timestamp: data.timestamp || null,
+        };
+      });
+      setComments(commentsData);
+    });
+
+    // Cleanup the listeners
+    return () => {
+      unsubscribePost();
+      unsubscribeComments();
+    };
+  }, [postId]);
+
+  useEffect(() => {
+    if (!postId || !userId) return;
+
+    const likeRef = doc(db, 'posts', postId, 'likes', userId);
+    const unsubscribeLike = onSnapshot(likeRef, (likeSnap) => {
+      setLiked(likeSnap.exists());
+    });
+
+    return () => {
+      unsubscribeLike();
+    };
+  }, [postId, userId]);
+
+  const handleCommentSubmit = async () => {
+    if (commentText.trim() === '') return;
+
+    try {
+      const commentsRef = collection(db, 'posts', postId, 'comments');
+      await addDoc(commentsRef, {
+        author: author,
+        content: commentText,
+        timestamp: Timestamp.now(),
+      });
+
+      // Update comment count in the post document
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, {
+        commentsCount: increment(1),
+      });
+
+      setCommentText('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  };
+
+  // Updated handleLike function
+  const handleLike = async () => {
+    if (!userId || !postId) return;
+
+    try {
+      const likeRef = doc(db, 'posts', postId, 'likes', userId);
+
+      if (liked) {
+        // Unlike the post
+        await deleteDoc(likeRef);
+        await updateDoc(doc(db, 'posts', postId), {
+          likes: increment(-1),
+        });
+      } else {
+        // Like the post
+        await setDoc(likeRef, {
+          userId: userId,
+        });
+        await updateDoc(doc(db, 'posts', postId), {
+          likes: increment(1),
+        });
+      }
+
+      // Removed setLikes and setLiked; rely on listeners
+    } catch (error) {
+      console.error('Error liking/unliking post:', error);
+    }
+  };
+
+// Updated useEffect for likes listener
+  useEffect(() => {
+    if (!postId || !userId) return;
+
+    const likeRef = doc(db, 'posts', postId, 'likes', userId);
+    // console.log('Setting up likes listener');
+    const unsubscribeLike = onSnapshot(likeRef, (likeSnap) => {
+      setLiked(likeSnap.exists());
+    });
+
+    return () => {
+      // console.log('Cleaning up likes listener');
+      unsubscribeLike();
+    };
+  }, [postId, userId]);
+
+// Updated useEffect for post listener
+  useEffect(() => {
+    if (!postId) return;
+
+    const postRef = doc(db, 'posts', postId);
+    console.log('Setting up post listener');
+    const unsubscribePost = onSnapshot(postRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const postData = docSnap.data();
+        setPost({ id: docSnap.id, ...postData });
+        setLikes(postData.likes || 0);
+      }
+    }, (error) => {
+      console.error('Error fetching post:', error);
+    });
+
+    return () => {
+      console.log('Cleaning up post listener');
+      unsubscribePost();
+    };
+  }, [postId]);
+
+
+  if (!post) {
+    return <Text>Loading...</Text>;
+  }
+
   return (
-      <View style={{flex: 1,backgroundColor: '#02D6B6'}}>
+      <View style={{ flex: 1, backgroundColor: '#02D6B6' }}>
         {/* Banner */}
         <View style={styles.banner}>
           <Pressable onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={35} color="white" />
           </Pressable>
           <Image
-            source={require('../assets/images/LogoWhite.png')} 
-            resizeMode='contain'
-            style={styles.logo}
+              source={require('../assets/images/LogoWhite.png')}
+              resizeMode='contain'
+              style={styles.logo}
           />
-          <Image 
-            source={require('../assets/images/profilePics/dwayneJo.jpg')}
-            style={{height: 45, width: 45, borderRadius: 90}}
+          <Image
+              source={require('../assets/images/profilePics/dwayneJo.jpg')}
+              style={{height: 45, width: 45, borderRadius: 90}}
           />
         </View>
         {/* End banner */}
+        {/* Post Section */}
         <View style={styles.postSection}>
-          <Text style={styles.title}>Post Title</Text>
-          <Text>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-          </Text>
-          {/* Interactions */}
-          <View style={styles.interactions}>
-            <View style={styles.interactionSect}>
-              <Entypo name="heart" size={30} color="red" />
-              <Text style={{ fontSize: 15, marginLeft: 5, color: "#7D7D7D" }}>12</Text>
-            </View>
-            <View style={styles.interactionSect}>
-              <MaterialIcons name="comment" size={30} color="grey" />
-              <Text style={{ fontSize: 15, marginLeft: 5, color: "#7D7D7D" }}>5</Text>
-            </View>
-            <View style={styles.bookmark}>
-              <Pressable>
-                <Ionicons name="bookmark" size={30} color="green" />
-              </Pressable>
-            </View>
-          </View>
-          {/* Comment section */}
+          <Text style={styles.title}>{post.title}</Text>
+          {post.imageUrl ? (
+              <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
+          ) : null}
+          <Text>{post.content}</Text>
+
+          {/* Like Section */}
+          <Pressable onPress={handleLike} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
+            <Ionicons name={liked ? 'heart' : 'heart-outline'} size={24} color="red" />
+            <Text style={{ marginLeft: 5 }}>{likes} Likes</Text>
+          </Pressable>
+
+          {/* Comment Section */}
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TextInput
-              style={styles.commentInput}
-              placeholder='Add a comment'
+                style={styles.commentInput}
+                placeholder="Add a comment"
+                value={commentText}
+                onChangeText={(text) => setCommentText(text)}
             />
-            <Pressable style={styles.commentBtn}>
+            <Pressable style={styles.commentBtn} onPress={handleCommentSubmit}>
               <Text>Comment</Text>
             </Pressable>
           </View>
-          <View>
-            <Comment username="Bobby Wasabi" date={3}/>
-            <Comment username="Christmas Day" date={10}/>
-          </View>
-          
+          <Text>{post.commentsCount || 0} Comments</Text>
+          <Animated.View entering={FadeIn.delay(300)}>
+            {comments.map((comment) => (
+                <Comment
+                    key={comment.id}
+                    username={comment.author}
+                    date={comment.timestamp ? comment.timestamp.toDate() : undefined}
+                    content={comment.content}
+                />
+            ))}
+          </Animated.View>
         </View>
       </View>
-      
-  )
-}
+  );
+};
 
-export default post
+export default Post;
 
 const styles = StyleSheet.create({
-  logo: {
-    width: 200,
-    height: 70,
-  },
-  banner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 30,
-    paddingHorizontal: 30,
-    paddingTop: 60,
-    paddingBottom: 30,
-    backgroundColor: "#00D6B5",
-    flex: 1
-  },
   postSection: {
     backgroundColor: 'white',
     borderRadius: 15,
     padding: 20,
-    flex: 10
+    flex: 10,
+  },
+  logo: {
+    width: 200,
+    height: 70,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  postImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 15,
+    marginVertical: 15,
   },
   commentInput: {
     padding: 10,
@@ -104,31 +290,23 @@ const styles = StyleSheet.create({
     flex: 8,
     marginRight: 10,
   },
-  title: {
-    fontSize: 30,
-    fontWeight: '700',
-    marginBottom: 10,
-  },
   commentBtn: {
     padding: 10,
     borderRadius: 90,
-    backgroundColor: "#00D6B5",
+    backgroundColor: '#00D6B5',
     flex: 2,
     alignContent: 'center',
-    alignItems: 'center'
-  },
-  interactions: {
-    marginTop: 20, 
-    flexDirection: 'row',
-    alignItems: "center",
-  }, 
-  interactionSect: {
-    flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
-  bookmark: {
-    flexDirection: "row-reverse",
-    flex: 3,
-  }
-})
+  banner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 30,
+    paddingHorizontal: 30,
+    paddingTop: 60,
+    paddingBottom: 10,
+    backgroundColor: "#00D6B5",
+    flex: 0,
+  },
+});
