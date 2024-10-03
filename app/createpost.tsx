@@ -1,17 +1,19 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Image, Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
+import {Button, Image, Pressable, StyleSheet, Text, TextInput, View, } from 'react-native';
 import {db, storage} from '../firebaseConfig';
 import {addDoc, collection, Timestamp} from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
 import {getDownloadURL, ref, uploadBytes} from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router'
 
 
-const CreatePost = () => {
-    const [title, setTitle] = useState('');
-    const [content, setContent] = useState('');
-    const [user, setUser] = useState(null);
-    const [author, setAuthor] = useState<string | null>(null);
+const CreatePost = ({ }) => {
+    const [ title, setTitle ] = useState('');
+    const [ content, setContent ] = useState('');
+    const [ user, setUser ] = useState(null);
+    const [ author, setAuthor ] = useState<string | null>(null);
+    
 
     const getAuthorFromAsyncStorage = async () => {
         try {
@@ -98,7 +100,7 @@ const CreatePost = () => {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={styles.modalContent}>
             <Text style={styles.heading}>Create a New Post</Text>
             <TextInput
                 style={styles.input}
@@ -118,6 +120,7 @@ const CreatePost = () => {
             </Pressable>
             {image && <Image source={{ uri: image }} style={styles.previewImage} />}
             <Button title="Post" onPress={handleSubmit} />
+            <Button title="Cancel" onPress={router.back} />
         </View>
     );
 };
@@ -130,7 +133,17 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         margin: 30,
         borderRadius: 10,
+        
     },
+    modalContent: {
+        flex: 1,
+        backgroundColor: "#F9F9F9",
+        borderRadius: 10,
+        padding: 30,
+        marginHorizontal: 20,
+        marginTop: 60,
+        marginBottom: 95,
+      },
     heading: {
         fontSize: 24,
         fontWeight: '600',

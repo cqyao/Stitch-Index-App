@@ -101,6 +101,22 @@ const Post = () => {
 
   return (
       <View style={{ flex: 1, backgroundColor: '#02D6B6' }}>
+        {/* Banner */}
+          <View style={styles.banner}>
+            <Pressable onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={35} color="white" />
+            </Pressable>
+            <Image
+              source={require('../assets/images/LogoWhite.png')} 
+              resizeMode='contain'
+              style={styles.logo}
+            />
+            <Image 
+              source={require('../assets/images/profilePics/dwayneJo.jpg')}
+              style={{height: 45, width: 45, borderRadius: 90}}
+            />
+          </View>
+        {/* End banner */}
         {/* Post Section */}
         <View style={styles.postSection}>
           <Text style={styles.title}>{post.title}</Text>
@@ -176,5 +192,20 @@ const styles = StyleSheet.create({
     flex: 2,
     alignContent: 'center',
     alignItems: 'center',
+  },
+  logo: {
+    width: 200,
+    height: 70,
+  },
+  banner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 30,
+    paddingHorizontal: 30,
+    paddingTop: 60,
+    paddingBottom: 10,
+    backgroundColor: "#00D6B5",
+    flex: 0,
   },
 });
