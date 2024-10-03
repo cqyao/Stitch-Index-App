@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Image, Pressable, StyleSheet, Text, TextInput, View, } from 'react-native';
+import {Button, Image, Pressable, StyleSheet, Text, TextInput, View,} from 'react-native';
 import {db, storage} from '../firebaseConfig';
 import {addDoc, collection, Timestamp} from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
-import {getDownloadURL, ref, uploadBytes} from 'firebase/storage';
+import {getDownloadURL, getStorage, ref, uploadBytes} from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router'
+import {router} from 'expo-router'
 
 
 const CreatePost = ({ }) => {
@@ -13,7 +13,8 @@ const CreatePost = ({ }) => {
     const [ content, setContent ] = useState('');
     const [ user, setUser ] = useState(null);
     const [ author, setAuthor ] = useState<string | null>(null);
-    
+    const [ userID, setUserID ] = useState<string | null>(null);
+    const [ userPFP, setUserPFP ] = useState<string | null>(null);
 
     const getAuthorFromAsyncStorage = async () => {
         try {
@@ -21,9 +22,22 @@ const CreatePost = ({ }) => {
             if (userString) {
                 const userData = JSON.parse(userString);
                 setAuthor(`${userData.firstName} ${userData.lastName}`);
+                setUserID(`${userData.uid}`);
+                setUserPFP(await fetchImageFromFirebase(`pfp/${userData.uid}`));
             }
         } catch (error) {
             console.error('Error fetching author data from AsyncStorage', error);
+        }
+    };
+
+    const fetchImageFromFirebase = async (path: string): Promise<string | null> => {
+        try {
+            const storage = getStorage();
+            const imageRef = ref(storage, path);
+            return await getDownloadURL(imageRef);
+        } catch (error) {
+            console.error("Error fetching image from Firebase Storage", error);
+            return null;
         }
     };
 
@@ -83,17 +97,21 @@ const CreatePost = ({ }) => {
             }
 
             await addDoc(collection(db, 'posts'), {
-                author: author, // Replace with actual user data
+                author: author,
+                userID,
                 title,
                 content,
                 timestamp: Timestamp.now(),
                 imageUrl,
+                userPFP
+
             });
 
             // Clear form
             setTitle('');
             setContent('');
             setImage(null);
+            router.back()
         } catch (error) {
             console.error('Error adding document: ', error);
         }
@@ -133,7 +151,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         margin: 30,
         borderRadius: 10,
-        
+
     },
     modalContent: {
         flex: 1,
