@@ -20,7 +20,7 @@ import { Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Features from "../components/Features";
 import Appointment from "../components/Appointment";
-import { auth } from "../firebaseConfig";
+import { auth } from "@/firebaseConfig";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 
@@ -31,6 +31,22 @@ const Dashboard = () => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loadingImage, setLoadingImage] = useState<boolean>(true); // Optional: Loading state for image
+  const [loading, setLoading] = useState(true);
+
+
+  const checkUserInAsyncStorage = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem('user');
+      if (!storedUser) {
+        // setUser(JSON.parse(storedUser));
+        router.push({ pathname: "./signIn" });
+      }
+    } catch (error) {
+      console.error("Error retrieving user from AsyncStorage", error);
+    }
+    setLoading(false);
+  };
+
 
   // Function to fetch image URL from Firebase Storage
   const fetchImageFromFirebase = async (path: string): Promise<string | null> => {
@@ -65,7 +81,7 @@ const Dashboard = () => {
       await AsyncStorage.removeItem('user');
       await auth.signOut();
       Alert.alert("Success", "You have been signed out.");
-      router.navigate({ pathname: './signIn' });
+      router.replace({ pathname: './signIn' }); // Use replace instead of push
     } catch (error) {
       Alert.alert("Error", "An error occurred while signing out.");
       console.error("Error signing out: ", error);
@@ -74,6 +90,9 @@ const Dashboard = () => {
 
   // Retrieve user UID from AsyncStorage and fetch image URL
   useEffect(() => {
+
+    checkUserInAsyncStorage();
+
     const fetchUserUid = async () => {
       try {
         const userString = await AsyncStorage.getItem('user');

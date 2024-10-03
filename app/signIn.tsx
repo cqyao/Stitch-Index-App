@@ -9,14 +9,14 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import ScreenWrapper from "../components/ScreenWrapper";
-import { theme } from "../constants/theme";
+import { theme } from "@/constants/theme";
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
-import { hp, wp } from "../helpers/common";
+import { hp, wp } from "@/helpers/common";
 import Button from "../components/GoogleButton";
 import MainButton from "../components/Button";
 import Input from "../components/Input";
-import { auth } from "../firebaseConfig";
+import { auth } from "@/firebaseConfig";
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
@@ -25,6 +25,8 @@ import {
 import { FirebaseError } from "@firebase/app";
 import Animated, {FadeIn, FadeOut, FadeInUp, FadeInDown} from "react-native-reanimated";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/firebaseConfig'; // Update the path according to your project
 
 
 
@@ -42,7 +44,7 @@ const SignIn = () => {
     try {
       const storedUser = await AsyncStorage.getItem('user');
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        // setUser(JSON.parse(storedUser));
         router.push({ pathname: "./dashboard" });
       }
     } catch (error) {
@@ -57,7 +59,7 @@ const SignIn = () => {
     const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
       if (user) {
         setUser(user);
-        saveUserToAsyncStorage(user); // Optionally save the user on any auth state change
+        // saveUserToAsyncStorage(user); // Optionally save the user on any auth state change
       } else {
         setUser(null);
       }
@@ -66,13 +68,40 @@ const SignIn = () => {
     return () => unsubscribe(); // Cleanup listener on unmount
   }, []);
 
+  interface UserData {
+    firstName: string;
+    lastName: string;
+    email: string;
+    createdAt: string; // Firestore timestamp converted to string
+    uid: string;
+  }
 
-
-  const saveUserToAsyncStorage = async (user: User) => {
+  const saveUserToAsyncStorage = async (user: UserData) => {
     try {
       await AsyncStorage.setItem('user', JSON.stringify(user));
     } catch (error) {
       console.error("Error saving user to AsyncStorage", error);
+    }
+  };
+
+  const fetchAndStoreUserData = async (uid: string) => {
+    try {
+      const userDocRef = doc(db, 'Users', uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as Omit<UserData, 'uid'>; // Get Firestore data, excluding 'uid'
+        const fullUserData: UserData = {
+          ...userData,
+          uid,
+          createdAt: userData.createdAt, // Convert Firestore timestamp to string
+        };
+        await saveUserToAsyncStorage(fullUserData);
+      } else {
+        console.error("No such user document found in Firestore.");
+      }
+    } catch (error) {
+      console.error("Error fetching user data from Firestore", error);
     }
   };
 
@@ -86,7 +115,9 @@ const SignIn = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       // Logged in
       const user = userCredential.user;
-      await saveUserToAsyncStorage(user);
+      // await saveUserToAsyncStorage(user);
+      await fetchAndStoreUserData(user.uid);
+
       console.log("Logged In With: ", user.email);
       router.push({ pathname: "./dashboard" });
     } catch (error: unknown) {
