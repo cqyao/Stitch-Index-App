@@ -1,11 +1,25 @@
 import { View, Text, Image, Pressable, StyleSheet, TextInput } from 'react-native';
-import { Ionicons, MaterialIcons, Entypo } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import Comment from '@/components/Comment';
-import { collection, addDoc, doc, getDoc, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  doc,
+  getDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  updateDoc,
+  increment,
+  deleteDoc,
+  setDoc,
+  Timestamp
+} from 'firebase/firestore';
 import { db } from '@/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Animated, {FadeIn, FadeOut, FadeInUp, FadeInDown} from "react-native-reanimated";
 
 
 const Post = () => {
@@ -18,6 +32,9 @@ const Post = () => {
   const [comments, setComments] = useState<any[]>([]);
   const [commentText, setCommentText] = useState('');
   const [author, setAuthor] = useState<string | null>(null);
+  const [likes, setLikes] = useState<number>(0);
+  const [liked, setLiked] = useState<boolean>(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const getAuthorFromAsyncStorage = async () => {
     try {
@@ -25,6 +42,7 @@ const Post = () => {
       if (userString) {
         const userData = JSON.parse(userString);
         setAuthor(`${userData.firstName} ${userData.lastName}`);
+        setUserId(userData.uid); // Store user ID
       }
     } catch (error) {
       console.error('Error fetching author data from AsyncStorage', error);
@@ -33,51 +51,55 @@ const Post = () => {
 
   useEffect(() => {
     getAuthorFromAsyncStorage();
-  }, [])
+  }, []);
 
   useEffect(() => {
-    const fetchPost = async () => {
-      if (!postId) return;
+    if (!postId) return;
 
-      try {
-        const postRef = doc(db, 'posts', postId);
-        const postSnap = await getDoc(postRef);
-        if (postSnap.exists()) {
-          setPost({ id: postSnap.id, ...postSnap.data() });
-        }
-      } catch (error) {
-        console.error('Error fetching post:', error);
+    const postRef = doc(db, 'posts', postId);
+    const unsubscribePost = onSnapshot(postRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const postData = docSnap.data();
+        setPost({ id: docSnap.id, ...postData });
+        setLikes(postData.likes || 0);
       }
-    };
+    }, (error) => {
+      console.error('Error fetching post:', error);
+    });
 
-    const fetchComments = () => {
-      if (!postId) return;
-
-      const commentsRef = collection(db, 'posts', postId, 'comments');
-      const q = query(commentsRef, orderBy('timestamp', 'desc'));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const commentsData = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            timestamp: data.timestamp || null,
-          };
-        });
-        setComments(commentsData);
+    const commentsRef = collection(db, 'posts', postId, 'comments');
+    const q = query(commentsRef, orderBy('timestamp', 'desc'));
+    const unsubscribeComments = onSnapshot(q, (querySnapshot) => {
+      const commentsData = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          timestamp: data.timestamp || null,
+        };
       });
+      setComments(commentsData);
+    });
 
-      return unsubscribe;
-    };
-
-    fetchPost();
-    const unsubscribeComments = fetchComments();
-
-    // Cleanup the listener
+    // Cleanup the listeners
     return () => {
-      if (unsubscribeComments) unsubscribeComments();
+      unsubscribePost();
+      unsubscribeComments();
     };
   }, [postId]);
+
+  useEffect(() => {
+    if (!postId || !userId) return;
+
+    const likeRef = doc(db, 'posts', postId, 'likes', userId);
+    const unsubscribeLike = onSnapshot(likeRef, (likeSnap) => {
+      setLiked(likeSnap.exists());
+    });
+
+    return () => {
+      unsubscribeLike();
+    };
+  }, [postId, userId]);
 
   const handleCommentSubmit = async () => {
     if (commentText.trim() === '') return;
@@ -89,11 +111,86 @@ const Post = () => {
         content: commentText,
         timestamp: Timestamp.now(),
       });
+
+      // Update comment count in the post document
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, {
+        commentsCount: increment(1),
+      });
+
       setCommentText('');
     } catch (error) {
       console.error('Error adding comment:', error);
     }
   };
+
+  // Updated handleLike function
+  const handleLike = async () => {
+    if (!userId || !postId) return;
+
+    try {
+      const likeRef = doc(db, 'posts', postId, 'likes', userId);
+
+      if (liked) {
+        // Unlike the post
+        await deleteDoc(likeRef);
+        await updateDoc(doc(db, 'posts', postId), {
+          likes: increment(-1),
+        });
+      } else {
+        // Like the post
+        await setDoc(likeRef, {
+          userId: userId,
+        });
+        await updateDoc(doc(db, 'posts', postId), {
+          likes: increment(1),
+        });
+      }
+
+      // Removed setLikes and setLiked; rely on listeners
+    } catch (error) {
+      console.error('Error liking/unliking post:', error);
+    }
+  };
+
+// Updated useEffect for likes listener
+  useEffect(() => {
+    if (!postId || !userId) return;
+
+    const likeRef = doc(db, 'posts', postId, 'likes', userId);
+    // console.log('Setting up likes listener');
+    const unsubscribeLike = onSnapshot(likeRef, (likeSnap) => {
+      setLiked(likeSnap.exists());
+    });
+
+    return () => {
+      // console.log('Cleaning up likes listener');
+      unsubscribeLike();
+    };
+  }, [postId, userId]);
+
+// Updated useEffect for post listener
+  useEffect(() => {
+    if (!postId) return;
+
+    const postRef = doc(db, 'posts', postId);
+    console.log('Setting up post listener');
+    const unsubscribePost = onSnapshot(postRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const postData = docSnap.data();
+        setPost({ id: docSnap.id, ...postData });
+        setLikes(postData.likes || 0);
+      }
+    }, (error) => {
+      console.error('Error fetching post:', error);
+    });
+
+    return () => {
+      console.log('Cleaning up post listener');
+      unsubscribePost();
+    };
+  }, [postId]);
+
 
   if (!post) {
     return <Text>Loading...</Text>;
@@ -102,31 +199,34 @@ const Post = () => {
   return (
       <View style={{ flex: 1, backgroundColor: '#02D6B6' }}>
         {/* Banner */}
-          <View style={styles.banner}>
-            <Pressable onPress={() => router.back()}>
-              <Ionicons name="chevron-back" size={35} color="white" />
-            </Pressable>
-            <Image
-              source={require('../assets/images/LogoWhite.png')} 
+        <View style={styles.banner}>
+          <Pressable onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={35} color="white" />
+          </Pressable>
+          <Image
+              source={require('../assets/images/LogoWhite.png')}
               resizeMode='contain'
               style={styles.logo}
-            />
-            <Image 
+          />
+          <Image
               source={require('../assets/images/profilePics/dwayneJo.jpg')}
               style={{height: 45, width: 45, borderRadius: 90}}
-            />
-          </View>
+          />
+        </View>
         {/* End banner */}
         {/* Post Section */}
         <View style={styles.postSection}>
           <Text style={styles.title}>{post.title}</Text>
           {post.imageUrl ? (
-              <Image
-                  source={{ uri: post.imageUrl }}
-                  style={styles.postImage}
-              />
+              <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
           ) : null}
           <Text>{post.content}</Text>
+
+          {/* Like Section */}
+          <Pressable onPress={handleLike} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
+            <Ionicons name={liked ? 'heart' : 'heart-outline'} size={24} color="red" />
+            <Text style={{ marginLeft: 5 }}>{likes} Likes</Text>
+          </Pressable>
 
           {/* Comment Section */}
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -140,7 +240,8 @@ const Post = () => {
               <Text>Comment</Text>
             </Pressable>
           </View>
-          <View>
+          <Text>{post.commentsCount || 0} Comments</Text>
+          <Animated.View entering={FadeIn.delay(300)}>
             {comments.map((comment) => (
                 <Comment
                     key={comment.id}
@@ -149,7 +250,7 @@ const Post = () => {
                     content={comment.content}
                 />
             ))}
-          </View>
+          </Animated.View>
         </View>
       </View>
   );
@@ -163,6 +264,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 20,
     flex: 10,
+  },
+  logo: {
+    width: 200,
+    height: 70,
   },
   title: {
     fontSize: 30,
@@ -192,10 +297,6 @@ const styles = StyleSheet.create({
     flex: 2,
     alignContent: 'center',
     alignItems: 'center',
-  },
-  logo: {
-    width: 200,
-    height: 70,
   },
   banner: {
     flexDirection: "row",
