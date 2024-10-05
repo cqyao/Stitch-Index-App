@@ -1,20 +1,13 @@
-import { View, Text, SafeAreaView, StyleSheet, ScrollView, Pressable, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import React, { useEffect, useState } from "react";
-import Input from '../components/SearchInput'
-import TagsInput from '../components/TagsInput'
-import CourseComponent from '../components/CourseComponent'
-import { Ionicons } from '@expo/vector-icons';
+import {Text, View, ActivityIndicator, Alert, Pressable, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Link, useNavigation, useRouter } from "expo-router";
 import { auth } from "@/firebaseConfig";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-
-const courses = () => {
-
-  // for determining whether "courses" or "my courses" is selected
-  const [isSelected, setIsSelected] = useState(false);
+import { Ionicons } from '@expo/vector-icons';
+const createCourse = () => {
 
   const router = useRouter();
   const navigation = useNavigation();
@@ -103,8 +96,7 @@ const courses = () => {
 
     fetchUserUid();
   }, []);
-
-    return (
+  return (
     <View style={{flex: 1,backgroundColor: 'white'}}>
         <View style={styles.banner}>
           <Pressable onPress={() => router.back()}>
@@ -123,38 +115,10 @@ const courses = () => {
             )}
           </TouchableOpacity>
         </View>
-
-        <View style={styles.searchInput}>
-            <TagsInput/>
-        </View>
-        <View style={styles.textContainer}>
-          <Pressable onPress={() => setIsSelected(true)}>
-            <Text style={[styles.titleText, { color: isSelected ? '#FF6231' : '#D9D9D9' }]}>Find Courses</Text>
-          </Pressable>
-          <View style={styles.verticleLine}></View>
-          <Pressable onPress={() => setIsSelected(false)}>
-            <Text style={[styles.titleText, { color: isSelected ? '#D9D9D9' : '#FF6231' }]}>My Courses</Text>
-          </Pressable>
-        </View>
-        {/* Courses */}
-        <ScrollView showsHorizontalScrollIndicator={false} horizontal={false} style={styles.courseContainer}>
-          <CourseComponent tag="Anatomy" time="120" rating={4.5} title="Anatomy Basics" blurb="Go back to the basics, learn all about human anatomy!" userId="something" userPFP="something" name="Dr. Graham" price={50} buttonLabel="$50"/>
-          <CourseComponent tag="Anatomy" time="1" rating={3.5} title="Anatomy Basics" blurb="Go back to the basics, learn all about human anatomy!" userId="something" userPFP="something" name="Dr. Graham" price={50} buttonLabel="Continue"/>
-          <CourseComponent tag="Anatomy" time="1" rating={2.0} title="Anatomy Basics" blurb="Go back to the basics, learn all about human anatomy!" userId="something" userPFP="something" name="Dr. Graham" price={50} buttonLabel="Continue"/>
-          <CourseComponent tag="Anatomy" time="1" rating={5} title="Anatomy Basics" blurb="Go back to the basics, learn all about human anatomy!" userId="something" userPFP="something" name="Dr. Graham" price={50} buttonLabel="Continue"/>
-          <CourseComponent tag="Anatomy" time="1" rating={4.5} title="Anatomy Basics" blurb="Go back to the basics, learn all about human anatomy!" userId="something" userPFP="something" name="Dr. Graham" price={50} buttonLabel="Continue"/>
-        </ScrollView>
-        {/* Create Course Button */}
-        <View>
-          <Pressable style={styles.createButton} onPress={() => router.push({ pathname: './createCourse' })}>
-            <Ionicons name="add-outline" size={50} color="#FF6231" />
-          </Pressable>
-        </View>
-      </View>
-    )
-}
-
-export default courses
+    </View>
+  );
+};
+export default createCourse;
 
 const styles = StyleSheet.create({
     banner: {
@@ -165,10 +129,6 @@ const styles = StyleSheet.create({
       paddingHorizontal: 30,
       paddingTop: 30,
       paddingBottom: 10,
-    },
-    searchInput: {
-      top: -20,
-      marginHorizontal: 30,
     },
     profilePic: {
       flexDirection: "row",
@@ -188,33 +148,4 @@ const styles = StyleSheet.create({
       height: '100%',
       resizeMode: 'cover',
     },
-    textContainer : {
-      top: 15,
-      justifyContent: "center",
-      flexDirection: "row",
-      gap: 10,
-    },
-    titleText : {
-      fontFamily: "inter",
-      fontWeight: "bold",
-      fontSize: 25,
-      color: "#FF6231",
-      textAlign: "center",
-    },
-    verticleLine: {
-      height: '100%',
-      width: 2,
-      backgroundColor: '#FF6231',
-    },
-    courseContainer: {
-      top: 25,
-    },
-    createButton: {
-      alignSelf: "center",
-      bottom: 5,
-      backgroundColor: "white",
-      borderRadius: 12,
-      borderColor: "#FF6231",
-      borderWidth: 2,
-    }
 })
