@@ -1,19 +1,63 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity, Pressable } from 'react-native'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5, MaterialIcons, Ionicons } from '@expo/vector-icons'
 import { router, useLocalSearchParams } from 'expo-router';
+import { getDownloadURL, getStorage, ref } from "firebase/storage";
+import Animated, { FadeIn } from 'react-native-reanimated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 // import list from database in live version.
 const symptomsList = ["Sore throat", "Heachache", "Fever", "Cold sweats"]
 
-
-
 const Appointment = () => {
   const params = useLocalSearchParams<{ appTime: string, patName:string }>();
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [ userId, setUserId ] = useState<string | null>(null);
+
+  const fetchImageUrl = async (userID: string) => {
+    try {
+      const url = await fetchImageFromFirebase(`pfp/${userID}`);
+      if (url) {
+        setImageUrl(url);
+      }
+    } catch (error) {
+      console.error("Error fetching image URL:", error);
+    }
+  };
+
+  const fetchImageFromFirebase = async (path: string): Promise<string | null> => {
+    try {
+      const storage = getStorage();
+      const imageRef = ref(storage, path);
+      const url = await getDownloadURL(imageRef);
+      return url;
+    } catch (error) {
+      console.error("Error fetching image from Firebase Storage", error);
+      return null;
+    }
+  };
+
+  // Fetch userId from AsyncStorage
   useEffect(() => {
-    console.log(params)
-  })
+    const getUserIdFromAsyncStorage = async () => {
+      try {
+        const userString = await AsyncStorage.getItem('user');
+        if (userString) {
+          const userData = JSON.parse(userString);
+          setUserId(userData.uid);
+          await fetchImageUrl(userData.uid);
+
+        }
+      } catch (error) {
+        console.error('Error fetching user ID from AsyncStorage', error);
+      }
+    };
+
+    getUserIdFromAsyncStorage();
+  }, []);
+
   return (
     <View style={styles.screen}>
       <View style={styles.banner}>
@@ -25,9 +69,10 @@ const Appointment = () => {
           resizeMode='contain'
           style={styles.logo}
         />
-        <Image 
-          source={require('../assets/images/profilePics/dwayneJo.jpg')}
-          style={{height: 45, width: 45, borderRadius: 90}}
+        <Animated.Image
+          entering={FadeIn.delay(500)}
+          source={{ uri: imageUrl || undefined }}
+          style={{ height: 45, width: 45, borderRadius: 90 }}
         />
       </View>
       <View style={styles.card}>
