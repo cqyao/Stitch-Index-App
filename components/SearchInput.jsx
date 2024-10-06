@@ -20,7 +20,9 @@ const Input = (props) => {
       />
       {/* CAN ADD THE QUERY INSERTION HERE TO LOAD SEARCH WITH INPUT PARAMETERS*/}
       <Pressable onPress={() => router.push({pathname: './search'})}>
-        <FontAwesome name="search" size={20}/>
+        <View style={[styles.searchIcon]}>
+          <FontAwesome name="search" size={20} color="white" style={[styles.icon]}/>
+        </View>
       </Pressable>
     </View>
   )
@@ -41,5 +43,15 @@ const styles = StyleSheet.create({
         borderCurve: 'continuous',
         paddingHorizontal: 18,
         gap: 12
+    },
+    searchIcon: {
+      backgroundColor: '#FF6231',
+      height: 30,
+      width: 30,
+      borderRadius: 8,
+    },
+    icon : {
+      top: 4,
+      textAlign: "center",
     }
 })

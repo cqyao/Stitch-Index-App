@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TextInput, Pressable} from 'react-native'
 import { theme } from '../constants/theme'
 import { useState } from 'react'
+import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 
 function TagsInput() {
     const [tags, setTags] = useState([])
@@ -32,6 +33,9 @@ function TagsInput() {
             <View style={styles.enteritems}>
                 <TextInput ref={input => { this.textInput = input }} onChangeText={(text) => setInput(text)} onSubmitEditing={() => {addTag()}} placeholder='Enter tag' placeholderTextColor="#666666" ></TextInput>
             </View>
+            <View style={styles.searchIcon}>
+                    <FontAwesome name="search" size={20} color="white" style={[styles.icon]}/>
+            </View>
         </View>
         
     )
@@ -41,8 +45,8 @@ export default TagsInput;
 
 const styles = StyleSheet.create({
 tagsearch: {
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingTop: 8,
+    paddingBottom: 8,
     top: 10,
     gap: 2,
     borderWidth: 0.4,
@@ -71,6 +75,7 @@ enteritems: {
     padding: 5,
     paddingRight: 10,
     borderRadius: 0,
+    alignItems: "center",
 },
 close: {
     height: 15,
@@ -93,5 +98,20 @@ mainText: {
 closeText: {
     textAlign: "center",
     fontSize: 10,
-}
+},
+searchIcon: {
+    position: "absolute",
+    top: 12,
+    zIndex: 2,
+    alignContent: "center",
+    left: 300,
+    backgroundColor: '#FF6231',
+    height: 30,
+    width: 30,
+    borderRadius: 8,
+  },
+  icon : {
+    top: 4,
+    textAlign: "center",
+  },
 });
