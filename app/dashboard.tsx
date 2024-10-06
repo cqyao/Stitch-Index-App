@@ -32,6 +32,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingImage, setLoadingImage] = useState<boolean>(true); // Optional: Loading state for image
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(''); 
 
 
   const checkUserInAsyncStorage = async () => {
@@ -88,6 +89,16 @@ const Dashboard = () => {
     }
   };
 
+    // Function to handle search submission
+    const handleSearchSubmit = () => {
+      if (searchQuery.trim()) {
+        router.push({
+          pathname: './search',
+          params: { query: searchQuery }  // Pass search query as a parameter
+        });
+      }
+    };
+
   // Retrieve user UID from AsyncStorage and fetch image URL
   useEffect(() => {
 
@@ -136,12 +147,18 @@ const Dashboard = () => {
         </View>
 
         <View style={styles.panel}>
-          <View style={styles.searchInput}>
-            <Input
-                placeholder='Search'
-                onChangeText={() => { }}
-            />
-          </View>
+        <View style={styles.searchInput}>
+          <Input
+            defaultValue={searchQuery}  // Pass the last search query
+            onSearch={(value: any) => {
+              // Navigate to search with the input value
+              router.push({
+                pathname: './search',
+                params: { query: value }
+              });
+            }}
+          />
+        </View>
 
           <View style={styles.features}>
             <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
