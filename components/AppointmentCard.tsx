@@ -6,12 +6,13 @@ import { router } from 'expo-router';
 
 interface AppointmentProps {
   time: string,
-  name: string
+  name: string,
+  type: string
 }
 
 
 
-const AppointmentCard: React.FC<AppointmentProps> = ({ time, name }) => {
+const AppointmentCard: React.FC<AppointmentProps> = ({ time, name, type }) => {
   function navigate() {
     router.push({
       pathname: "../appointment",
@@ -33,7 +34,7 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ time, name }) => {
           <MaterialIcons name="arrow-forward-ios" size={40} color="#808080" />
         </TouchableOpacity>
       </View>
-      <Text style={[styles.timeText, {marginTop: -30, marginLeft: 70, color: '#808080', fontWeight: 'normal'}]}>Appointment Type</Text>
+      <Text style={[styles.timeText, {marginTop: -30, marginLeft: 70, color: '#808080', fontWeight: 'normal'}]}>{type}</Text>
       <View style={{marginTop: 20, borderBottomColor: 'orange', borderBottomWidth: 2,}}/>
     </View>
   )
