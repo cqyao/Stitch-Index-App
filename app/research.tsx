@@ -1,24 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ScrollView, Image, Pressable } from "react-native";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "../firebaseConfig";
+import React, {useEffect, useState} from "react";
+import {Image, Pressable, StyleSheet, View} from "react-native";
+import {collection, onSnapshot, orderBy, query} from "firebase/firestore";
+import {db} from "../firebaseConfig";
 import ResearchPost from "../components/ResearchPost";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { FAB } from "react-native-paper";
+import {Ionicons} from "@expo/vector-icons";
+import {router} from "expo-router";
+import {FAB} from "react-native-paper";
 import LottieView from "lottie-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Reanimated } from "react-native-gesture-handler/lib/typescript/handlers/gestures/reanimatedWrapper";
-import Animated, {
-  FadeIn,
-  FadeOut,
-  FadeInUp,
-  FadeInDown,
-} from "react-native-reanimated";
-import { User } from "firebase/auth";
-import { getDownloadURL, getStorage, ref } from "firebase/storage";
-import { FadeInData } from "react-native-reanimated/lib/typescript/reanimated2/layoutReanimation/web/animation/Fade.web";
-import { FirebaseError } from "firebase/app";
+import Animated, {FadeIn, FadeOut,} from "react-native-reanimated";
+import {getDownloadURL, getStorage, ref} from "firebase/storage";
 
 const Research = () => {
   const [posts, setPosts] = useState<any[]>([]);
@@ -43,8 +34,7 @@ const Research = () => {
     try {
       const storage = getStorage();
       const imageRef = ref(storage, path);
-      const url = await getDownloadURL(imageRef);
-      return url;
+      return await getDownloadURL(imageRef);
     } catch (error) {
       console.error("Error fetching image from Firebase Storage", error);
       return null;

@@ -25,7 +25,6 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 
 import StarRating from "react-native-star-rating-widget";
-import { FirebaseError } from "firebase/app";
 
 const CourseContents = () => {
   const router = useRouter();
@@ -57,7 +56,7 @@ const CourseContents = () => {
 
   // Function to fetch image URL from Firebase Storage
   const fetchImageFromFirebase = async (
-    path: string
+      path: string
   ): Promise<string | null> => {
     try {
       const storage = getStorage();
@@ -84,19 +83,6 @@ const CourseContents = () => {
     }
   };
 
-  // Handle user sign-out
-  const handleSignOut = async () => {
-    try {
-      await AsyncStorage.removeItem("user");
-      await auth.signOut();
-      Alert.alert("Success", "You have been signed out.");
-      router.replace({ pathname: "./signIn" });
-    } catch (error) {
-      Alert.alert("Error", "An error occurred while signing out.");
-      console.error("Error signing out: ", error);
-    }
-  };
-
   // Fetch course data
   const fetchCourseData = async () => {
     try {
@@ -114,11 +100,11 @@ const CourseContents = () => {
         // Fetch existing rating from the 'ratings' subcollection
         if (user) {
           const ratingRef = doc(
-            db,
-            "courses",
-            courseIdStr,
-            "ratings",
-            user.uid
+              db,
+              "courses",
+              courseIdStr,
+              "ratings",
+              user.uid
           );
           const ratingDoc = await getDoc(ratingRef);
           if (ratingDoc.exists()) {
@@ -180,44 +166,44 @@ const CourseContents = () => {
   }, [user]); // Include 'user' in dependency array
 
   return (
-    <View style={{ flex: 1, backgroundColor: "white" }}>
-      <View style={styles.banner}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={35} color="black" />
-        </Pressable>
-        <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
-          {loadingImage ? (
-            <ActivityIndicator size="small" color="#02D6B6" />
-          ) : imageUrl ? (
-            <Image source={{ uri: imageUrl }} style={styles.profileImage} />
-          ) : (
-            <MaterialIcons name="face" size={40} color="black" />
-          )}
-        </TouchableOpacity>
+      <View style={{ flex: 1, backgroundColor: "white" }}>
+        <View style={styles.banner}>
+          <Pressable onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={35} color="black" />
+          </Pressable>
+          <TouchableOpacity style={styles.profilePic}>
+            {loadingImage ? (
+                <ActivityIndicator size="small" color="#02D6B6" />
+            ) : imageUrl ? (
+                <Image source={{ uri: imageUrl }} style={styles.profileImage} />
+            ) : (
+                <MaterialIcons name="face" size={40} color="black" />
+            )}
+          </TouchableOpacity>
+        </View>
+        {courseData ? (
+            <ScrollView style={{ padding: 20 }}>
+              <Text style={styles.courseTitle}>{courseData.title}</Text>
+              <Text style={styles.courseBlurb}>{courseData.blurb}</Text>
+              {/* Add course content here */}
+              <Text style={styles.sectionTitle}>Course Content</Text>
+              {/* Example content */}
+              <Text>{/* ... */}</Text>
+              {/* Rating */}
+              <View style={styles.ratingContainer}>
+                <Text style={styles.ratingText}>Rate this course:</Text>
+                <StarRating
+                    rating={rating}
+                    onChange={handleRating}
+                    starSize={30}
+                    color="#FF6231"
+                />
+              </View>
+            </ScrollView>
+        ) : (
+            <ActivityIndicator size="large" color="#02D6B6" />
+        )}
       </View>
-      {courseData ? (
-        <ScrollView style={{ padding: 20 }}>
-          <Text style={styles.courseTitle}>{courseData.title}</Text>
-          <Text style={styles.courseBlurb}>{courseData.blurb}</Text>
-          {/* Add course content here */}
-          <Text style={styles.sectionTitle}>Course Content</Text>
-          {/* Example content */}
-          <Text>{/* ... */}</Text>
-          {/* Rating */}
-          <View style={styles.ratingContainer}>
-            <Text style={styles.ratingText}>Rate this course:</Text>
-            <StarRating
-              rating={rating}
-              onChange={handleRating}
-              starSize={30}
-              color="#FF6231"
-            />
-          </View>
-        </ScrollView>
-      ) : (
-        <ActivityIndicator size="large" color="#02D6B6" />
-      )}
-    </View>
   );
 };
 

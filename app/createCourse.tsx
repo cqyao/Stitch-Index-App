@@ -41,6 +41,8 @@ const CreateCourse = () => {
   const [tag, setTag] = useState("");
   const [time, setTime] = useState("");
   const [price, setPrice] = useState("");
+  const [author, setAuthor] = useState<string | null>(null);
+  const [userID, setUserID] = useState<string | null>(null);
 
   const checkUserInAsyncStorage = async () => {
     try {
@@ -52,6 +54,20 @@ const CreateCourse = () => {
       console.error("Error retrieving user from AsyncStorage", error);
     }
     setLoading(false);
+  };
+
+  const getAuthorFromAsyncStorage = async () => {
+    try {
+      const userString = await AsyncStorage.getItem("user");
+      if (userString) {
+        const userData = JSON.parse(userString);
+        setAuthor(`${userData.firstName} ${userData.lastName}`);
+        setUserID(`${userData.uid}`);
+        // setUserPFP(await fetchImageFromFirebase(`pfp/${userData.uid}`));
+      }
+    } catch (error) {
+      console.error("Error fetching author data from AsyncStorage", error);
+    }
   };
 
   // Function to fetch image URL from Firebase Storage
@@ -68,6 +84,10 @@ const CreateCourse = () => {
       return null;
     }
   };
+
+  useEffect(() => {
+    getAuthorFromAsyncStorage();
+  }, []);
 
   // Function to fetch and set image URL
   const fetchImageUrl = async (user: User) => {
@@ -115,11 +135,9 @@ const CreateCourse = () => {
         tag,
         time,
         price: parseFloat(price),
-        rating: 0, // Initial rating
-        ratings: [], // Empty ratings array
-        userId: user.uid,
+        userId: userID,
         userPFP: imageUrl || "",
-        name: user.displayName || "Anonymous",
+        name: author || "Anonymous",
       };
 
       await addDoc(collection(db, "courses"), newCourse);
