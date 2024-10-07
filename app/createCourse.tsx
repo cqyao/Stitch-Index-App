@@ -1,6 +1,6 @@
 // createCourse.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Text,
   View,
@@ -12,18 +12,19 @@ import {
   StyleSheet,
   TextInput,
   Button,
-} from 'react-native';
-import { useNavigation, useRouter } from 'expo-router';
-import { auth } from '@/firebaseConfig';
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
-import { User } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MaterialIcons } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { useNavigation, useRouter } from "expo-router";
+import { auth } from "@/firebaseConfig";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { User } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 // Import Firestore functions
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '@/firebaseConfig';
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "@/firebaseConfig";
+import { FirebaseError } from "firebase/app";
 
 const CreateCourse = () => {
   const router = useRouter();
@@ -35,36 +36,58 @@ const CreateCourse = () => {
   const [loading, setLoading] = useState(true);
 
   // State for form inputs
-  const [title, setTitle] = useState('');
-  const [blurb, setBlurb] = useState('');
-  const [tag, setTag] = useState('');
-  const [time, setTime] = useState('');
-  const [price, setPrice] = useState('');
+  const [title, setTitle] = useState("");
+  const [blurb, setBlurb] = useState("");
+  const [tag, setTag] = useState("");
+  const [time, setTime] = useState("");
+  const [price, setPrice] = useState("");
+  const [author, setAuthor] = useState<string | null>(null);
+  const [userID, setUserID] = useState<string | null>(null);
 
   const checkUserInAsyncStorage = async () => {
     try {
-      const storedUser = await AsyncStorage.getItem('user');
+      const storedUser = await AsyncStorage.getItem("user");
       if (!storedUser) {
-        router.push({ pathname: './signIn' });
+        router.push({ pathname: "./signIn" });
       }
     } catch (error) {
-      console.error('Error retrieving user from AsyncStorage', error);
+      console.error("Error retrieving user from AsyncStorage", error);
     }
     setLoading(false);
   };
 
+  const getAuthorFromAsyncStorage = async () => {
+    try {
+      const userString = await AsyncStorage.getItem("user");
+      if (userString) {
+        const userData = JSON.parse(userString);
+        setAuthor(`${userData.firstName} ${userData.lastName}`);
+        setUserID(`${userData.uid}`);
+        // setUserPFP(await fetchImageFromFirebase(`pfp/${userData.uid}`));
+      }
+    } catch (error) {
+      console.error("Error fetching author data from AsyncStorage", error);
+    }
+  };
+
   // Function to fetch image URL from Firebase Storage
-  const fetchImageFromFirebase = async (path: string): Promise<string | null> => {
+  const fetchImageFromFirebase = async (
+    path: string
+  ): Promise<string | null> => {
     try {
       const storage = getStorage();
       const imageRef = ref(storage, path);
       const url = await getDownloadURL(imageRef);
       return url;
     } catch (error) {
-      console.error('Error fetching image from Firebase Storage', error);
+      console.error("Error fetching image from Firebase Storage", error);
       return null;
     }
   };
+
+  useEffect(() => {
+    getAuthorFromAsyncStorage();
+  }, []);
 
   // Function to fetch and set image URL
   const fetchImageUrl = async (user: User) => {
@@ -74,7 +97,7 @@ const CreateCourse = () => {
         setImageUrl(url);
       }
     } catch (error) {
-      console.error('Error fetching image URL:', error);
+      console.error("Error fetching image URL:", error);
     } finally {
       setLoadingImage(false);
     }
@@ -83,13 +106,13 @@ const CreateCourse = () => {
   // Handle user sign-out
   const handleSignOut = async () => {
     try {
-      await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem("user");
       await auth.signOut();
-      Alert.alert('Success', 'You have been signed out.');
-      router.replace({ pathname: './signIn' });
+      Alert.alert("Success", "You have been signed out.");
+      router.replace({ pathname: "./signIn" });
     } catch (error) {
-      Alert.alert('Error', 'An error occurred while signing out.');
-      console.error('Error signing out: ', error);
+      Alert.alert("Error", "An error occurred while signing out.");
+      console.error("Error signing out: ", error);
     }
   };
 
@@ -97,12 +120,12 @@ const CreateCourse = () => {
   const handleCreateCourse = async () => {
     try {
       if (!user) {
-        Alert.alert('Error', 'User not logged in');
+        Alert.alert("Error", "User not logged in");
         return;
       }
 
       if (!title || !blurb || !tag || !time || !price) {
-        Alert.alert('Error', 'Please fill in all fields');
+        Alert.alert("Error", "Please fill in all fields");
         return;
       }
 
@@ -112,19 +135,17 @@ const CreateCourse = () => {
         tag,
         time,
         price: parseFloat(price),
-        rating: 0, // Initial rating
-        ratings: [], // Empty ratings array
-        userId: user.uid,
-        userPFP: imageUrl || '',
-        name: user.displayName || 'Anonymous',
+        userId: userID,
+        userPFP: imageUrl || "",
+        name: author || "Anonymous",
       };
 
-      await addDoc(collection(db, 'courses'), newCourse);
-      Alert.alert('Success', 'Course created successfully');
+      await addDoc(collection(db, "courses"), newCourse);
+      Alert.alert("Success", "Course created successfully");
       router.back();
     } catch (error) {
-      console.error('Error creating course:', error);
-      Alert.alert('Error', 'Failed to create course');
+      console.error("Error creating course:", error);
+      Alert.alert("Error", "Failed to create course");
     }
   };
 
@@ -134,17 +155,17 @@ const CreateCourse = () => {
 
     const fetchUserUid = async () => {
       try {
-        const userString = await AsyncStorage.getItem('user');
+        const userString = await AsyncStorage.getItem("user");
         if (userString) {
           const user = JSON.parse(userString);
           setUser(user);
           await fetchImageUrl(user);
         } else {
-          console.log('No user found');
+          console.log("No user found");
           setLoadingImage(false);
         }
       } catch (error) {
-        console.error('Error retrieving user from AsyncStorage', error);
+        console.error("Error retrieving user from AsyncStorage", error);
         setLoadingImage(false);
       }
     };
@@ -153,58 +174,58 @@ const CreateCourse = () => {
   }, []);
 
   return (
-      <View style={{ flex: 1, backgroundColor: 'white' }}>
-        <View style={styles.banner}>
-          <Pressable onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={35} color="black" />
-          </Pressable>
-          <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
-            {loadingImage ? (
-                <ActivityIndicator size="small" color="#02D6B6" />
-            ) : imageUrl ? (
-                <Image source={{ uri: imageUrl }} style={styles.profileImage} />
-            ) : (
-                <MaterialIcons name="face" size={40} color="black" />
-            )}
-          </TouchableOpacity>
-        </View>
-        {/* Form */}
-        <View style={styles.form}>
-          <TextInput
-              style={styles.input}
-              placeholder="Course Title"
-              value={title}
-              onChangeText={setTitle}
-          />
-          <TextInput
-              style={styles.input}
-              placeholder="Blurb"
-              value={blurb}
-              onChangeText={setBlurb}
-          />
-          <TextInput
-              style={styles.input}
-              placeholder="Tag"
-              value={tag}
-              onChangeText={setTag}
-          />
-          <TextInput
-              style={styles.input}
-              placeholder="Time (minutes)"
-              value={time}
-              onChangeText={setTime}
-              keyboardType="numeric"
-          />
-          <TextInput
-              style={styles.input}
-              placeholder="Price"
-              value={price}
-              onChangeText={setPrice}
-              keyboardType="numeric"
-          />
-          <Button title="Create Course" onPress={handleCreateCourse} />
-        </View>
+    <View style={{ flex: 1, backgroundColor: "white" }}>
+      <View style={styles.banner}>
+        <Pressable onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={35} color="black" />
+        </Pressable>
+        <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
+          {loadingImage ? (
+            <ActivityIndicator size="small" color="#02D6B6" />
+          ) : imageUrl ? (
+            <Image source={{ uri: imageUrl }} style={styles.profileImage} />
+          ) : (
+            <MaterialIcons name="face" size={40} color="black" />
+          )}
+        </TouchableOpacity>
       </View>
+      {/* Form */}
+      <View style={styles.form}>
+        <TextInput
+          style={styles.input}
+          placeholder="Course Title"
+          value={title}
+          onChangeText={setTitle}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Blurb"
+          value={blurb}
+          onChangeText={setBlurb}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Tag"
+          value={tag}
+          onChangeText={setTag}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Time (minutes)"
+          value={time}
+          onChangeText={setTime}
+          keyboardType="numeric"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Price"
+          value={price}
+          onChangeText={setPrice}
+          keyboardType="numeric"
+        />
+        <Button title="Create Course" onPress={handleCreateCourse} />
+      </View>
+    </View>
   );
 };
 
@@ -212,38 +233,38 @@ export default CreateCourse;
 
 const styles = StyleSheet.create({
   banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 30,
     paddingHorizontal: 30,
     paddingTop: 30,
     paddingBottom: 10,
   },
   profilePic: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginRight: 15,
     borderWidth: 2,
     height: 55,
     width: 55,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderColor: '#02D6B6',
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "#02D6B6",
     borderRadius: 27.5,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
+    overflow: "hidden",
+    backgroundColor: "#fff",
   },
   profileImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   form: {
     padding: 20,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,
     marginVertical: 5,

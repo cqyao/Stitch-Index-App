@@ -20,20 +20,20 @@ import { auth } from "@/firebaseConfig";
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
-    User
+  User,
 } from "firebase/auth";
 import { FirebaseError } from "@firebase/app";
-import Animated, {FadeIn, FadeOut, FadeInUp, FadeInDown} from "react-native-reanimated";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/firebaseConfig'; // Update the path according to your project
-
-
-
+import Animated, {
+  FadeIn,
+  FadeOut,
+  FadeInUp,
+  FadeInDown,
+} from "react-native-reanimated";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/firebaseConfig"; // Update the path according to your project
 
 const SignIn = () => {
-
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false); // Add a state to switch between sign up and login
@@ -42,7 +42,7 @@ const SignIn = () => {
 
   const checkUserInAsyncStorage = async () => {
     try {
-      const storedUser = await AsyncStorage.getItem('user');
+      const storedUser = await AsyncStorage.getItem("user");
       if (storedUser) {
         // setUser(JSON.parse(storedUser));
         router.push({ pathname: "./dashboard" });
@@ -78,7 +78,7 @@ const SignIn = () => {
 
   const saveUserToAsyncStorage = async (user: UserData) => {
     try {
-      await AsyncStorage.setItem('user', JSON.stringify(user));
+      await AsyncStorage.setItem("user", JSON.stringify(user));
     } catch (error) {
       console.error("Error saving user to AsyncStorage", error);
     }
@@ -86,11 +86,11 @@ const SignIn = () => {
 
   const fetchAndStoreUserData = async (uid: string) => {
     try {
-      const userDocRef = doc(db, 'Users', uid);
+      const userDocRef = doc(db, "Users", uid);
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists()) {
-        const userData = userDoc.data() as Omit<UserData, 'uid'>; // Get Firestore data, excluding 'uid'
+        const userData = userDoc.data() as Omit<UserData, "uid">; // Get Firestore data, excluding 'uid'
         const fullUserData: UserData = {
           ...userData,
           uid,
@@ -112,7 +112,11 @@ const SignIn = () => {
     }
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       // Logged in
       const user = userCredential.user;
       // await saveUserToAsyncStorage(user);
@@ -124,31 +128,34 @@ const SignIn = () => {
       if (error instanceof FirebaseError) {
         // Check for Firebase Auth error codes
         switch (error.code) {
-          case 'auth/email-already-in-use':
-            Alert.alert('Error', 'The email address is already in use.');
+          case "auth/email-already-in-use":
+            Alert.alert("Error", "The email address is already in use.");
             break;
-          case 'auth/invalid-email':
-            Alert.alert('Error', 'The email address is invalid.');
+          case "auth/invalid-email":
+            Alert.alert("Error", "The email address is invalid.");
             break;
-          case 'auth/operation-not-allowed':
-            Alert.alert('Error', 'Email/password accounts are not enabled.');
+          case "auth/operation-not-allowed":
+            Alert.alert("Error", "Email/password accounts are not enabled.");
             break;
-          case 'auth/weak-password':
-            Alert.alert('Error', 'The password is too weak.');
+          case "auth/weak-password":
+            Alert.alert("Error", "The password is too weak.");
             break;
-          case 'auth/user-not-found':
-            Alert.alert('Error', 'User not found.');
+          case "auth/user-not-found":
+            Alert.alert("Error", "User not found.");
             break;
-          case 'auth/wrong-password':
-            Alert.alert('Error', 'Incorrect password.');
+          case "auth/wrong-password":
+            Alert.alert("Error", "Incorrect password.");
             break;
           default:
-            Alert.alert('Error', 'Incorrect Email or Password. Please try again.');
+            Alert.alert(
+              "Error",
+              "Incorrect Email or Password. Please try again."
+            );
             break;
         }
       } else {
-        console.error('Unknown error signing in:', error);
-        Alert.alert('Error', 'An unexpected error occurred.');
+        console.error("Unknown error signing in:", error);
+        Alert.alert("Error", "An unexpected error occurred.");
       }
     }
   };
@@ -166,82 +173,105 @@ const SignIn = () => {
   // }, []);
 
   return (
-      <ScreenWrapper bg="white">
-        <StatusBar style="dark" />
-        <View style={styles.container}>
-          <Animated.Image entering={FadeInUp.delay(200).duration(1000).springify()} style={styles.logo} source={require("../assets/images/Logo.png")} />
-          <Animated.View entering={FadeInUp.delay(400).duration(1000).springify()}>
-            <Text style={styles.loginText}>
-              {isSignUp ? "Sign Up" : "Login"}
-            </Text>
-          </Animated.View>
-          <View style={styles.form}>
-            <Text style={styles.formText}>
-              {/*{isSignUp*/}
-              {/*    ? "Create a new account"*/}
-              {/*    : "Log in to continue with your account"}*/}
-            </Text>
-          </View>
-          <Animated.View entering={FadeInUp.delay(600).duration(1000).springify()} style={styles.form}>
-            <Image style={styles.google} source={require("../assets/images/Google.png")} />
-            <Button
-                title={`Sign in With Google`}
-                onPress={() => {}}
-                buttonStyle={undefined}
-                textStyle={undefined}
-            />
-          </Animated.View>
-          <Animated.View entering={FadeIn.delay(200).duration(1000).springify()} style={styles.lineStyle}>
-            <View style={styles.line} />
-            <Text style={styles.orText}>OR</Text>
-            <View style={styles.line} />
-          </Animated.View>
-          <Animated.View entering={FadeInDown.duration(1000).springify()}>
-            <KeyboardAvoidingView style={styles.form}>
-              <Text style={styles.label}>Email Address</Text>
-              <Input
-                  placeholder="Enter your email"
-                  value={email}
-                  onChangeText={(text: string) => setEmail(text)}
-              />
-            </KeyboardAvoidingView>
-          </Animated.View>
-          <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()}>
-            <KeyboardAvoidingView style={styles.form} behavior="padding">
-              <Text style={styles.label}>Password</Text>
-              <Input
-                  placeholder="Enter your password"
-                  value={password}
-                  secureTextEntry
-                  onChangeText={(text: string) => setPassword(text)}
-              />
-            </KeyboardAvoidingView>
-          </Animated.View>
-          <Animated.View entering={FadeInDown.delay(400).duration(1000).springify()} style={styles.mainbutton}>
-            <MainButton
-                title={"Sign In"}
-                onPress={handleLogin}
-                buttonStyle={undefined}
-                textStyle={undefined}
-            />
-          </Animated.View>
-          <View style={styles.footer}>
-            <Animated.View entering={FadeInDown.delay(600).duration(1000).springify()} style={styles.bottomTextContainer}>
-              <Text style={styles.footerText}>
-                {isSignUp ? "Already have an account?" : "Don't have an account?"}
-              </Text>
-              <Pressable onPress={() => router.push({pathname: "./signup"})}>
-                <Text style={[styles.footerText, styles.signupText]}>
-                  {isSignUp ? "Login" : "Sign-up"}
-                </Text>
-              </Pressable>
-            </Animated.View>
-            <Animated.View entering={FadeInDown.delay(800).duration(1000).springify()}>
-              <Text style={styles.forgotPassword}>Forgot Password?</Text>
-            </Animated.View>
-          </View>
+    <ScreenWrapper bg="white">
+      <StatusBar style="dark" />
+      <View style={styles.container}>
+        <Animated.Image
+          entering={FadeInUp.delay(200).duration(1000).springify()}
+          style={styles.logo}
+          source={require("../assets/images/Logo.png")}
+        />
+        <Animated.View
+          entering={FadeInUp.delay(400).duration(1000).springify()}
+        >
+          <Text style={styles.loginText}>{isSignUp ? "Sign Up" : "Login"}</Text>
+        </Animated.View>
+        <View style={styles.form}>
+          <Text style={styles.formText}>
+            {/*{isSignUp*/}
+            {/*    ? "Create a new account"*/}
+            {/*    : "Log in to continue with your account"}*/}
+          </Text>
         </View>
-      </ScreenWrapper>
+        <Animated.View
+          entering={FadeInUp.delay(600).duration(1000).springify()}
+          style={styles.form}
+        >
+          <Image
+            style={styles.google}
+            source={require("../assets/images/Google.png")}
+          />
+          <Button
+            title={`Sign in With Google`}
+            onPress={() => {}}
+            buttonStyle={undefined}
+            textStyle={undefined}
+          />
+        </Animated.View>
+        <Animated.View
+          entering={FadeIn.delay(200).duration(1000).springify()}
+          style={styles.lineStyle}
+        >
+          <View style={styles.line} />
+          <Text style={styles.orText}>OR</Text>
+          <View style={styles.line} />
+        </Animated.View>
+        <Animated.View entering={FadeInDown.duration(1000).springify()}>
+          <KeyboardAvoidingView style={styles.form}>
+            <Text style={styles.label}>Email Address</Text>
+            <Input
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={(text: string) => setEmail(text)}
+            />
+          </KeyboardAvoidingView>
+        </Animated.View>
+        <Animated.View
+          entering={FadeInDown.delay(200).duration(1000).springify()}
+        >
+          <KeyboardAvoidingView style={styles.form} behavior="padding">
+            <Text style={styles.label}>Password</Text>
+            <Input
+              placeholder="Enter your password"
+              value={password}
+              secureTextEntry
+              onChangeText={(text: string) => setPassword(text)}
+            />
+          </KeyboardAvoidingView>
+        </Animated.View>
+        <Animated.View
+          entering={FadeInDown.delay(400).duration(1000).springify()}
+          style={styles.mainbutton}
+        >
+          <MainButton
+            title={"Sign In"}
+            onPress={handleLogin}
+            buttonStyle={undefined}
+            textStyle={undefined}
+          />
+        </Animated.View>
+        <View style={styles.footer}>
+          <Animated.View
+            entering={FadeInDown.delay(600).duration(1000).springify()}
+            style={styles.bottomTextContainer}
+          >
+            <Text style={styles.footerText}>
+              {isSignUp ? "Already have an account?" : "Don't have an account?"}
+            </Text>
+            <Pressable onPress={() => router.push({ pathname: "./signup" })}>
+              <Text style={[styles.footerText, styles.signupText]}>
+                {isSignUp ? "Login" : "Sign-up"}
+              </Text>
+            </Pressable>
+          </Animated.View>
+          <Animated.View
+            entering={FadeInDown.delay(800).duration(1000).springify()}
+          >
+            <Text style={styles.forgotPassword}>Forgot Password?</Text>
+          </Animated.View>
+        </View>
+      </View>
+    </ScreenWrapper>
   );
 };
 
@@ -347,4 +377,3 @@ const styles = StyleSheet.create({
     // marginTop: hp(1), // Add marginTop to create space below "Forgot Password?"
   },
 });
-

@@ -1,38 +1,94 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
-import React from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
+import { PatientProps } from '@/components/PatientInfo';
 
 interface AppointmentProps {
-  time: string,
-  name: string
+  patientId: string;
+  time: string;
+  type: string;
 }
 
-const AppointmentCard: React.FC<AppointmentProps> = ({ time, name }) => {
-  function navigate() {
+const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, time, type }) => {
+  const [patientData, setPatientData] = useState<PatientProps | null>(null);
+
+  // Function to get patient info based on patient ID
+  const fetchPatientData = async (id: string) => {
+    try {
+      const docRef = doc(db, 'Patients', id);  // Dynamic Patient ID
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const formattedData: PatientProps = {
+          picture: require('../assets/images/profilePics/johnLe.jpeg'), // Replace with real image if available
+          name: `${data['First Name']} ${data['Last Name']}`,
+          gender: data.Gender,
+          birthdateString: data.birthdateString,
+          mobile: data['Mobile'],
+          email: data.Email,
+          symptoms: data.Symptoms,
+          tags: data.tags,
+        };
+        setPatientData(formattedData);  // Set the patient data
+        console.log(patientData)
+      } else {
+        console.log('No such document!');
+      }
+    } catch (error) {
+      console.error('Error fetching patient data: ', error);
+    }
+  };
+
+  useEffect(() => {
+    if (patientId) {
+      fetchPatientData(patientId);  // Fetch data based on patient ID
+    }
+  }, [patientId]);
+
+  // Check if patient data has been fetched and render loading state if null
+  if (!patientData) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#02D6B6' }}>
+        <View>
+          <Text>Loading patient data...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const navigate = () => {
+    const serializedData = JSON.stringify(patientData);
+
     router.push({
       pathname: "../appointment",
-      params: { appTime: time, patName: name}
-    })
-  }
+      params: { 
+        time: time, 
+        type: type,
+        data: serializedData
+      },
+    });
+  };
 
   return (
     <View style={styles.container}>
-      <View style={{flexDirection: "row"}}>
-        <MaterialIcons style={{padding: 1}} name="access-time" size={15} color="#7D7D7D" />
+      <View style={{ flexDirection: "row" }}>
+        <MaterialIcons style={{ padding: 1 }} name="access-time" size={15} color="#7D7D7D" />
         <Text style={styles.timeText}>{time}</Text>
       </View>
-      <View style={{flexDirection: "row"}}>
-        <Text style={[styles.timeText, {marginTop: 20, marginLeft: 10,}]}>{name}</Text>
-        <TouchableOpacity style={{marginTop: 20, marginLeft: 200,}} onPress={navigate}>
+      <View style={{ flexDirection: "row" }}>
+        <Text style={[styles.timeText, { marginTop: 20, marginLeft: 10 }]}>{patientData.name}</Text>
+        <TouchableOpacity style={{ marginTop: 20, marginLeft: 200 }} onPress={navigate}>
           <MaterialIcons name="arrow-forward-ios" size={30} color="#808080" />
         </TouchableOpacity>
       </View>
-      <Text style={[styles.timeText, {marginLeft: 10, color: '#808080', fontWeight: 'normal'}]}>Appointment Type</Text>
+      <Text style={[styles.timeText, { marginLeft: 10, color: '#808080', fontWeight: 'normal' }]}>{type}</Text>
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -40,24 +96,22 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     marginHorizontal: 30,
-    //borderWidth: 1.2,
     borderColor: "#02D6B6",
     paddingBottom: 20,
     marginVertical: 15,
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 5
+      height: 5,
     },
     shadowRadius: 8,
-    shadowOpacity: 0.2
+    shadowOpacity: 0.2,
   },
   timeText: {
     color: '#7D7D7D',
     fontSize: 14,
     fontWeight: 'bold',
   },
+});
 
-})
-
-export default AppointmentCard
+export default AppointmentCard;
