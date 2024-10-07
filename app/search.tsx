@@ -1,118 +1,149 @@
-import { View, Text, Image, SafeAreaView, StyleSheet, ScrollView, Pressable } from 'react-native'
-import React from 'react'
-import { Ionicons } from '@expo/vector-icons';
+import {
+  View,
+  Text,
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+} from "react-native";
+import React from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { Link, useNavigation, useRouter } from "expo-router";
-import Input from '../components/SearchInput'
-import TagsInput from '../components/TagsInput'
+import Input from "../components/SearchInput";
+import TagsInput from "../components/TagsInput";
 import { theme } from "../constants/theme";
 import { hp, wp } from "../helpers/common";
-import EntityComponent from '@/components/entitycomponent';
+import EntityComponent from "@/components/entitycomponent";
 
 const search = () => {
-    const router = useRouter();
-    return (
-    <View style={{flex: 1,backgroundColor: 'white'}}>
-        <View style={styles.banner}>
-          <Pressable onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={35} color="black" />
+  const router = useRouter();
+  return (
+    <View style={{ flex: 1, backgroundColor: "white" }}>
+      <View style={styles.banner}>
+        <Pressable onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={35} color="black" />
+        </Pressable>
+        <Image
+          source={require("../assets/images/profilePics/dwayneJo.jpg")}
+          style={{ height: 45, width: 45, borderRadius: 90 }}
+        />
+      </View>
+
+      <View style={styles.searchInput}>
+        <Input placeholder="Search" onChangeText={() => {}} />
+        <View style={styles.lineStyle}>
+          <View style={styles.line} />
+          <Text style={styles.orText}>OR</Text>
+          <View style={styles.line} />
+        </View>
+        <TagsInput />
+      </View>
+      {/* Patients */}
+      <View>
+        <View style={styles.headerRow}>
+          <Text style={styles.titles}> Patients</Text>
+          {/* navigate to Patients page */}
+          <Pressable onPress={() => ({})}>
+            <Text style={styles.seeall}> See All</Text>
           </Pressable>
-          <Image 
-            source={require('../assets/images/profilePics/dwayneJo.jpg')}
-            style={{height: 45, width: 45, borderRadius: 90}}
-          />
         </View>
-
-        <View style={styles.searchInput}>
-            <Input
-                placeholder='Search'
-                onChangeText={()=>{}}
+        {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO, THE IMAGES AND TITLE VALUES SHOULD BE RETRIEVED FROM DB BASED ON SEARCH */}
+        <View style={styles.section}>
+          {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
+          <Pressable onPress={() => router.push("/patient?patientId=test1")}>
+            <EntityComponent
+              imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
+              title="Dr. John Le"
             />
-            <View style={styles.lineStyle}>
-                <View style={styles.line} />
-                <Text style={styles.orText}>OR</Text>
-                <View style={styles.line} />
-            </View>
-            <TagsInput/>
+          </Pressable>
+          {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
+          <Pressable onPress={() => router.push("/patient?patientId=test2")}>
+            <EntityComponent
+              imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
+              title="Aneta Guzowska"
+            />
+          </Pressable>
+          {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
+          <Pressable onPress={() => router.push("/patient?patientId=test3")}>
+            <EntityComponent
+              imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
+              title="Drake Graham"
+            />
+          </Pressable>
         </View>
-        {/* Patients */}
-        <View>
-            <View style={styles.headerRow}>
-                <Text style={styles.titles}> Patients</Text>
-                {/* navigate to Patients page */}
-                <Pressable onPress={() => ({})}>
-                    <Text style={styles.seeall}> See All</Text>
-                </Pressable>
-            </View>
-          {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO, THE IMAGES AND TITLE VALUES SHOULD BE RETRIEVED FROM DB BASED ON SEARCH */}
-            <View style={styles.section}>
-              {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
-            <Pressable onPress={() => router.push('/patient?patientId=test1')}>
-              <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title="Dr. John Le" />
-            </Pressable>
-            {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
-            <Pressable onPress={() => router.push('/patient?patientId=test2')}>
-                <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title="Aneta Guzowska"/>
-            </Pressable>
-            {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
-            <Pressable onPress={() => router.push('/patient?patientId=test3')}>
-                <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title="Drake Graham"/>
-            </Pressable>
-            </View>
+      </View>
+      {/* Records */}
+      <View>
+        <View style={styles.headerRow}>
+          <Text style={styles.titles}> Records</Text>
+          {/* navigate to records page */}
+          <Pressable onPress={() => ({})}>
+            <Text style={styles.seeall}> See All</Text>
+          </Pressable>
         </View>
-        {/* Records */}
-        <View>
-            <View style={styles.headerRow}>
-                <Text style={styles.titles}> Records</Text>
-                {/* navigate to records page */}
-                <Pressable onPress={() => ({})}>
-                    <Text style={styles.seeall}> See All</Text>
-                </Pressable>
-            </View>
-          {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO */}
-          <View style={styles.section}>
-            <Pressable onPress={() => ({})}>
-                <EntityComponent imageSource={require("../assets/images/medical-records.png")} title="Dr. John Le Records"/>
-            </Pressable>
-            <Pressable onPress={() => ({})}>
-                <EntityComponent imageSource={require("../assets/images/medical-records.png")} title="Aneta Guzowska Records"/>
-            </Pressable>
-            <Pressable onPress={() => ({})}>
-                <EntityComponent imageSource={require("../assets/images/medical-records.png")} title="Drake Graham Records"/>
-            </Pressable>
-            </View>
+        {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO */}
+        <View style={styles.section}>
+          <Pressable onPress={() => ({})}>
+            <EntityComponent
+              imageSource={require("../assets/images/medical-records.png")}
+              title="Dr. John Le Records"
+            />
+          </Pressable>
+          <Pressable onPress={() => ({})}>
+            <EntityComponent
+              imageSource={require("../assets/images/medical-records.png")}
+              title="Aneta Guzowska Records"
+            />
+          </Pressable>
+          <Pressable onPress={() => ({})}>
+            <EntityComponent
+              imageSource={require("../assets/images/medical-records.png")}
+              title="Drake Graham Records"
+            />
+          </Pressable>
         </View>
-        {/* Courses */}
-        <View>
-            <View style={styles.headerRow}>
-                <Text style={styles.titles}> Courses</Text>
-                {/* navigate to courses page */}
-                <Pressable onPress={() => ({})}>
-                    <Text style={styles.seeall}> See All</Text>
-                </Pressable>
-            </View>
-          {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO */}
-          <View style={styles.section}>
-            <Pressable onPress={() => ({})}>
-                <EntityComponent imageSource={require("../assets/images/courses.png")} title="Anatomy Foundations"/>
-            </Pressable>
-            <Pressable onPress={() => ({})}>
-                <EntityComponent imageSource={require("../assets/images/courses.png")} title="Optometry For Beginners"/>
-            </Pressable>
-            <Pressable onPress={() => ({})}>
-                <EntityComponent imageSource={require("../assets/images/courses.png")} title="Identifying Cancer"/>
-            </Pressable>
-            </View>
+      </View>
+      {/* Courses */}
+      <View>
+        <View style={styles.headerRow}>
+          <Text style={styles.titles}> Courses</Text>
+          {/* navigate to courses page */}
+          <Pressable onPress={() => ({})}>
+            <Text style={styles.seeall}> See All</Text>
+          </Pressable>
         </View>
+        {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO */}
+        <View style={styles.section}>
+          <Pressable onPress={() => ({})}>
+            <EntityComponent
+              imageSource={require("../assets/images/courses.png")}
+              title="Anatomy Foundations"
+            />
+          </Pressable>
+          <Pressable onPress={() => ({})}>
+            <EntityComponent
+              imageSource={require("../assets/images/courses.png")}
+              title="Optometry For Beginners"
+            />
+          </Pressable>
+          <Pressable onPress={() => ({})}>
+            <EntityComponent
+              imageSource={require("../assets/images/courses.png")}
+              title="Identifying Cancer"
+            />
+          </Pressable>
+        </View>
+      </View>
     </View>
-    
-    )
-}
+  );
+};
 
-export default search
+export default search;
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20, 
+    paddingHorizontal: 20,
   },
   banner: {
     flexDirection: "row",
@@ -156,7 +187,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     color: "#666666",
     fontFamily: "Inter",
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   seeall: {
     paddingTop: 30,
@@ -170,5 +201,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingBottom: 5,
-  }
-})
+  },
+});

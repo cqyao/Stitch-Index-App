@@ -1,23 +1,36 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity, Pressable } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { FontAwesome5, MaterialIcons, Ionicons } from '@expo/vector-icons'
-import { router, useLocalSearchParams } from 'expo-router';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Pressable,
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { FontAwesome5, MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
-import Animated, { FadeIn } from 'react-native-reanimated';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PatientProps } from '@/components/PatientInfo';
-
+import Animated, { FadeIn } from "react-native-reanimated";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { PatientProps } from "@/components/PatientInfo";
+import { FirebaseError } from "firebase/app";
 
 // import list from database in live version.
-const symptomsList = ["Sore throat", "Heachache", "Fever", "Cold sweats"]
+const symptomsList = ["Sore throat", "Heachache", "Fever", "Cold sweats"];
 
 const Appointment = () => {
-  const params = useLocalSearchParams<{ time: string, type:string, data: string }>();
+  const params = useLocalSearchParams<{
+    time: string;
+    type: string;
+    data: string;
+  }>();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [ userId, setUserId ] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  const patientData: PatientProps = params.data ? JSON.parse(params.data) : null;
+  const patientData: PatientProps = params.data
+    ? JSON.parse(params.data)
+    : null;
 
   const fetchImageUrl = async (userID: string) => {
     try {
@@ -30,7 +43,9 @@ const Appointment = () => {
     }
   };
 
-  const fetchImageFromFirebase = async (path: string): Promise<string | null> => {
+  const fetchImageFromFirebase = async (
+    path: string
+  ): Promise<string | null> => {
     try {
       const storage = getStorage();
       const imageRef = ref(storage, path);
@@ -46,15 +61,14 @@ const Appointment = () => {
   useEffect(() => {
     const getUserIdFromAsyncStorage = async () => {
       try {
-        const userString = await AsyncStorage.getItem('user');
+        const userString = await AsyncStorage.getItem("user");
         if (userString) {
           const userData = JSON.parse(userString);
           setUserId(userData.uid);
           await fetchImageUrl(userData.uid);
-
         }
       } catch (error) {
-        console.error('Error fetching user ID from AsyncStorage', error);
+        console.error("Error fetching user ID from AsyncStorage", error);
       }
     };
 
@@ -68,8 +82,8 @@ const Appointment = () => {
           <Ionicons name="chevron-back" size={35} color="white" />
         </Pressable>
         <Image
-          source={require('../assets/images/LogoWhite.png')} 
-          resizeMode='contain'
+          source={require("../assets/images/LogoWhite.png")}
+          resizeMode="contain"
           style={styles.logo}
         />
         <Animated.Image
@@ -80,16 +94,16 @@ const Appointment = () => {
       </View>
       <View style={styles.card}>
         <View style={styles.time}>
-          <FontAwesome5 name="clock" size={20} color="grey"/>
+          <FontAwesome5 name="clock" size={20} color="grey" />
           <Text style={styles.timeText}>{params.time}</Text>
         </View>
         <View style={styles.lineStyle} />
         <View style={styles.profileView}>
-          <Image 
-            source={require('../assets/images/profilePics/johnLe.jpeg')} 
+          <Image
+            source={require("../assets/images/profilePics/johnLe.jpeg")}
             style={styles.profilePic}
           />
-          <View >
+          <View>
             <Text style={styles.profileName}>{patientData.name}</Text>
             <Text style={styles.profileType}>{params.type}</Text>
           </View>
@@ -97,10 +111,12 @@ const Appointment = () => {
         <View>
           <Text style={styles.h1}>Symptoms</Text>
           {patientData.symptoms.map((symptom) => (
-              <Text key={symptom} style={styles.h2}>{symptom}</Text>
+            <Text key={symptom} style={styles.h2}>
+              {symptom}
+            </Text>
           ))}
         </View>
-        <View style={{marginVertical: 10}} />
+        <View style={{ marginVertical: 10 }} />
         <View>
           <Text style={styles.h1}>Meeting Type</Text>
           <Text style={styles.h2}>Online</Text>
@@ -108,8 +124,8 @@ const Appointment = () => {
         <View style={styles.lineStyle} />
       </View>
     </View>
-  )
-}
+  );
+};
 
 export default Appointment;
 
@@ -122,7 +138,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingTop: 60,
     paddingBottom: 30,
-    backgroundColor: "#00D6B5"
+    backgroundColor: "#00D6B5",
   },
   logo: {
     width: 200,
@@ -141,7 +157,7 @@ const styles = StyleSheet.create({
     height: 500,
     width: "85%",
     shadowColor: "grey",
-    shadowOffset: {width: 5, height: 5},
+    shadowOffset: { width: 5, height: 5 },
     shadowOpacity: 0.25,
     elevation: 5,
   },
@@ -153,9 +169,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginLeft: 10,
     color: "grey",
-  }, 
+  },
   lineStyle: {
-    borderBottomColor: '#00D6B5',
+    borderBottomColor: "#00D6B5",
     borderBottomWidth: 1,
     width: "95%",
     alignSelf: "center",
@@ -168,14 +184,14 @@ const styles = StyleSheet.create({
   h1: {
     fontSize: 20,
     fontWeight: "bold",
-  }, 
+  },
   profilePic: {
     borderRadius: 90,
     height: 70,
     width: 70,
     borderColor: "#00D6B5",
     borderWidth: 1,
-  }, 
+  },
   profileView: {
     flexDirection: "row",
     alignItems: "center",
@@ -185,11 +201,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "500",
     marginLeft: 20,
-  }, 
+  },
   profileType: {
     fontSize: 18,
     fontWeight: "300",
     marginLeft: 20,
     color: "grey",
-  }
+  },
 });

@@ -1,25 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, Pressable } from 'react-native';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
-import ResearchPost from '../components/ResearchPost';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { FAB } from 'react-native-paper';
-import LottieView from 'lottie-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, ScrollView, Image, Pressable } from "react-native";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { db } from "../firebaseConfig";
+import ResearchPost from "../components/ResearchPost";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { FAB } from "react-native-paper";
+import LottieView from "lottie-react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Reanimated } from "react-native-gesture-handler/lib/typescript/handlers/gestures/reanimatedWrapper";
-import Animated, { FadeIn, FadeOut, FadeInUp, FadeInDown } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  FadeInUp,
+  FadeInDown,
+} from "react-native-reanimated";
 import { User } from "firebase/auth";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import { FadeInData } from "react-native-reanimated/lib/typescript/reanimated2/layoutReanimation/web/animation/Fade.web";
+import { FirebaseError } from "firebase/app";
 
 const Research = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-
 
   const fetchImageUrl = async (userID: string) => {
     try {
@@ -32,7 +37,9 @@ const Research = () => {
     }
   };
 
-  const fetchImageFromFirebase = async (path: string): Promise<string | null> => {
+  const fetchImageFromFirebase = async (
+    path: string
+  ): Promise<string | null> => {
     try {
       const storage = getStorage();
       const imageRef = ref(storage, path);
@@ -48,15 +55,14 @@ const Research = () => {
   useEffect(() => {
     const getUserIdFromAsyncStorage = async () => {
       try {
-        const userString = await AsyncStorage.getItem('user');
+        const userString = await AsyncStorage.getItem("user");
         if (userString) {
           const userData = JSON.parse(userString);
           setUserId(userData.uid);
           await fetchImageUrl(userData.uid);
-
         }
       } catch (error) {
-        console.error('Error fetching user ID from AsyncStorage', error);
+        console.error("Error fetching user ID from AsyncStorage", error);
       }
     };
 
@@ -65,7 +71,7 @@ const Research = () => {
 
   // Fetch posts from Firestore
   useEffect(() => {
-    const q = query(collection(db, 'posts'), orderBy('timestamp', 'desc'));
+    const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const postsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -83,7 +89,7 @@ const Research = () => {
     return (
       <Animated.View exiting={FadeOut} style={styles.loadingContainer}>
         <LottieView
-          source={require('../assets/Animations/loading.json')}
+          source={require("../assets/Animations/loading.json")}
           autoPlay
           loop
           style={styles.lottie}
@@ -91,7 +97,6 @@ const Research = () => {
       </Animated.View>
     );
   }
-
 
   return (
     <View style={styles.container}>
@@ -101,8 +106,8 @@ const Research = () => {
           <Ionicons name="chevron-back" size={35} color="white" />
         </Pressable>
         <Image
-          source={require('../assets/images/LogoWhite.png')}
-          resizeMode='contain'
+          source={require("../assets/images/LogoWhite.png")}
+          resizeMode="contain"
           style={styles.logo}
         />
         <Animated.Image
@@ -118,12 +123,12 @@ const Research = () => {
           <ResearchPost
             key={post.id}
             postId={post.id}
-            name={post.author || 'Unknown Author'}
+            name={post.author || "Unknown Author"}
             likes={post.likes || 0}
             comments={post.commentsCount || 0}
-            imageSource={post.imageUrl || ''}
-            title={post.title || 'No Title'}
-            content={post.content || 'No Content'}
+            imageSource={post.imageUrl || ""}
+            title={post.title || "No Title"}
+            content={post.content || "No Content"}
             userId={userId} // Pass userId to ResearchPost
             userPFP={post.userPFP}
           />
@@ -132,7 +137,7 @@ const Research = () => {
       <FAB
         style={styles.fab}
         icon="pencil"
-        onPress={() => router.navigate('./createpost')}
+        onPress={() => router.navigate("./createpost")}
       />
     </View>
   );
@@ -149,28 +154,28 @@ const styles = StyleSheet.create({
     height: 70,
   },
   banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 30,
     paddingHorizontal: 30,
     paddingTop: 60,
     paddingBottom: 10,
-    backgroundColor: '#00D6B5',
+    backgroundColor: "#00D6B5",
     flex: 0,
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     margin: 16,
     right: 10,
     bottom: 20,
-    backgroundColor: '#00D6B5',
+    backgroundColor: "#00D6B5",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   lottie: {
     width: 150,
