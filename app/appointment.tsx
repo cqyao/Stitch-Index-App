@@ -6,15 +6,18 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import Animated, { FadeIn } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PatientProps } from '@/components/PatientInfo';
 
 
 // import list from database in live version.
 const symptomsList = ["Sore throat", "Heachache", "Fever", "Cold sweats"]
 
 const Appointment = () => {
-  const params = useLocalSearchParams<{ appTime: string, patName:string }>();
+  const params = useLocalSearchParams<{ time: string, type:string, data: string }>();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [ userId, setUserId ] = useState<string | null>(null);
+
+  const patientData: PatientProps = params.data ? JSON.parse(params.data) : null;
 
   const fetchImageUrl = async (userID: string) => {
     try {
@@ -78,7 +81,7 @@ const Appointment = () => {
       <View style={styles.card}>
         <View style={styles.time}>
           <FontAwesome5 name="clock" size={20} color="grey"/>
-          <Text style={styles.timeText}>{params.appTime}</Text>
+          <Text style={styles.timeText}>{params.time}</Text>
         </View>
         <View style={styles.lineStyle} />
         <View style={styles.profileView}>
@@ -87,17 +90,15 @@ const Appointment = () => {
             style={styles.profilePic}
           />
           <View >
-            <Text style={styles.profileName}>{params.patName}</Text>
-            <Text style={styles.profileType}>Regular Checkup</Text>
+            <Text style={styles.profileName}>{patientData.name}</Text>
+            <Text style={styles.profileType}>{params.type}</Text>
           </View>
         </View>
         <View>
           <Text style={styles.h1}>Symptoms</Text>
-          {symptomsList.map((symptom) => {
-            return (
+          {patientData.symptoms.map((symptom) => (
               <Text key={symptom} style={styles.h2}>{symptom}</Text>
-            )
-          })}
+          ))}
         </View>
         <View style={{marginVertical: 10}} />
         <View>
