@@ -23,7 +23,7 @@ import { FirebaseError } from "firebase/app";
 type AppointmentProps = {
   id: string; // Include the ID for each appointment
   patientId: string;
-  name: string;
+  status: boolean;
   time: string;
   type: string;
 };
@@ -41,6 +41,7 @@ export default function CalendarPage() {
   // Where the fold up menu snaps
   const snapPoints = ["55%", "90%"];
   const [appointments, setAppointments] = useState<AppointmentProps[]>([]);
+  const [filteredAppointments, setFilteredAppointments] = useState<AppointmentProps[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -108,6 +109,11 @@ export default function CalendarPage() {
   useEffect(() => {
     fetchAllAppointments();
   }, []);
+
+  const filterAppointmentsByStatus = (status: boolean) => {
+    const filteredAppointments = appointments.filter(appointment => appointment.status === status);
+    setFilteredAppointments(filteredAppointments)
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#02D6B6" }}>
@@ -201,7 +207,10 @@ export default function CalendarPage() {
                     styles.buttonText,
                     { color: isSelected ? "#ffffff" : "#808080" },
                   ]}
-                  onPress={() => setIsSelected(true)}
+                  onPress={() => {
+                    filterAppointmentsByStatus(true);
+                    setIsSelected(true);
+                  }}
                 />
               </View>
               <View>
@@ -215,7 +224,10 @@ export default function CalendarPage() {
                     styles.buttonText,
                     { color: isSelected ? "#808080" : "#ffffff" },
                   ]}
-                  onPress={() => setIsSelected(false)}
+                  onPress={() => {
+                    filterAppointmentsByStatus(false);
+                    setIsSelected(false);
+                  }}
                 />
               </View>
             </View>
@@ -223,11 +235,12 @@ export default function CalendarPage() {
 
           {/*This is the beginning of the scroll view*/}
           <ScrollView>
-            {appointments.map((appointment) => {
+            {filteredAppointments.map((appointment) => {
               return (
                 <AppointmentCard
                   key={appointment.id}
                   patientId={appointment.patientId}
+                  status={appointment.status}
                   time={appointment.time.toString()}
                   type={appointment.type}
                 />

@@ -8,11 +8,12 @@ import { PatientProps } from '@/components/PatientInfo';
 
 interface AppointmentProps {
   patientId: string;
+  status: boolean;
   time: string;
   type: string;
 }
 
-const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, time, type }) => {
+const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, type }) => {
   const [patientData, setPatientData] = useState<PatientProps | null>(null);
 
   // Function to get patient info based on patient ID
@@ -82,6 +83,7 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, time, type }) 
       </View>
       <View style={{ flexDirection: "row" }}>
         <Text style={[styles.timeText, { marginTop: 20, marginLeft: 10 }]}>{patientData.name}</Text>
+        <Text>{status}</Text>
         <TouchableOpacity style={{ marginTop: 20, marginLeft: "auto" }} onPress={navigate}>
           <MaterialIcons name="arrow-forward-ios" size={30} color="#808080" />
         </TouchableOpacity>

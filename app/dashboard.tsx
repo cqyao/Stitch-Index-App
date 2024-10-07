@@ -162,6 +162,7 @@ const Dashboard = () => {
             }}
           />
         </View>
+
           <View style={styles.features}>
             <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
             <View style={styles.row}>
@@ -212,6 +213,7 @@ const Dashboard = () => {
             </View>
           </View>
         </View>
+        
     </SafeAreaView>
   );
 };
