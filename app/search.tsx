@@ -1,137 +1,228 @@
-import {
-  View,
-  Text,
-  Image,
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-} from "react-native";
-import React from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { Link, useNavigation, useRouter } from "expo-router";
-import Input from "../components/SearchInput";
-import TagsInput from "../components/TagsInput";
-import { theme } from "../constants/theme";
-import { hp, wp } from "../helpers/common";
-import EntityComponent from "@/components/entitycomponent";
+import { View, Text, Image, SafeAreaView, StyleSheet, ScrollView, Pressable } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter, useLocalSearchParams } from "expo-router"; 
+import { collection, query, where, getDocs } from 'firebase/firestore';  
+import { db } from '../firebaseConfig';  
+import EntityComponent from '@/components/entitycomponent';
+import Input from '../components/SearchInput';  
+
+// Define a Patient interface for the results
+interface Patient {
+  id: string;
+  'First Name': string;
+  'Last Name': string;
+  Tags: string[];
+}
 
 const search = () => {
   const router = useRouter();
+  const { query: urlQuery } = useLocalSearchParams();  
+  
+  const [searchInput, setSearchInput] = useState<string>('');  
+  const [tagSearchInput, setTagSearchInput] = useState<string>('');  
+  const [patientResults, setPatientResults] = useState<Patient[]>([]);  
+  const [tagResults, setTagResults] = useState<Patient[]>([]);  
+
+  
+  useEffect(() => {
+    if (typeof urlQuery === 'string') {
+      setSearchInput(urlQuery); 
+    }
+  }, [urlQuery]);
+
+  // Function to search Firestore for patients by first name and last name
+  const searchPatientsByName = async () => {
+    if (!searchInput.trim()) return; 
+
+    try {
+      const patientsCollection = collection(db, 'Patients');
+
+      // Query for First Name and Last Name
+      const firstNameQuery = query(patientsCollection, where('First Name', '>=', searchInput), where('First Name', '<=', searchInput + '\uf8ff'));
+      const lastNameQuery = query(patientsCollection, where('Last Name', '>=', searchInput), where('Last Name', '<=', searchInput + '\uf8ff'));
+
+      const [firstNameSnapshot, lastNameSnapshot] = await Promise.all([
+        getDocs(firstNameQuery),
+        getDocs(lastNameQuery),
+      ]);
+
+      const results: Patient[] = [];
+      const seen = new Set<string>();  // Track unique IDs
+      const addResults = (snapshot: any) => {
+        snapshot.forEach((doc: any) => {
+          if (!seen.has(doc.id)) {
+            seen.add(doc.id);
+            results.push({ id: doc.id, ...doc.data() });
+          }
+        });
+      };
+
+      addResults(firstNameSnapshot);
+      addResults(lastNameSnapshot);
+
+      setPatientResults(results);  // Update the state with fetched results
+    } catch (error) {
+      console.error('Error searching patients by name:', error);
+    }
+  };
+
+  // Automatically search when the page loads if there’s a query in the URL
+  useEffect(() => {
+    if (typeof searchInput === 'string' && searchInput) {
+      searchPatientsByName();
+    }
+  }, [searchInput]);
+
+  // Trigger regular search when `searchInput` changes
+  useEffect(() => {
+    if (searchInput) {
+      searchPatientsByName();
+    } else {
+      setPatientResults([]);  // Clear results if input is empty
+    }
+  }, [searchInput]);
+
+  // Function to search Firestore for patients by tags
+  const searchPatientsByTag = async () => {
+    if (!tagSearchInput.trim()) return;
+
+    try {
+      const patientsCollection = collection(db, 'Patients');
+      const tagsQuery = query(patientsCollection, where('Tags', 'array-contains', tagSearchInput));
+
+      const tagSnapshot = await getDocs(tagsQuery);
+
+      const results: Patient[] = [];  // Explicitly type the results array
+      tagSnapshot.forEach((doc: any) => {
+        results.push({ id: doc.id, ...doc.data() });
+      });
+
+      setTagResults(results);  // Update the state with tag search results
+    } catch (error) {
+      console.error('Error searching patients by tags:', error);
+    }
+  };
+
+  // Trigger tag search when `tagSearchInput` changes
+  useEffect(() => {
+    if (tagSearchInput) {
+      searchPatientsByTag();
+    } else {
+      setTagResults([]);  // Clear tag results if input is empty
+    }
+  }, [tagSearchInput]);
+
   return (
-    <View style={{ flex: 1, backgroundColor: "white" }}>
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
       <View style={styles.banner}>
         <Pressable onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={35} color="black" />
         </Pressable>
-        <Image
-          source={require("../assets/images/profilePics/dwayneJo.jpg")}
+        <Image 
+          source={require('../assets/images/profilePics/dwayneJo.jpg')}
           style={{ height: 45, width: 45, borderRadius: 90 }}
         />
       </View>
 
+      {/* Search Input for Regular Search */}
       <View style={styles.searchInput}>
-        <Input placeholder="Search" onChangeText={() => {}} />
-        <View style={styles.lineStyle}>
-          <View style={styles.line} />
-          <Text style={styles.orText}>OR</Text>
-          <View style={styles.line} />
-        </View>
-        <TagsInput />
+        <Input
+          defaultValue={searchInput}  // Prepopulate the search input with the query
+          onSearch={(value: React.SetStateAction<string>) => setSearchInput(value)}  // Update searchInput when a new search is performed
+        />
       </View>
-      {/* Patients */}
+
+      {/* OR separator */}
+      <View style={styles.lineStyle}>
+        <View style={styles.line} />
+        <Text style={styles.orText}>OR</Text>
+        <View style={styles.line} />
+      </View>
+
+      {/* Tags Search Input */}
+      <View style={styles.searchInput}>
+        <Input
+          defaultValue={searchInput}  // Prepopulate the search input with the query
+          onSearch={(value: React.SetStateAction<string>) => setSearchInput(value)}  // Update searchInput when a new search is performed
+        />
+      </View>
+
+      {/* Patients Search Results */}
       <View>
         <View style={styles.headerRow}>
           <Text style={styles.titles}> Patients</Text>
-          {/* navigate to Patients page */}
-          <Pressable onPress={() => ({})}>
+          <Pressable onPress={() => router.push({
+            pathname: '/seeall',
+            params: { query: searchInput, category: 'Patients' }
+          })}>
             <Text style={styles.seeall}> See All</Text>
           </Pressable>
         </View>
-        {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO, THE IMAGES AND TITLE VALUES SHOULD BE RETRIEVED FROM DB BASED ON SEARCH */}
-        <View style={styles.section}>
-          {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
-          <Pressable onPress={() => router.push("/patient?patientId=test1")}>
-            <EntityComponent
-              imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
-              title="Dr. John Le"
-            />
-          </Pressable>
-          {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
-          <Pressable onPress={() => router.push("/patient?patientId=test2")}>
-            <EntityComponent
-              imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
-              title="Aneta Guzowska"
-            />
-          </Pressable>
-          {/* On press navigate to patient page using the title to search for patient in db and populate patient page with info */}
-          <Pressable onPress={() => router.push("/patient?patientId=test3")}>
-            <EntityComponent
-              imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
-              title="Drake Graham"
-            />
-          </Pressable>
-        </View>
+
+        <ScrollView>
+          {/* Regular Search Results */}
+          {patientResults.length > 0 ? (
+            patientResults.map((patient) => (
+              <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
+                <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title={`${patient['First Name']} ${patient['Last Name']}`} />
+              </Pressable>
+            ))
+          ) : (
+            <Text>No patients found</Text>
+          )}
+
+          {/* Tag Search Results */}
+          {tagResults.length > 0 ? (
+            tagResults.map((patient) => (
+              <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
+                <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title={`${patient['First Name']} ${patient['Last Name']}`} />
+              </Pressable>
+            ))
+          ) : (
+            tagSearchInput && <Text>No patients found with this tag</Text>
+          )}
+        </ScrollView>
       </View>
-      {/* Records */}
+
+      {/* Records (Static for now) */}
       <View>
         <View style={styles.headerRow}>
           <Text style={styles.titles}> Records</Text>
-          {/* navigate to records page */}
           <Pressable onPress={() => ({})}>
             <Text style={styles.seeall}> See All</Text>
           </Pressable>
         </View>
-        {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO */}
         <View style={styles.section}>
           <Pressable onPress={() => ({})}>
-            <EntityComponent
-              imageSource={require("../assets/images/medical-records.png")}
-              title="Dr. John Le Records"
-            />
+            <EntityComponent imageSource={require("../assets/images/medical-records.png")} title="Dr. John Le Records"/>
           </Pressable>
           <Pressable onPress={() => ({})}>
-            <EntityComponent
-              imageSource={require("../assets/images/medical-records.png")}
-              title="Aneta Guzowska Records"
-            />
+            <EntityComponent imageSource={require("../assets/images/medical-records.png")} title="Aneta Guzowska Records"/>
           </Pressable>
           <Pressable onPress={() => ({})}>
-            <EntityComponent
-              imageSource={require("../assets/images/medical-records.png")}
-              title="Drake Graham Records"
-            />
+            <EntityComponent imageSource={require("../assets/images/medical-records.png")} title="Drake Graham Records"/>
           </Pressable>
         </View>
       </View>
-      {/* Courses */}
+
+      {/* Courses (Static for now) */}
       <View>
         <View style={styles.headerRow}>
           <Text style={styles.titles}> Courses</Text>
-          {/* navigate to courses page */}
           <Pressable onPress={() => ({})}>
             <Text style={styles.seeall}> See All</Text>
           </Pressable>
         </View>
-        {/* CAN CHANGE THESE FIELDS BASED ON SEARCH RESULTS WILL HAVE TO CHANGE THEIR NAVIGATION TOO */}
         <View style={styles.section}>
           <Pressable onPress={() => ({})}>
-            <EntityComponent
-              imageSource={require("../assets/images/courses.png")}
-              title="Anatomy Foundations"
-            />
+            <EntityComponent imageSource={require("../assets/images/courses.png")} title="Anatomy Foundations"/>
           </Pressable>
           <Pressable onPress={() => ({})}>
-            <EntityComponent
-              imageSource={require("../assets/images/courses.png")}
-              title="Optometry For Beginners"
-            />
+            <EntityComponent imageSource={require("../assets/images/courses.png")} title="Optometry For Beginners"/>
           </Pressable>
           <Pressable onPress={() => ({})}>
-            <EntityComponent
-              imageSource={require("../assets/images/courses.png")}
-              title="Identifying Cancer"
-            />
+            <EntityComponent imageSource={require("../assets/images/courses.png")} title="Identifying Cancer"/>
           </Pressable>
         </View>
       </View>
@@ -142,9 +233,6 @@ const search = () => {
 export default search;
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 20,
-  },
   banner: {
     flexDirection: "row",
     alignItems: "center",
@@ -157,6 +245,12 @@ const styles = StyleSheet.create({
   searchInput: {
     marginTop: 5,
     marginHorizontal: 30,
+  },
+  inputField: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 10,
   },
   line: {
     flex: 1,
@@ -171,11 +265,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   orText: {
-    width: wp(15),
-    fontSize: hp(1.5),
-    color: theme.colors.text,
     textAlign: "center",
-    fontFamily: "Inter",
+    paddingHorizontal: 10,
   },
   section: {
     flexDirection: "row",
@@ -201,5 +292,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingBottom: 5,
-  },
+  }
 });
