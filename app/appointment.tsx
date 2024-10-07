@@ -121,7 +121,7 @@ const Appointment = () => {
         <View style={styles.lineStyle} />
         <View style={styles.profileView}>
           <Animated.Image
-            entering={FadeIn.delay(500)}
+            entering={FadeIn.delay(250)}
             source={{ uri: patientUrl || undefined }}
             style={styles.profilePic}
           />
