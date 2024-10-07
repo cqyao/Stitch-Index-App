@@ -33,7 +33,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingImage, setLoadingImage] = useState<boolean>(true); // Optional: Loading state for image
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(''); 
+  const [searchQuery, setSearchQuery] = useState('');
 
   const checkUserInAsyncStorage = async () => {
     try {
@@ -90,15 +90,15 @@ const Dashboard = () => {
     }
   };
 
-    // Function to handle search submission
-    const handleSearchSubmit = () => {
-      if (searchQuery.trim()) {
-        router.push({
-          pathname: './search',
-          params: { query: searchQuery }  // Pass search query as a parameter
-        });
-      }
-    };
+  // Function to handle search submission
+  const handleSearchSubmit = () => {
+    if (searchQuery.trim()) {
+      router.push({
+        pathname: './search',
+        params: { query: searchQuery }  // Pass search query as a parameter
+      });
+    }
+  };
 
   // Retrieve user UID from AsyncStorage and fetch image URL
   useEffect(() => {
@@ -133,23 +133,23 @@ const Dashboard = () => {
         />
       </View>
 
-        <View style={styles.banner}>
-          <Text></Text>
-          <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
-            {loadingImage ? (
-                <ActivityIndicator size="small" color="#02D6B6" />
-            ) : imageUrl ? (
-                <Image
-                    source={{ uri: imageUrl }}
-                    style={styles.profileImage} // Define appropriate styles
-                />
-            ) : (
-                <MaterialIcons name="face" size={40} color="black" />
-            )}
-          </TouchableOpacity>
-        </View>
+      <View style={styles.banner}>
+        <Text></Text>
+        <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
+          {loadingImage ? (
+            <ActivityIndicator size="small" color="#02D6B6" />
+          ) : imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.profileImage} // Define appropriate styles
+            />
+          ) : (
+            <MaterialIcons name="face" size={40} color="black" />
+          )}
+        </TouchableOpacity>
+      </View>
 
-        <View style={styles.panel}>
+      <View style={styles.panel}>
         <View style={styles.searchInput}>
           <Input
             defaultValue={searchQuery}  // Pass the last search query
@@ -162,62 +162,56 @@ const Dashboard = () => {
             }}
           />
         </View>
+          <View style={styles.features}>
+            <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
+            <View style={styles.row}>
+              <ScrollView horizontal>
+                <Pressable
+                  style={styles.featurePressable}
+                  onPress={() => router.push({ pathname: "./patient" })}
+                >
+                  <Features name="My Patients" icon="user" />
+                </Pressable>
+                <Pressable
+                  style={styles.featurePressable}
+                  onPress={() => router.push({ pathname: "./research" })}
+                >
+                  <Features name="Research" icon="book" />
+                </Pressable>
+                <Pressable
+                  style={styles.featurePressable}
+                  onPress={() => router.push({ pathname: "./calendar" })}
+                >
+                  <Features name="Calendar" icon="calendar" />
+                </Pressable>
+                <Pressable
+                  style={styles.featurePressable}
+                  onPress={() => router.push({ pathname: "./courses" })}
+                >
+                  <Features name="Courses" icon="graduation-cap" />
+                </Pressable>
+              </ScrollView>
+            </View>
+          </View>
 
-      <View style={styles.panel}>
-        <View style={styles.searchInput}>
-          <Input placeholder="Search" onChangeText={() => {}} />
-        </View>
-
-        <View style={styles.features}>
-          <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
-          <View style={styles.row}>
-            <ScrollView horizontal>
-              <Pressable
-                style={styles.featurePressable}
-                onPress={() => router.push({ pathname: "./patient" })}
-              >
-                <Features name="My Patients" icon="user" />
-              </Pressable>
-              <Pressable
-                style={styles.featurePressable}
-                onPress={() => router.push({ pathname: "./research" })}
-              >
-                <Features name="Research" icon="book" />
-              </Pressable>
-              <Pressable
-                style={styles.featurePressable}
-                onPress={() => router.push({ pathname: "./calendar" })}
-              >
-                <Features name="Calendar" icon="calendar" />
-              </Pressable>
-              <Pressable
-                style={styles.featurePressable}
-                onPress={() => router.push({ pathname: "./courses" })}
-              >
-                <Features name="Courses" icon="graduation-cap" />
-              </Pressable>
-            </ScrollView>
+          <View style={styles.appointments}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+              }}
+            >
+              <Text style={[styles.h2, { color: "#148085" }]}>Appointments</Text>
+              <Text style={[styles.h3, { color: "#02D6B6", fontWeight: "600" }]}>
+                See All
+              </Text>
+            </View>
+            <View>
+              <Appointment date="Fri Nov 1" timeFrom={"8:30"} timeTo={"9:30"} />
+            </View>
           </View>
         </View>
-
-        <View style={styles.appointments}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "baseline",
-            }}
-          >
-            <Text style={[styles.h2, { color: "#148085" }]}>Appointments</Text>
-            <Text style={[styles.h3, { color: "#02D6B6", fontWeight: "600" }]}>
-              See All
-            </Text>
-          </View>
-          <View>
-            <Appointment date="Fri Nov 1" timeFrom={"8:30"} timeTo={"9:30"} />
-          </View>
-        </View>
-      </View>
     </SafeAreaView>
   );
 };
