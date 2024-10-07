@@ -152,7 +152,10 @@ const search = () => {
       <View>
         <View style={styles.headerRow}>
           <Text style={styles.titles}> Patients</Text>
-          <Pressable onPress={() => ({})}>
+          <Pressable onPress={() => router.push({
+            pathname: '/seeall',
+            params: { query: searchInput, category: 'Patients' }
+          })}>
             <Text style={styles.seeall}> See All</Text>
           </Pressable>
         </View>
