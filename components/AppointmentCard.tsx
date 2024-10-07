@@ -66,6 +66,7 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, time, type }) 
     router.push({
       pathname: "../appointment",
       params: { 
+        patientId: patientId,
         time: time, 
         type: type,
         data: serializedData
@@ -81,7 +82,7 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, time, type }) 
       </View>
       <View style={{ flexDirection: "row" }}>
         <Text style={[styles.timeText, { marginTop: 20, marginLeft: 10 }]}>{patientData.name}</Text>
-        <TouchableOpacity style={{ marginTop: 20, marginLeft: 200 }} onPress={navigate}>
+        <TouchableOpacity style={{ marginTop: 20, marginLeft: "auto" }} onPress={navigate}>
           <MaterialIcons name="arrow-forward-ios" size={30} color="#808080" />
         </TouchableOpacity>
       </View>
