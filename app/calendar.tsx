@@ -1,19 +1,39 @@
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Pressable } from 'react-native';
-import React, { useCallback, useRef, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, Pressable } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
 import { Calendar } from 'react-native-calendars';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet'
-import { opacity } from 'react-native-reanimated/lib/typescript/reanimated2/Colors';
 import MainButton from "../components/Button";
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import { Link, useNavigation, useRouter } from "expo-router";
-import { todayString } from 'react-native-calendars/src/expandableCalendar/commons';
+import { useRouter } from "expo-router";
 import AppointmentCard from '@/components/AppointmentCard';
 import { Ionicons } from '@expo/vector-icons';
-import { getDownloadURL, getStorage, ref } from "firebase/storage";
-import Animated, { FadeIn } from 'react-native-reanimated';
+import { doc, getDocs, collection } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { getDownloadURL, getStorage, ref } from "firebase/storage";
+
+
+type AppointmentProps = {
+  id: string; // Include the ID for each appointment
+  patientId: string;
+  name: string;
+  time: string;
+  type: string;
+};
 
 export default function CalendarPage() {
+  const router = useRouter();
+  // Date states
+  const [selectedDate, setSelectedDate] = useState();
+  // Fold up menu states
+  const sheetRef = useRef<BottomSheet>(null);
+  // for determining whether the fold up menu is open or not
+  const [isOpen, setIsOpen] = useState(true);
+  // for determining whether "completed" or "upcoming" button is selected
+  const [isSelected, setIsSelected] = useState(false);
+  // Where the fold up menu snaps
+  const snapPoints = ["55%", "90%"];
+  const [appointments, setAppointments] = useState<AppointmentProps[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -60,22 +80,26 @@ export default function CalendarPage() {
     getUserIdFromAsyncStorage();
   }, []);
 
-  const router = useRouter();
 
-  // Date states
-  const [selectedDate, setSelectedDate] = useState();
+  const fetchAllAppointments = async () => {    
+    try {
+      const appointmentsCollection = collection(db, 'Appointments');
+      const querySnapshot = await getDocs(appointmentsCollection); 
+  
+      const appointments: AppointmentProps[] = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(), 
+      })) as AppointmentProps[];
+  
+      setAppointments(appointments); 
+    } catch (error) {
+      console.error('Error fetching Appointments: ', error); 
+    }
+  }
 
-  // Fold up menu states
-  const sheetRef = useRef<BottomSheet>(null);
-
-  // for determining whether the fold up menu is open or not
-  const [isOpen, setIsOpen] = useState(true);
-
-  // for determining whether "completed" or "upcoming" button is selected
-  const [isSelected, setIsSelected] = useState(false);
-
-  // Where the fold up menu snaps
-  const snapPoints = ["55%", "90%"];
+  useEffect(() => {
+    fetchAllAppointments()
+  }, [])
 
   return (
     <View style={{ flex: 1, backgroundColor: '#02D6B6' }}>
@@ -180,7 +204,11 @@ export default function CalendarPage() {
 
           {/*This is the beginning of the scroll view*/}
           <ScrollView>
-            <AppointmentCard time="Fri Nov 1 - 8:30am : 9:30pm" name="Dr John Le" />
+            {appointments.map((appointment) => {
+              return (
+                <AppointmentCard key={appointment.id} patientId={appointment.patientId} time={appointment.time.toString()} type={appointment.type}/>
+              )
+            })}
           </ScrollView>
         </BottomSheetView>
       </BottomSheet>
@@ -209,30 +237,26 @@ const styles = StyleSheet.create({
     borderRadius: 90,
     height: 40,
     alignItems: "center",
-    marginHorizontal: 20
-  },
-  buttonText: {
-    //padding: 10,
-    fontSize: 15,
-    fontWeight: 'bold',
-  },
-  buttonStyle: {
-    height: 30,
-    width: 150,
-    margin: 5,
-  },
-  buttonBacking: {
-    backgroundColor: '#808080',
   },
   container: {
     backgroundColor: '#ffffff',
     padding: 10,
     borderRadius: 12,
     marginHorizontal: 15,
-    //borderWidth: 1.2,
-    borderColor: "#02D6B6",
     paddingBottom: 20,
     marginVertical: 15,
+  },
+  buttonText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  buttonStyle: {
+    height: 30,
+    width: 150,
+    margin: 10,
+  },
+  buttonBacking: {
+    backgroundColor: '#808080',
   },
   appText: {
     fontWeight: 'bold',
