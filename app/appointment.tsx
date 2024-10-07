@@ -16,16 +16,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PatientProps } from "@/components/PatientInfo";
 import { FirebaseError } from "firebase/app";
 
-// import list from database in live version.
-const symptomsList = ["Sore throat", "Heachache", "Fever", "Cold sweats"];
-
 const Appointment = () => {
   const params = useLocalSearchParams<{
+    patientId: string;
     time: string;
     type: string;
     data: string;
   }>();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [ patientUrl, setPatientUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
   const patientData: PatientProps = params.data
@@ -39,7 +38,18 @@ const Appointment = () => {
         setImageUrl(url);
       }
     } catch (error) {
-      console.error("Error fetching image URL:", error);
+      console.error("Error fetching image URL: ", error);
+    }
+  };
+
+  const fetchPatientImageUrl = async (patientID: string) => {
+    try {
+      const url = await fetchImageFromFirebase(`pfp/${patientID}.jpg`);
+      if (url) {
+        setPatientUrl(url);
+      }
+    } catch (error) {
+      console.error("Error fetching patient URL: ", error);
     }
   };
 
@@ -75,6 +85,17 @@ const Appointment = () => {
     getUserIdFromAsyncStorage();
   }, []);
 
+  useEffect(() => {
+    const getPatientImage = async () => {
+      try {
+        await fetchPatientImageUrl(params.patientId);
+      } catch (error) {
+        console.error("Error fetching patient image: ", error);
+      };
+    } 
+    getPatientImage();
+  }, [])
+
   return (
     <View style={styles.screen}>
       <View style={styles.banner}>
@@ -99,8 +120,9 @@ const Appointment = () => {
         </View>
         <View style={styles.lineStyle} />
         <View style={styles.profileView}>
-          <Image
-            source={require("../assets/images/profilePics/johnLe.jpeg")}
+          <Animated.Image
+            entering={FadeIn.delay(500)}
+            source={{ uri: patientUrl || undefined }}
             style={styles.profilePic}
           />
           <View>
