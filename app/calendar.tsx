@@ -39,7 +39,7 @@ export default function CalendarPage() {
   // for determining whether "completed" or "upcoming" button is selected
   const [isSelected, setIsSelected] = useState(false);
   // Where the fold up menu snaps
-  const snapPoints = ["55%", "90%"];
+  const snapPoints = ["45%", "90%"];
   const [appointments, setAppointments] = useState<AppointmentProps[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<AppointmentProps[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -255,7 +255,7 @@ export default function CalendarPage() {
 
 const styles = StyleSheet.create({
   calendar: {
-    marginTop: -40,
+    marginTop: -45,
   },
   logo: {
     width: 200,
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 30,
     paddingHorizontal: 30,
-    paddingTop: 60,
+    paddingTop: 50,
     paddingBottom: 10,
     backgroundColor: "#00D6B5",
   },
