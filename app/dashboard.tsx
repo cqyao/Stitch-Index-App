@@ -9,20 +9,21 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
-} from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
+} from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useNavigation, useRouter } from "expo-router";
-import Input from '../components/SearchInput';
-import { hp, wp } from '../helpers/common';
-import { Dimensions } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Input from "../components/SearchInput";
+import { hp, wp } from "../helpers/common";
+import { Dimensions } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Features from "../components/Features";
 import Appointment from "../components/Appointment";
 import { auth } from "@/firebaseConfig";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
+import { FirebaseError } from "firebase/app";
 
 const Dashboard = () => {
   const router = useRouter();
@@ -34,10 +35,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(''); 
 
-
   const checkUserInAsyncStorage = async () => {
     try {
-      const storedUser = await AsyncStorage.getItem('user');
+      const storedUser = await AsyncStorage.getItem("user");
       if (!storedUser) {
         // setUser(JSON.parse(storedUser));
         router.push({ pathname: "./signIn" });
@@ -48,9 +48,10 @@ const Dashboard = () => {
     setLoading(false);
   };
 
-
   // Function to fetch image URL from Firebase Storage
-  const fetchImageFromFirebase = async (path: string): Promise<string | null> => {
+  const fetchImageFromFirebase = async (
+    path: string
+  ): Promise<string | null> => {
     try {
       const storage = getStorage();
       const imageRef = ref(storage, path);
@@ -79,10 +80,10 @@ const Dashboard = () => {
   // Handle user sign-out
   const handleSignOut = async () => {
     try {
-      await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem("user");
       await auth.signOut();
       Alert.alert("Success", "You have been signed out.");
-      router.replace({ pathname: './signIn' }); // Use replace instead of push
+      router.replace({ pathname: "./signIn" }); // Use replace instead of push
     } catch (error) {
       Alert.alert("Error", "An error occurred while signing out.");
       console.error("Error signing out: ", error);
@@ -101,12 +102,11 @@ const Dashboard = () => {
 
   // Retrieve user UID from AsyncStorage and fetch image URL
   useEffect(() => {
-
     checkUserInAsyncStorage();
 
     const fetchUserUid = async () => {
       try {
-        const userString = await AsyncStorage.getItem('user');
+        const userString = await AsyncStorage.getItem("user");
         if (userString) {
           const user = JSON.parse(userString);
           setUser(user);
@@ -125,10 +125,13 @@ const Dashboard = () => {
   }, []);
 
   return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.stitch}>
-          <Image resizeMode="contain" source={require('../assets/images/backgroundimage.png')}/>
-        </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.stitch}>
+        <Image
+          resizeMode="contain"
+          source={require("../assets/images/backgroundimage.png")}
+        />
+      </View>
 
         <View style={styles.banner}>
           <Text></Text>
@@ -160,37 +163,62 @@ const Dashboard = () => {
           />
         </View>
 
-          <View style={styles.features}>
-            <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
-            <View style={styles.row}>
-              <ScrollView horizontal>
-                <Pressable style={styles.featurePressable} onPress={() => router.push({ pathname: './patient' })}>
-                  <Features name="My Patients" icon="user" />
-                </Pressable>
-                <Pressable style={styles.featurePressable} onPress={() => router.push({ pathname: './research' })}>
-                  <Features name="Research" icon="book" />
-                </Pressable>
-                <Pressable style={styles.featurePressable} onPress={() => router.push({ pathname: "./calendar" })}>
-                  <Features name="Calendar" icon="calendar" />
-                </Pressable>
-                <Pressable style={styles.featurePressable} onPress={() => router.push({ pathname: "./courses" })}>
-                  <Features name="Courses" icon="graduation-cap" />
-                </Pressable>
-              </ScrollView>
-            </View>
-          </View>
+      <View style={styles.panel}>
+        <View style={styles.searchInput}>
+          <Input placeholder="Search" onChangeText={() => {}} />
+        </View>
 
-          <View style={styles.appointments}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
-              <Text style={[styles.h2, { color: "#148085" }]}>Appointments</Text>
-              <Text style={[styles.h3, { color: "#02D6B6", fontWeight: "600" }]}>See All</Text>
-            </View>
-            <View>
-              <Appointment date="Fri Nov 1" timeFrom={"8:30"} timeTo={"9:30"} />
-            </View>
+        <View style={styles.features}>
+          <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
+          <View style={styles.row}>
+            <ScrollView horizontal>
+              <Pressable
+                style={styles.featurePressable}
+                onPress={() => router.push({ pathname: "./patient" })}
+              >
+                <Features name="My Patients" icon="user" />
+              </Pressable>
+              <Pressable
+                style={styles.featurePressable}
+                onPress={() => router.push({ pathname: "./research" })}
+              >
+                <Features name="Research" icon="book" />
+              </Pressable>
+              <Pressable
+                style={styles.featurePressable}
+                onPress={() => router.push({ pathname: "./calendar" })}
+              >
+                <Features name="Calendar" icon="calendar" />
+              </Pressable>
+              <Pressable
+                style={styles.featurePressable}
+                onPress={() => router.push({ pathname: "./courses" })}
+              >
+                <Features name="Courses" icon="graduation-cap" />
+              </Pressable>
+            </ScrollView>
           </View>
         </View>
-      </SafeAreaView>
+
+        <View style={styles.appointments}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "baseline",
+            }}
+          >
+            <Text style={[styles.h2, { color: "#148085" }]}>Appointments</Text>
+            <Text style={[styles.h3, { color: "#02D6B6", fontWeight: "600" }]}>
+              See All
+            </Text>
+          </View>
+          <View>
+            <Appointment date="Fri Nov 1" timeFrom={"8:30"} timeTo={"9:30"} />
+          </View>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -201,7 +229,7 @@ const styles = StyleSheet.create({
   },
   banner: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: "row",
     justifyContent: "space-between",
   },
   panel: {
@@ -221,7 +249,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderColor: "#02D6B6",
     borderRadius: 27.5, // Half of width/height for a circular shape
-    overflow: 'hidden', // Ensure the image fits within the circle
+    overflow: "hidden", // Ensure the image fits within the circle
     backgroundColor: "#fff", // Optional: Background color
   },
   search: {
@@ -237,13 +265,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "white",
-    shadowColor: '#grey',
+    shadowColor: "#grey",
     shadowOffset: {
       width: 0,
-      height: 3
+      height: 3,
     },
     shadowRadius: 5,
-    shadowOpacity: 0.2
+    shadowOpacity: 0.2,
   },
   features: {
     marginHorizontal: 40,
@@ -256,17 +284,14 @@ const styles = StyleSheet.create({
   appointments: {
     marginHorizontal: 40,
     marginTop: 20,
-
   },
   profileImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
 
-  h1: {
-
-  },
+  h1: {},
   h2: {
     fontSize: 25,
     fontWeight: "600",
@@ -281,18 +306,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 40,
   },
   stitch: {
-    position: 'absolute',
+    position: "absolute",
     resizeMode: "contain",
-    width: Dimensions.get('window').width,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
+    width: Dimensions.get("window").width,
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
   },
   featurePressable: {
     width: 150,
     paddingHorizontal: 2,
-  }
-})
-
+  },
+});
 
 export default Dashboard;

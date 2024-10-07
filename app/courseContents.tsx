@@ -1,6 +1,6 @@
 // courseContents.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Text,
   View,
@@ -11,20 +11,20 @@ import {
   Image,
   StyleSheet,
   ScrollView,
-} from 'react-native';
-import { useNavigation, useRouter, useLocalSearchParams } from 'expo-router';
-import { auth } from '@/firebaseConfig';
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
-import { User } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MaterialIcons } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { useNavigation, useRouter, useLocalSearchParams } from "expo-router";
+import { auth } from "@/firebaseConfig";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { User } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 // Import Firestore functions
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '@/firebaseConfig';
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "@/firebaseConfig";
 
-import StarRating from 'react-native-star-rating-widget';
+import StarRating from "react-native-star-rating-widget";
 
 const CourseContents = () => {
   const router = useRouter();
@@ -44,25 +44,27 @@ const CourseContents = () => {
 
   const checkUserInAsyncStorage = async () => {
     try {
-      const storedUser = await AsyncStorage.getItem('user');
+      const storedUser = await AsyncStorage.getItem("user");
       if (!storedUser) {
-        router.push({ pathname: './signIn' });
+        router.push({ pathname: "./signIn" });
       }
     } catch (error) {
-      console.error('Error retrieving user from AsyncStorage', error);
+      console.error("Error retrieving user from AsyncStorage", error);
     }
     setLoading(false);
   };
 
   // Function to fetch image URL from Firebase Storage
-  const fetchImageFromFirebase = async (path: string): Promise<string | null> => {
+  const fetchImageFromFirebase = async (
+      path: string
+  ): Promise<string | null> => {
     try {
       const storage = getStorage();
       const imageRef = ref(storage, path);
       const url = await getDownloadURL(imageRef);
       return url;
     } catch (error) {
-      console.error('Error fetching image from Firebase Storage', error);
+      console.error("Error fetching image from Firebase Storage", error);
       return null;
     }
   };
@@ -75,22 +77,9 @@ const CourseContents = () => {
         setImageUrl(url);
       }
     } catch (error) {
-      console.error('Error fetching image URL:', error);
+      console.error("Error fetching image URL:", error);
     } finally {
       setLoadingImage(false);
-    }
-  };
-
-  // Handle user sign-out
-  const handleSignOut = async () => {
-    try {
-      await AsyncStorage.removeItem('user');
-      await auth.signOut();
-      Alert.alert('Success', 'You have been signed out.');
-      router.replace({ pathname: './signIn' });
-    } catch (error) {
-      Alert.alert('Error', 'An error occurred while signing out.');
-      console.error('Error signing out: ', error);
     }
   };
 
@@ -98,10 +87,10 @@ const CourseContents = () => {
   const fetchCourseData = async () => {
     try {
       if (!courseIdStr) {
-        console.error('Invalid courseId');
+        console.error("Invalid courseId");
         return;
       }
-      const courseRef = doc(db, 'courses', courseIdStr);
+      const courseRef = doc(db, "courses", courseIdStr);
       const courseDoc = await getDoc(courseRef);
 
       if (courseDoc.exists()) {
@@ -110,7 +99,13 @@ const CourseContents = () => {
 
         // Fetch existing rating from the 'ratings' subcollection
         if (user) {
-          const ratingRef = doc(db, 'courses', courseIdStr, 'ratings', user.uid);
+          const ratingRef = doc(
+              db,
+              "courses",
+              courseIdStr,
+              "ratings",
+              user.uid
+          );
           const ratingDoc = await getDoc(ratingRef);
           if (ratingDoc.exists()) {
             const ratingData = ratingDoc.data();
@@ -119,7 +114,7 @@ const CourseContents = () => {
         }
       }
     } catch (error) {
-      console.error('Error fetching course data:', error);
+      console.error("Error fetching course data:", error);
     }
   };
 
@@ -128,20 +123,20 @@ const CourseContents = () => {
     setRating(newRating);
     try {
       if (!user) {
-        console.error('User is not logged in');
+        console.error("User is not logged in");
         return;
       }
       if (!courseIdStr) {
-        console.error('Invalid courseId');
+        console.error("Invalid courseId");
         return;
       }
-      const ratingRef = doc(db, 'courses', courseIdStr, 'ratings', user.uid);
+      const ratingRef = doc(db, "courses", courseIdStr, "ratings", user.uid);
       await setDoc(ratingRef, {
         rating: newRating,
         userId: user.uid,
       });
     } catch (error) {
-      console.error('Error updating rating:', error);
+      console.error("Error updating rating:", error);
     }
   };
 
@@ -151,18 +146,18 @@ const CourseContents = () => {
 
     const fetchUserUid = async () => {
       try {
-        const userString = await AsyncStorage.getItem('user');
+        const userString = await AsyncStorage.getItem("user");
         if (userString) {
           const userData = JSON.parse(userString);
           setUser(userData);
           await fetchImageUrl(userData);
           await fetchCourseData();
         } else {
-          console.log('No user found');
+          console.log("No user found");
           setLoadingImage(false);
         }
       } catch (error) {
-        console.error('Error retrieving user from AsyncStorage', error);
+        console.error("Error retrieving user from AsyncStorage", error);
         setLoadingImage(false);
       }
     };
@@ -171,12 +166,12 @@ const CourseContents = () => {
   }, [user]); // Include 'user' in dependency array
 
   return (
-      <View style={{ flex: 1, backgroundColor: 'white' }}>
+      <View style={{ flex: 1, backgroundColor: "white" }}>
         <View style={styles.banner}>
           <Pressable onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={35} color="black" />
           </Pressable>
-          <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
+          <TouchableOpacity style={styles.profilePic}>
             {loadingImage ? (
                 <ActivityIndicator size="small" color="#02D6B6" />
             ) : imageUrl ? (
@@ -216,56 +211,56 @@ export default CourseContents;
 
 const styles = StyleSheet.create({
   banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 10,
     paddingHorizontal: 30,
     paddingTop: 30,
     paddingBottom: 10,
   },
   profilePic: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginRight: 15,
     borderWidth: 2,
     height: 55,
     width: 55,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderColor: '#02D6B6',
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "#02D6B6",
     borderRadius: 27.5,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
+    overflow: "hidden",
+    backgroundColor: "#fff",
   },
   profileImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   courseTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#666666',
+    fontWeight: "bold",
+    color: "#666666",
     marginBottom: 10,
   },
   courseBlurb: {
     fontSize: 16,
-    color: '#7D7D7D',
+    color: "#7D7D7D",
     marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#666666',
+    fontWeight: "bold",
+    color: "#666666",
     marginBottom: 10,
   },
   ratingContainer: {
     marginTop: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   ratingText: {
     fontSize: 18,
     marginBottom: 10,
-    color: '#666666',
+    color: "#666666",
   },
 });
