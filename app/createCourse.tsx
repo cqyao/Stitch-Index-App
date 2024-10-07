@@ -12,6 +12,8 @@ import {
   StyleSheet,
   TextInput,
   Button,
+  Keyboard,
+  ScrollView,
 } from "react-native";
 import { useNavigation, useRouter } from "expo-router";
 import { auth } from "@/firebaseConfig";
@@ -174,6 +176,7 @@ const CreateCourse = () => {
   }, []);
 
   return (
+    <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
     <View style={{ flex: 1, backgroundColor: "white" }}>
       <View style={styles.banner}>
         <Pressable onPress={() => router.back()}>
@@ -194,38 +197,57 @@ const CreateCourse = () => {
         <TextInput
           style={styles.input}
           placeholder="Course Title"
+          placeholderTextColor="#7D7D7D"
           value={title}
           onChangeText={setTitle}
+          maxLength={25}
         />
         <TextInput
           style={styles.input}
           placeholder="Blurb"
+          placeholderTextColor="#7D7D7D"
           value={blurb}
           onChangeText={setBlurb}
+          maxLength={99}
         />
         <TextInput
           style={styles.input}
           placeholder="Tag"
+          placeholderTextColor="#7D7D7D"
           value={tag}
           onChangeText={setTag}
         />
         <TextInput
           style={styles.input}
           placeholder="Time (minutes)"
+          placeholderTextColor="#7D7D7D"
           value={time}
           onChangeText={setTime}
           keyboardType="numeric"
+          maxLength={3}
         />
         <TextInput
           style={styles.input}
           placeholder="Price"
+          placeholderTextColor="#7D7D7D"
           value={price}
           onChangeText={setPrice}
           keyboardType="numeric"
         />
+        <ScrollView automaticallyAdjustKeyboardInsets={true}>
+        <TextInput
+          style={styles.inputContents}
+          placeholder="Course Contents"
+          placeholderTextColor="#7D7D7D"
+          returnKeyType="send"
+          blurOnSubmit={false}
+          multiline
+        />
+        </ScrollView>
         <Button title="Create Course" onPress={handleCreateCourse} />
       </View>
     </View>
+    </Pressable>
   );
 };
 
@@ -260,6 +282,7 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   form: {
+    paddingTop: -20,
     padding: 20,
   },
   input: {
@@ -268,5 +291,14 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginVertical: 5,
+  },
+  inputContents: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginVertical: 5,
+    height: 200,
+    textAlign: "left",
   },
 });

@@ -199,6 +199,10 @@ const CourseContents = () => {
                     color="#FF6231"
                 />
               </View>
+              {/* Profile and Minutes */}
+              <View>
+
+              </View>
             </ScrollView>
         ) : (
             <ActivityIndicator size="large" color="#02D6B6" />
@@ -238,7 +242,7 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   courseTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#666666",
     marginBottom: 10,
