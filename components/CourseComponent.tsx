@@ -1,9 +1,16 @@
 // CourseComponent.tsx
 
-import { View, Text, StyleSheet, TouchableOpacity, Image, Pressable } from 'react-native';
-import React from 'react';
-import { FontAwesome } from '@expo/vector-icons';
-import { StarRatingDisplay } from 'react-native-star-rating-widget';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Pressable,
+} from "react-native";
+import React from "react";
+import { FontAwesome } from "@expo/vector-icons";
+import { StarRatingDisplay } from "react-native-star-rating-widget";
 
 interface CourseProps {
   tag: string;
@@ -73,7 +80,7 @@ const CourseComponent: React.FC<CourseProps> = ({
                     borderRadius: 90,
                     marginRight: 10,
                     borderWidth: 2,
-                    borderColor: '#00D6B5',
+                    borderColor: "#00D6B5",
                   }}
               />
           ) : (
@@ -102,43 +109,43 @@ const styles = StyleSheet.create({
     width: 340,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#00D6B5',
-    alignSelf: 'center',
+    borderColor: "#00D6B5",
+    alignSelf: "center",
     padding: 10,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   tag: {
     width: 75,
     height: 30,
-    backgroundColor: '#FF6231',
+    backgroundColor: "#FF6231",
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   tagText: {
-    color: 'white',
-    textAlign: 'center',
+    color: "white",
+    textAlign: "center",
     fontSize: 15,
   },
   time: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 2,
-    alignItems: 'center',
+    alignItems: "center",
   },
   timeText: {
-    color: '#7D7D7D',
-    fontFamily: 'Lato',
-    fontWeight: 'bold',
+    color: "#7D7D7D",
+    fontFamily: "Lato",
+    fontWeight: "bold",
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
   },
   icon: {},
   star: {
-    marginLeft: 'auto',
+    marginLeft: "auto",
   },
   starMod: {
     gap: -20,
@@ -146,39 +153,39 @@ const styles = StyleSheet.create({
   courseTitle: {
     marginTop: 10,
     fontSize: 20,
-    fontFamily: 'Inter',
-    fontWeight: 'bold',
-    color: '#666666',
+    fontFamily: "Inter",
+    fontWeight: "bold",
+    color: "#666666",
   },
   courseBlurb: {
     marginTop: 5,
     fontSize: 14,
-    fontFamily: 'Inter',
-    color: '#7D7D7D',
+    fontFamily: "Inter",
+    color: "#7D7D7D",
   },
   userImage: {
     marginTop: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   nameText: {
-    fontFamily: 'Lato',
-    fontWeight: 'bold',
-    color: '#7D7D7D',
+    fontFamily: "Lato",
+    fontWeight: "bold",
+    color: "#7D7D7D",
   },
   button: {
     width: 80,
     height: 30,
-    backgroundColor: '#FF6231',
+    backgroundColor: "#FF6231",
     borderRadius: 8,
-    position: 'absolute',
+    position: "absolute",
     right: 10,
     bottom: 10,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   buttonText: {
-    color: 'white',
-    alignSelf: 'center',
+    color: "white",
+    alignSelf: "center",
     fontSize: 15,
   },
 });
