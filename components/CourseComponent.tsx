@@ -66,7 +66,7 @@ const CourseComponent: React.FC<CourseProps> = ({
         </View>
         {/* Course Blurb */}
         <View>
-          <Text style={styles.courseBlurb}>{blurb}</Text>
+          <Text style={styles.courseBlurb} adjustsFontSizeToFit={true} numberOfLines={2}>{blurb}</Text>
         </View>
         {/* Bottom Row */}
         <View style={styles.userImage}>
@@ -105,7 +105,7 @@ export default CourseComponent;
 const styles = StyleSheet.create({
   course: {
     marginTop: 20,
-    height: 150,
+    height: 175,
     width: 340,
     borderRadius: 8,
     borderWidth: 2,
@@ -132,6 +132,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   time: {
+    left: -5,
     flexDirection: "row",
     gap: 2,
     alignItems: "center",
@@ -143,12 +144,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
   },
-  icon: {},
+  icon: {
+  },
   star: {
     marginLeft: "auto",
+    left: 8,
   },
   starMod: {
-    gap: -20,
+    gap: -28,
   },
   courseTitle: {
     marginTop: 10,
@@ -159,14 +162,17 @@ const styles = StyleSheet.create({
   },
   courseBlurb: {
     marginTop: 5,
+    marginBottom: 5,
     fontSize: 14,
-    fontFamily: "Inter",
-    color: "#7D7D7D",
+    fontFamily: 'Inter',
+    color: '#7D7D7D',
+    height: 40,
   },
   userImage: {
     marginTop: 10,
     flexDirection: "row",
     alignItems: "center",
+    bottom: 10,
   },
   nameText: {
     fontFamily: "Lato",
@@ -179,8 +185,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF6231",
     borderRadius: 8,
     position: "absolute",
-    right: 10,
-    bottom: 10,
+    right: 5,
+    bottom: 5,
     justifyContent: "center",
   },
   buttonText: {
