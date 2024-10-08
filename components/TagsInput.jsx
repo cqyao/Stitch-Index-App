@@ -44,7 +44,7 @@ function TagsInput() {
 export default TagsInput;
 
 const styles = StyleSheet.create({
-tagsearch: {
+  tagsearch: {
     paddingTop: 8,
     paddingBottom: 8,
     top: 10,
@@ -56,28 +56,25 @@ tagsearch: {
     borderCurve: 'continuous',
     flexDirection: 'row',
     flexWrap: 'wrap',
-},
-items: {
+  },
+  items: {
     flexDirection: "row",
-    flexWrap:"wrap",
+    flexWrap: "wrap",
     alignSelf: 'flex-start',
     borderRadius: 8,
     left: 10,
     backgroundColor: "#FF6231",
     padding: 5,
     paddingRight: 10,
-},
-enteritems: {
+  },
+  enteritems: {
     flexDirection: "row",
-    flexWrap:"wrap",
     borderRadius: 8,
-    left: 10,
-    padding: 5,
-    paddingRight: 10,
-    borderRadius: 0,
-    alignItems: "center",
-},
-close: {
+    marginHorizontal: 5,
+    marginLeft: 20,
+    flex: 1
+  },
+  close: {
     height: 15,
     width: 15,
     backgroundColor: "white",
@@ -88,31 +85,26 @@ close: {
     alignSelf: "center",
     left: 5,
     fontSize: 18
-},
-mainText: {
+  },
+  mainText: {
     color: "white",
     alignSelf: "center",
     justifyContent: "center",
     left: 2,
-},
-closeText: {
+  },
+  closeText: {
     textAlign: "center",
     fontSize: 10,
-},
-searchIcon: {
-    position: "absolute",
-    alignSelf: "flex-end",
-    marginTop: 3,
-    zIndex: 2,
+  },
+  searchIcon: {
     alignContent: "center",
-    alignSelf: "center",
-    left: 270,
     backgroundColor: '#FF6231',
     height: 30,
     width: 30,
     borderRadius: 8,
+    marginRight: 10
   },
-  icon : {
+  icon: {
     top: 4,
     textAlign: "center",
   },
