@@ -12,7 +12,7 @@ interface Patient {
   id: string;
   'First Name': string;
   'Last Name': string;
-  Tags: string[];
+  tags: string[];
 }
 
 const search = () => {
@@ -23,8 +23,8 @@ const search = () => {
   const [tagSearchInput, setTagSearchInput] = useState<string>('');  
   const [patientResults, setPatientResults] = useState<Patient[]>([]);  
   const [tagResults, setTagResults] = useState<Patient[]>([]);  
+  const [lastSearchType, setLastSearchType] = useState<'name' | 'tag' | null>(null);  // Track last search type
 
-  
   useEffect(() => {
     if (typeof urlQuery === 'string') {
       setSearchInput(urlQuery); 
@@ -62,6 +62,7 @@ const search = () => {
       addResults(lastNameSnapshot);
 
       setPatientResults(results);  // Update the state with fetched results
+      setLastSearchType('name');  // Set last search type to 'name'
     } catch (error) {
       console.error('Error searching patients by name:', error);
     }
@@ -86,19 +87,28 @@ const search = () => {
   // Function to search Firestore for patients by tags
   const searchPatientsByTag = async () => {
     if (!tagSearchInput.trim()) return;
-
+  
     try {
       const patientsCollection = collection(db, 'Patients');
-      const tagsQuery = query(patientsCollection, where('Tags', 'array-contains', tagSearchInput));
-
+  
+      // Convert search input to lowercase
+      const lowerCaseTagSearchInput = tagSearchInput.toLowerCase();
+  
+      // Query for tags, making sure both input and stored tags are compared in lowercase
+      const tagsQuery = query(
+        patientsCollection,
+        where('tags', 'array-contains', lowerCaseTagSearchInput)
+      );
+  
       const tagSnapshot = await getDocs(tagsQuery);
-
-      const results: Patient[] = [];  // Explicitly type the results array
+  
+      const results: Patient[] = []; // Explicitly type the results array
       tagSnapshot.forEach((doc: any) => {
         results.push({ id: doc.id, ...doc.data() });
       });
-
-      setTagResults(results);  // Update the state with tag search results
+  
+      setTagResults(results); // Update the state with tag search results
+      setLastSearchType('tag');  // Set last search type to 'tag'
     } catch (error) {
       console.error('Error searching patients by tags:', error);
     }
@@ -143,8 +153,8 @@ const search = () => {
       {/* Tags Search Input */}
       <View style={styles.searchInput}>
         <Input
-          defaultValue={searchInput}  // Prepopulate the search input with the query
-          onSearch={(value: React.SetStateAction<string>) => setSearchInput(value)}  // Update searchInput when a new search is performed
+          defaultValue={tagSearchInput}  // Prepopulate the search input with the tag search query
+          onSearch={(value: React.SetStateAction<string>) => setTagSearchInput(value)}  // Update tagSearchInput when a new search is performed
         />
       </View>
 
@@ -154,16 +164,22 @@ const search = () => {
           <Text style={styles.titles}> Patients</Text>
           <Pressable onPress={() => router.push({
             pathname: '/seeall',
-            params: { query: searchInput, category: 'Patients' }
+            params: { query: lastSearchType === 'name' ? searchInput : tagSearchInput, category: 'Patients', searchType: lastSearchType }
           })}>
             <Text style={styles.seeall}> See All</Text>
           </Pressable>
         </View>
 
         <ScrollView>
-          {/* Regular Search Results */}
-          {patientResults.length > 0 ? (
+          {/* Conditionally render based on last search type */}
+          {lastSearchType === 'name' && patientResults.length > 0 ? (
             patientResults.map((patient) => (
+              <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
+                <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title={`${patient['First Name']} ${patient['Last Name']}`} />
+              </Pressable>
+            ))
+          ) : lastSearchType === 'tag' && tagResults.length > 0 ? (
+            tagResults.map((patient) => (
               <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
                 <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title={`${patient['First Name']} ${patient['Last Name']}`} />
               </Pressable>
@@ -171,21 +187,10 @@ const search = () => {
           ) : (
             <Text>No patients found</Text>
           )}
-
-          {/* Tag Search Results */}
-          {tagResults.length > 0 ? (
-            tagResults.map((patient) => (
-              <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
-                <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title={`${patient['First Name']} ${patient['Last Name']}`} />
-              </Pressable>
-            ))
-          ) : (
-            tagSearchInput && <Text>No patients found with this tag</Text>
-          )}
         </ScrollView>
       </View>
 
-      {/* Records (Static for now) */}
+      {/* Static Records Section */}
       <View>
         <View style={styles.headerRow}>
           <Text style={styles.titles}> Records</Text>
@@ -206,7 +211,7 @@ const search = () => {
         </View>
       </View>
 
-      {/* Courses (Static for now) */}
+      {/* Static Courses Section */}
       <View>
         <View style={styles.headerRow}>
           <Text style={styles.titles}> Courses</Text>
