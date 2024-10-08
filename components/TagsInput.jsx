@@ -1,50 +1,51 @@
-import { View, Text, StyleSheet, TextInput, Pressable} from 'react-native'
+import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native'
 import { theme } from '../constants/theme'
 import { useState } from 'react'
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 
 function TagsInput() {
-    const [tags, setTags] = useState([])
-    const [input, setInput] = useState("")
+  const [tags, setTags] = useState([])
+  const [input, setInput] = useState("")
 
-    function addTag() {
-        if(!input.trim())
-            return
-        setTags([...tags, input])
-        this.textInput.clear()
-    }
+  function addTag() {
+    if (!input.trim())
+      return
+    setTags([...tags, input])
+    this.textInput.clear()
+  }
 
-    const removeTag = (index) => {
-        const newTagList = [...tags];
-        newTagList.splice(index, 1);
-        setTags(newTagList);
-    }
+  const removeTag = (index) => {
+    const newTagList = [...tags];
+    newTagList.splice(index, 1);
+    setTags(newTagList);
+  }
 
-    return (
-        <View style={styles.tagsearch}>
-            { tags.map((tag, index) => (
-                <View style={styles.items} key={index}>
-                    <View><Text style={{color: "white"}}>{tag}</Text></View>
-                    <Pressable onPress={() => removeTag(index)}>
-                        <View style={styles.close}><Text style={styles.closeText}>&times;</Text></View>
-                    </Pressable>
-                </View>
-            )) }
-            <View style={styles.enteritems}>
-                <TextInput ref={input => { this.textInput = input }} onChangeText={(text) => setInput(text)} onSubmitEditing={() => {addTag()}} placeholder='Enter tag' placeholderTextColor="#666666" ></TextInput>
-            </View>
-            <View style={styles.searchIcon}>
-                    <FontAwesome name="search" size={20} color="white" style={[styles.icon]}/>
-            </View>
+  return (
+    <View style={styles.tagsearch}>
+      {tags.map((tag, index) => (
+        <View style={styles.items} key={index}>
+          <View><Text style={{ color: "white" }}>{tag}</Text></View>
+          <Pressable onPress={() => removeTag(index)}>
+            <View style={styles.close}><Text style={styles.closeText}>&times;</Text></View>
+          </Pressable>
         </View>
-        
-    )
+      ))}
+      <View style={styles.enteritems}>
+        <TextInput style={{flex: 1}} ref={input => { this.textInput = input }} onChangeText={(text) => setInput(text)} onSubmitEditing={() => { addTag() }} placeholder='Enter tag' placeholderTextColor="#666666" />
+        <View style={styles.searchIcon}>
+          <FontAwesome name="search" size={20} color="white" style={styles.icon} />
+        </View>
+      </View>
+      
+    </View>
+
+  )
 }
 
 export default TagsInput;
 
 const styles = StyleSheet.create({
-tagsearch: {
+  tagsearch: {
     paddingTop: 8,
     paddingBottom: 8,
     top: 10,
@@ -56,28 +57,25 @@ tagsearch: {
     borderCurve: 'continuous',
     flexDirection: 'row',
     flexWrap: 'wrap',
-},
-items: {
+  },
+  items: {
     flexDirection: "row",
-    flexWrap:"wrap",
+    flexWrap: "wrap",
     alignSelf: 'flex-start',
     borderRadius: 8,
     left: 10,
     backgroundColor: "#FF6231",
     padding: 5,
     paddingRight: 10,
-},
-enteritems: {
+  },
+  enteritems: {
     flexDirection: "row",
-    flexWrap:"wrap",
     borderRadius: 8,
-    left: 10,
-    padding: 5,
-    paddingRight: 10,
-    borderRadius: 0,
-    alignItems: "center",
-},
-close: {
+    marginHorizontal: 5,
+    marginLeft: 20,
+    flex: 1
+  },
+  close: {
     height: 15,
     width: 15,
     backgroundColor: "white",
@@ -88,31 +86,26 @@ close: {
     alignSelf: "center",
     left: 5,
     fontSize: 18
-},
-mainText: {
+  },
+  mainText: {
     color: "white",
     alignSelf: "center",
     justifyContent: "center",
     left: 2,
-},
-closeText: {
+  },
+  closeText: {
     textAlign: "center",
     fontSize: 10,
-},
-searchIcon: {
-    position: "absolute",
-    alignSelf: "flex-end",
-    marginTop: 3,
-    zIndex: 2,
+  },
+  searchIcon: {
     alignContent: "center",
-    alignSelf: "center",
-    left: 270,
     backgroundColor: '#FF6231',
     height: 30,
     width: 30,
     borderRadius: 8,
+    marginRight: 10
   },
-  icon : {
+  icon: {
     top: 4,
     textAlign: "center",
   },

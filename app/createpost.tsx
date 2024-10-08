@@ -169,6 +169,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 60,
     marginBottom: 95,
+    justifyContent: "center"
   },
   heading: {
     fontSize: 24,

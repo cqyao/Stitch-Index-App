@@ -114,7 +114,7 @@ const search = () => {
   }, [tagSearchInput]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: 'white' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <View style={styles.banner}>
         <Pressable onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={35} color="black" />
@@ -226,7 +226,7 @@ const search = () => {
           </Pressable>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
