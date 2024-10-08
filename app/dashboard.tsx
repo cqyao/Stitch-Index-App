@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-  Dimensions,
+  Dimensions, FlatList,
 } from "react-native";
 import {
   Provider,
@@ -20,7 +20,7 @@ import {
   Portal,
   Modal,
   TextInput,
-  Button,
+  Button, List,
 } from "react-native-paper";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -33,6 +33,10 @@ import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 import Constants from "expo-constants";
 import Markdown from 'react-native-markdown-display';
+import {ImageSlider} from "@/components/SliderData";
+import SliderItem from "@/components/SliderItem";
+import {LinearGradient} from "expo-linear-gradient";
+
 
 
 const Dashboard = () => {
@@ -159,7 +163,7 @@ const Dashboard = () => {
       const data = await apiResponse.json();
 
       // Log the full response for debugging purposes
-      console.log("Full response from OpenAI:", JSON.stringify(data, null, 2));
+      // console.log("Full response from OpenAI:", JSON.stringify(data, null, 2));
 
       if (!apiResponse.ok) {
         console.error("Error from OpenAI API:", data);
@@ -173,7 +177,7 @@ const Dashboard = () => {
 
       if (data.choices && data.choices.length > 0) {
         const messageContent = data.choices[0].message.content.trim();
-        console.log("Received message content:", messageContent);
+        // console.log("Received message content:", messageContent);
         setResponse(messageContent);
       } else {
         console.error("No choices returned from the API. Full response:", data);
@@ -223,8 +227,13 @@ const Dashboard = () => {
               />
             </View>
 
+
+
             <View style={styles.features}>
               <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
+
+
+
               <View style={styles.row}>
                 <ScrollView horizontal>
                   <Pressable
@@ -301,7 +310,11 @@ const Dashboard = () => {
                 <Text style={styles.chatTitle}>Stitch Assistant</Text>
               </View>
               <View >
-                <ScrollView style={styles.responseContainer}>
+                <LinearGradient
+                    colors={['rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 0)']}
+                    style={styles.featherTop}
+                />
+                <ScrollView showsVerticalScrollIndicator={false} style={styles.responseContainer}>
                   {response ? ( // Check if there is a response to display
                       <Markdown>{response}</Markdown>
                   ) : (
@@ -311,6 +324,10 @@ const Dashboard = () => {
                 {loadingResponse && (
                     <ActivityIndicator size="small" color="#02D6B6" />
                 )}
+                <LinearGradient
+                    colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 1)']}
+                    style={styles.featherBottom}
+                />
               </View>
 
               <View style={styles.chatFooter}>
@@ -348,7 +365,7 @@ const Dashboard = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    padding: 0,
   },
   banner: {
     flex: 1,
@@ -483,7 +500,23 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     justifyContent: "center",
+    marginTop: 7,
 
+  }, featherTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 30, // Adjust this value for feather size
+    zIndex: 1,
+  },
+  featherBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 20, // Adjust this value for feather size
+    zIndex: 1,
   },
 });
 
