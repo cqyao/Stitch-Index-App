@@ -32,6 +32,8 @@ import Animated, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig"; // Update the path according to your project
+import { TextInput } from 'react-native-paper';
+
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -219,7 +221,7 @@ const SignIn = () => {
         <Animated.View entering={FadeInDown.duration(1000).springify()}>
           <KeyboardAvoidingView style={styles.form}>
             <Text style={styles.label}>Email Address</Text>
-            <Input
+            <TextInput
               placeholder="Enter your email"
               value={email}
               onChangeText={(text: string) => setEmail(text)}
