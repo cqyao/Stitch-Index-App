@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
-  Button,
   Image,
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { db, storage } from "../firebaseConfig";
@@ -15,6 +13,8 @@ import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { FirebaseError } from "firebase/app";
+import { TextInput, Button } from 'react-native-paper';
+
 
 const CreatePost = ({}) => {
   const [title, setTitle] = useState("");
@@ -133,6 +133,8 @@ const CreatePost = ({}) => {
         style={styles.input}
         placeholder="Post Title"
         value={title}
+        mode={"outlined"}
+        activeOutlineColor={"#77DBCB"}
         onChangeText={(text) => setTitle(text)}
       />
       <TextInput
@@ -140,14 +142,29 @@ const CreatePost = ({}) => {
         placeholder="What's on your mind?"
         value={content}
         onChangeText={(text) => setContent(text)}
+        activeOutlineColor={"#77DBCB"}
+        mode={"outlined"}
         multiline
       />
-      <Pressable style={styles.imagePicker} onPress={pickImage}>
-        <Text style={styles.imagePickerText}>Pick an Image</Text>
-      </Pressable>
+
       {image && <Image source={{ uri: image }} style={styles.previewImage} />}
-      <Button title="Post" onPress={handleSubmit} />
-      <Button title="Cancel" onPress={router.back} />
+
+      <Button
+          style={{ marginBottom: 15 }}
+          textColor={"white"}
+          buttonColor="#77DBCB"
+          mode={"contained"}
+          onPress={pickImage}
+      >
+        {image ? "Replace Image" : "Pick an Image"}
+      </Button>
+
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 20 }}>
+        <Button textColor={"white"} buttonColor="#77DBCB" mode={"contained"} onPress={handleSubmit}>    Post    </Button>
+        <Button textColor={"white"} buttonColor="#77DBCB" mode={"contained"} onPress={router.back}>    Cancel    </Button>
+      </View>
+
+
     </View>
   );
 };
