@@ -123,8 +123,6 @@ const Dashboard = () => {
 
   const KEY = Constants.expoConfig?.extra?.openAI_key;
 
-  console.log(Constants.expoConfig?.extra);
-
   // Function to get response from OpenAI API
   const getChatGPTResponse = async (question: string) => {
     setLoadingResponse(true);
