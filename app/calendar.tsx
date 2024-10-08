@@ -18,7 +18,7 @@ import { db } from "../firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
-import { FirebaseError } from "firebase/app";
+import { TZDate } from '@date-fns/tz';
 
 type AppointmentProps = {
   id: string; // Include the ID for each appointment
@@ -29,9 +29,12 @@ type AppointmentProps = {
 };
 
 export default function CalendarPage() {
+  const currentDate = new Date()
+  const auTz = new TZDate(currentDate, "Australia/Sydney")
+  const formattedCurrentDate = auTz.toISOString().split('T')[0];
   const router = useRouter();
   // Date states
-  const [selectedDate, setSelectedDate] = useState();
+  const [selectedDate, setSelectedDate] = useState(formattedCurrentDate);
   // Fold up menu states
   const sheetRef = useRef<BottomSheet>(null);
   // for determining whether the fold up menu is open or not
@@ -173,6 +176,7 @@ export default function CalendarPage() {
         // On Date Changed Functions -> We can use this to gather the current selectd date to search for appointments
         onDayPress={(day) => {
           console.log("selected day", day);
+          console.log("current day: ", currentDate)
           setSelectedDate(day.dateString);
         }}
         onMonthChange={(month) => {
