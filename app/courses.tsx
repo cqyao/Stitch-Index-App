@@ -1,5 +1,3 @@
-// Courses.tsx
-
 import {
   View,
   Text,
@@ -19,6 +17,7 @@ import { useNavigation, useRouter } from "expo-router";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 // Import Firestore functions
 import {
@@ -33,6 +32,8 @@ import {
   documentId,
 } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
+import LottieView from "lottie-react-native";
+import {AnimatedView} from "react-native-reanimated/lib/typescript/reanimated2/component/View";
 
 interface Course {
   id: string;
@@ -54,13 +55,15 @@ const Courses = () => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loadingImage, setLoadingImage] = useState<boolean>(true);
-  const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState<Course[]>([]);
   const [purchasedCourses, setPurchasedCourses] = useState<Course[]>([]);
 
+  // New loading state variables
+  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [purchasedCoursesLoading, setPurchasedCoursesLoading] = useState(true);
+
   const router = useRouter();
   const navigation = useNavigation();
-
 
   // Check if user is logged in
   const checkUserInAsyncStorage = async () => {
@@ -72,7 +75,6 @@ const Courses = () => {
     } catch (error) {
       console.error("Error retrieving user from AsyncStorage", error);
     }
-    setLoading(false);
   };
 
   // Fetch image URL from Firebase Storage
@@ -120,6 +122,7 @@ const Courses = () => {
 
   // Fetch courses from Firestore in real-time
   const fetchCourses = () => {
+    setCoursesLoading(true); // Start loading courses
     const coursesRef = collection(db, "courses");
     const unsubscribe = onSnapshot(
         coursesRef,
@@ -139,9 +142,11 @@ const Courses = () => {
 
           const resolvedCourses = await Promise.all(coursePromises);
           setCourses(resolvedCourses);
+          setCoursesLoading(false); // Courses are loaded
         },
         (error) => {
           console.error("Error fetching courses:", error);
+          setCoursesLoading(false); // Stop loading on error
         }
     );
 
@@ -150,6 +155,7 @@ const Courses = () => {
 
   // Fetch user's purchased courses from Firestore in real-time
   const fetchPurchasedCourses = (userId: string) => {
+    setPurchasedCoursesLoading(true); // Start loading purchased courses
     const userRef = doc(db, "Users", userId);
     const unsubscribe = onSnapshot(
         userRef,
@@ -181,18 +187,24 @@ const Courses = () => {
 
                     const resolvedCourses = await Promise.all(coursePromises);
                     setPurchasedCourses(resolvedCourses);
+                    setPurchasedCoursesLoading(false); // Purchased courses are loaded
                   },
                   (error) => {
                     console.error("Error fetching purchased courses:", error);
+                    setPurchasedCoursesLoading(false); // Stop loading on error
                   }
               );
             } else {
               setPurchasedCourses([]);
+              setPurchasedCoursesLoading(false); // No purchased courses to load
             }
+          } else {
+            setPurchasedCoursesLoading(false); // User document does not exist
           }
         },
         (error) => {
           console.error("Error fetching user document:", error);
+          setPurchasedCoursesLoading(false); // Stop loading on error
         }
     );
 
@@ -283,6 +295,23 @@ const Courses = () => {
     };
   }, []);
 
+  // Determine overall loading state
+  const loading = coursesLoading || purchasedCoursesLoading;
+
+  if (loading) {
+    // Render loading screen
+    return (
+        <Animated.View exiting={FadeOut} style={styles.loadingContainer}>
+          <LottieView
+              source={require("../assets/Animations/loading.json")}
+              autoPlay
+              loop
+              style={styles.lottie}
+          />
+        </Animated.View>
+    );
+  }
+
   return (
       <View style={{ flex: 1, backgroundColor: "white" }}>
         {/* Header */}
@@ -338,6 +367,7 @@ const Courses = () => {
             style={styles.courseContainer}
         >
           {(isSelected ? courses : purchasedCourses).map((course) => (
+              <Animated.View exiting={FadeOut} entering={FadeIn} >
               <CourseComponent
                   key={course.id}
                   tag={course.tag}
@@ -356,6 +386,7 @@ const Courses = () => {
                           : handleCoursePress(course)
                   }
               />
+                </Animated.View>
           ))}
         </ScrollView>
 
@@ -435,4 +466,14 @@ const styles = StyleSheet.create({
     borderColor: "#FF6231",
     borderWidth: 2,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  lottie: {
+    width: 150,
+    height: 150,
+  }
 });
