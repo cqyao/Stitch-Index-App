@@ -275,11 +275,13 @@ const Dashboard = () => {
                 <Text style={[styles.h2, { color: "#148085" }]}>
                   Appointments
                 </Text>
+                <Pressable onPress={() => router.push({ pathname: "./calendar"})}>
                 <Text
                     style={[styles.h3, { color: "#02D6B6", fontWeight: "600" }]}
                 >
                   See All
                 </Text>
+                </Pressable>
               </View>
               <View>
                 <Appointment date="Fri Nov 1" timeFrom={"8:30"} timeTo={"9:30"} />
