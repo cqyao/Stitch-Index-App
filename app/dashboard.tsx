@@ -1,3 +1,5 @@
+// Dashboard.js
+
 import React, { useEffect, useState } from "react";
 import {
   Text,
@@ -9,49 +11,45 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  ScrollView,
+  Dimensions,
 } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import {
+  Provider,
+  FAB,
+  Portal,
+  Modal,
+  TextInput,
+  Button,
+} from "react-native-paper";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useNavigation, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import Input from "../components/SearchInput";
-import { hp, wp } from "../helpers/common";
-import { Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Features from "../components/Features";
 import Appointment from "../components/Appointment";
 import { auth } from "@/firebaseConfig";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
-import { FirebaseError } from "firebase/app";
+import Constants from "expo-constants";
 
 const Dashboard = () => {
   const router = useRouter();
-  const navigation = useNavigation();
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [loadingImage, setLoadingImage] = useState<boolean>(true); // Optional: Loading state for image
+  const [loadingImage, setLoadingImage] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const checkUserInAsyncStorage = async () => {
-    try {
-      const storedUser = await AsyncStorage.getItem("user");
-      if (!storedUser) {
-        // setUser(JSON.parse(storedUser));
-        router.push({ pathname: "./signIn" });
-      }
-    } catch (error) {
-      console.error("Error retrieving user from AsyncStorage", error);
-    }
-    setLoading(false);
-  };
+  // State variables for chat functionality
+  const [chatVisible, setChatVisible] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [response, setResponse] = useState("");
+  const [loadingResponse, setLoadingResponse] = useState(false);
 
   // Function to fetch image URL from Firebase Storage
-  const fetchImageFromFirebase = async (
-    path: string
-  ): Promise<string | null> => {
+  const fetchImageFromFirebase = async (path: string): Promise<string | null> => {
     try {
       const storage = getStorage();
       const imageRef = ref(storage, path);
@@ -73,7 +71,7 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error fetching image URL:", error);
     } finally {
-      setLoadingImage(false); // Optional: Update loading state
+      setLoadingImage(false);
     }
   };
 
@@ -83,7 +81,7 @@ const Dashboard = () => {
       await AsyncStorage.removeItem("user");
       await auth.signOut();
       Alert.alert("Success", "You have been signed out.");
-      router.replace({ pathname: "./signIn" }); // Use replace instead of push
+      router.replace({ pathname: "./signIn" });
     } catch (error) {
       Alert.alert("Error", "An error occurred while signing out.");
       console.error("Error signing out: ", error);
@@ -94,17 +92,16 @@ const Dashboard = () => {
   const handleSearchSubmit = () => {
     if (searchQuery.trim()) {
       router.push({
-        pathname: './search',
-        params: { query: searchQuery }  // Pass search query as a parameter
+        pathname: "./search",
+        params: { query: searchQuery },
       });
     }
   };
 
   // Retrieve user UID from AsyncStorage and fetch image URL
   useEffect(() => {
-    checkUserInAsyncStorage();
-
-    const fetchUserUid = async () => {
+    const initializeUser = async () => {
+      setLoading(true);
       try {
         const userString = await AsyncStorage.getItem("user");
         if (userString) {
@@ -112,109 +109,233 @@ const Dashboard = () => {
           setUser(user);
           await fetchImageUrl(user);
         } else {
-          console.log("No user found");
-          setLoadingImage(false); // Optional: Update loading state
+          router.push({ pathname: "./signIn" });
         }
       } catch (error) {
         console.error("Error retrieving user from AsyncStorage", error);
-        setLoadingImage(false); // Optional: Update loading state
+      } finally {
+        setLoading(false);
+        setLoadingImage(false);
       }
     };
-
-    fetchUserUid();
+    initializeUser();
   }, []);
 
+  const KEY = Constants.expoConfig?.extra?.openAI_key;
+
+  console.log(Constants.expoConfig?.extra);
+
+  // Function to get response from OpenAI API
+  const getChatGPTResponse = async (question: string) => {
+    setLoadingResponse(true);
+
+    try {
+      const apiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${KEY}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content:
+                  "You are a helpful, creative, clever, and friendly medical assistant.",
+            },
+            {
+              role: "user",
+              content: question,
+            },
+          ],
+          max_tokens: 100,
+        }),
+      });
+
+      const data = await apiResponse.json();
+
+      // Log the full response for debugging purposes
+      console.log("Full response from OpenAI:", JSON.stringify(data, null, 2));
+
+      if (!apiResponse.ok) {
+        console.error("Error from OpenAI API:", data);
+        Alert.alert(
+            "Error",
+            data.error?.message || "An error occurred with OpenAI API"
+        );
+        setLoadingResponse(false);
+        return;
+      }
+
+      if (data.choices && data.choices.length > 0) {
+        const messageContent = data.choices[0].message.content.trim();
+        console.log("Received message content:", messageContent);
+        setResponse(messageContent);
+      } else {
+        console.error("No choices returned from the API. Full response:", data);
+        Alert.alert("Error", "No response from OpenAI API");
+      }
+    } catch (error) {
+      console.error("Error fetching response from OpenAI:", error);
+      Alert.alert("Error", "Failed to fetch response from OpenAI API");
+    }
+
+    setLoadingResponse(false);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.stitch}>
-        <Image
-          resizeMode="contain"
-          source={require("../assets/images/backgroundimage.png")}
-        />
-      </View>
-
-      <View style={styles.banner}>
-        <Text></Text>
-        <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
-          {loadingImage ? (
-            <ActivityIndicator size="small" color="#02D6B6" />
-          ) : imageUrl ? (
+      <Provider>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.stitch}>
             <Image
-              source={{ uri: imageUrl }}
-              style={styles.profileImage} // Define appropriate styles
+                resizeMode="contain"
+                source={require("../assets/images/backgroundimage.png")}
             />
-          ) : (
-            <MaterialIcons name="face" size={40} color="black" />
-          )}
-        </TouchableOpacity>
-      </View>
+          </View>
 
-      <View style={styles.panel}>
-        <View style={styles.searchInput}>
-          <Input
-            defaultValue={searchQuery}  // Pass the last search query
-            onSearch={(value: any) => {
-              // Navigate to search with the input value
-              router.push({
-                pathname: './search',
-                params: { query: value }
-              });
-            }}
+          <View style={styles.banner}>
+            <Text></Text>
+            <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
+              {loadingImage ? (
+                  <ActivityIndicator size="small" color="#02D6B6" />
+              ) : imageUrl ? (
+                  <Image source={{ uri: imageUrl }} style={styles.profileImage} />
+              ) : (
+                  <MaterialIcons name="face" size={40} color="black" />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.panel}>
+            <View style={styles.searchInput}>
+              <Input
+                  defaultValue={searchQuery}
+                  onSearch={(value: any) => {
+                    router.push({
+                      pathname: "./search",
+                      params: { query: value },
+                    });
+                  }}
+              />
+            </View>
+
+            <View style={styles.features}>
+              <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
+              <View style={styles.row}>
+                <ScrollView horizontal>
+                  <Pressable
+                      style={styles.featurePressable}
+                      onPress={() => router.push({ pathname: "./patient" })}
+                  >
+                    <Features name="My Patients" icon="user" />
+                  </Pressable>
+                  <Pressable
+                      style={styles.featurePressable}
+                      onPress={() => router.push({ pathname: "./research" })}
+                  >
+                    <Features name="Research" icon="book" />
+                  </Pressable>
+                  <Pressable
+                      style={styles.featurePressable}
+                      onPress={() => router.push({ pathname: "./calendar" })}
+                  >
+                    <Features name="Calendar" icon="calendar" />
+                  </Pressable>
+                  <Pressable
+                      style={styles.featurePressable}
+                      onPress={() => router.push({ pathname: "./courses" })}
+                  >
+                    <Features name="Courses" icon="graduation-cap" />
+                  </Pressable>
+                </ScrollView>
+              </View>
+            </View>
+
+            <View style={styles.appointments}>
+              <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                  }}
+              >
+                <Text style={[styles.h2, { color: "#148085" }]}>
+                  Appointments
+                </Text>
+                <Text
+                    style={[styles.h3, { color: "#02D6B6", fontWeight: "600" }]}
+                >
+                  See All
+                </Text>
+              </View>
+              <View>
+                <Appointment date="Fri Nov 1" timeFrom={"8:30"} timeTo={"9:30"} />
+              </View>
+            </View>
+          </View>
+
+          {/* Floating Action Button */}
+          <FAB
+              style={styles.fab}
+              icon="chat"
+              onPress={() => setChatVisible(true)}
+              color="#fff"
           />
-        </View>
 
-          <View style={styles.features}>
-            <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
-            <View style={styles.row}>
-              <ScrollView horizontal>
-                <Pressable
-                  style={styles.featurePressable}
-                  onPress={() => router.push({ pathname: "./patient" })}
-                >
-                  <Features name="My Patients" icon="user" />
-                </Pressable>
-                <Pressable
-                  style={styles.featurePressable}
-                  onPress={() => router.push({ pathname: "./research" })}
-                >
-                  <Features name="Research" icon="book" />
-                </Pressable>
-                <Pressable
-                  style={styles.featurePressable}
-                  onPress={() => router.push({ pathname: "./calendar" })}
-                >
-                  <Features name="Calendar" icon="calendar" />
-                </Pressable>
-                <Pressable
-                  style={styles.featurePressable}
-                  onPress={() => router.push({ pathname: "./courses" })}
-                >
-                  <Features name="Courses" icon="graduation-cap" />
-                </Pressable>
-              </ScrollView>
-            </View>
-          </View>
-
-          <View style={styles.appointments}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-              }}
+          {/* Chat Modal */}
+          <Portal>
+            <Modal
+                visible={chatVisible}
+                onDismiss={() => {
+                  setChatVisible(false);
+                  // Optionally clear the response here if desired:
+                  // setResponse("");
+                }}
+                contentContainerStyle={styles.chatContainer}
             >
-              <Text style={[styles.h2, { color: "#148085" }]}>Appointments</Text>
-              <Text style={[styles.h3, { color: "#02D6B6", fontWeight: "600" }]}>
-                See All
-              </Text>
-            </View>
-            <View>
-              <Appointment date="Fri Nov 1" timeFrom={"8:30"} timeTo={"9:30"} />
-            </View>
-          </View>
-        </View>
-        
-    </SafeAreaView>
+              <View style={styles.chatHeader}>
+                <Text style={styles.chatTitle}>Medical Assistant</Text>
+              </View>
+              <View style={styles.chatBody}>
+                <ScrollView style={styles.responseContainer}>
+                  {response ? ( // Check if there is a response to display
+                      <Text style={styles.responseText}>{response}</Text>
+                  ) : (
+                      <Text style={styles.responseText}>No response yet.</Text>
+                  )}
+                </ScrollView>
+                {loadingResponse && (
+                    <ActivityIndicator size="small" color="#02D6B6" />
+                )}
+              </View>
+
+              <View style={styles.chatFooter}>
+                <TextInput
+                    label="Ask a medical question"
+                    value={question}
+                    onChangeText={(text) => setQuestion(text)}
+                    style={styles.chatInput}
+                    mode="outlined"
+                />
+                <Button
+                    mode="contained"
+                    onPress={() => {
+                      if (question.trim() !== "") {
+                        getChatGPTResponse(question);
+                        setQuestion("");
+                      }
+                    }}
+                    disabled={loadingResponse}
+                    style={styles.sendButton}
+                >
+                  Send
+                </Button>
+              </View>
+            </Modal>
+          </Portal>
+        </SafeAreaView>
+      </Provider>
   );
 };
 
@@ -244,9 +365,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderColor: "#02D6B6",
-    borderRadius: 27.5, // Half of width/height for a circular shape
-    overflow: "hidden", // Ensure the image fits within the circle
-    backgroundColor: "#fff", // Optional: Background color
+    borderRadius: 27.5,
+    overflow: "hidden",
+    backgroundColor: "#fff",
   },
   search: {
     flexDirection: "row",
@@ -286,7 +407,6 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "cover",
   },
-
   h1: {},
   h2: {
     fontSize: 25,
@@ -312,6 +432,51 @@ const styles = StyleSheet.create({
   featurePressable: {
     width: 150,
     paddingHorizontal: 2,
+  },
+  fab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#02D6B6",
+  },
+  chatContainer: {
+    backgroundColor: "white",
+    padding: 20,
+    margin: 20,
+    borderRadius: 10,
+    maxHeight: Dimensions.get("window").height * 0.8,
+  },
+  chatHeader: {
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  chatTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#148085",
+  },
+  chatBody: {
+    flex: 1,
+    marginBottom: 10,
+  },
+  responseContainer: {
+    maxHeight: Dimensions.get("window").height * 0.4,
+  },
+  responseText: {
+    fontSize: 16,
+    color: "#ff0000",
+  },
+  chatFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  chatInput: {
+    flex: 1,
+    marginRight: 10,
+  },
+  sendButton: {
+    justifyContent: "center",
   },
 });
 
