@@ -142,11 +142,10 @@ const Dashboard = () => {
             {
               role: "system",
               content:
-                  "You are a compassionate and skilled physician discussing a complex patient case with a fellow doctor using a secure chatbot. " +
-                  "The patient has a mix of symptoms that don’t point to a clear diagnosis, and you are seeking the colleague’s input to refine your approach. " +
-                  "You explain the patient's history, current symptoms, and the tests you've run so far. " +
-                  "You ask for their thoughts on further diagnostic steps, possible differential diagnoses, and treatment options. " +
-                  "How would you collaborate to ensure the patient receives the best possible care.",
+                  "A compassionate and skilled physician is discussing a complex patient case with a fellow doctor using a secure chatbot. " +
+                  "The patient presents with a mix of symptoms that don’t point to a clear diagnosis, prompting the physician to seek their colleague’s input to refine the approach. " +
+                  "The physician explains the patient's history, current symptoms, and the tests conducted so far, then requests thoughts on further diagnostic steps, possible differential diagnoses, and treatment options. " +
+                  "Together, the doctors collaborate to ensure the patient receives the best possible care.",
             },
             {
               role: "user",
@@ -299,7 +298,7 @@ const Dashboard = () => {
                 contentContainerStyle={styles.chatContainer}
             >
               <View style={styles.chatHeader}>
-                <Text style={styles.chatTitle}>Medical Assistant</Text>
+                <Text style={styles.chatTitle}>Stitch Assistant</Text>
               </View>
               <View >
                 <ScrollView style={styles.responseContainer}>

@@ -143,6 +143,7 @@ const Research = () => {
             style={styles.fab}
             icon={"pencil"}
             label={"Make a Post  "}
+            color={"white"}
             extended={isExtended} // Use the state to control extension
             onPress={() => router.navigate("./createpost")}
             animateFrom={"right"}
