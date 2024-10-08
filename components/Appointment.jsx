@@ -11,11 +11,13 @@ const Appointment = ({ date, timeFrom, timeTo }) => {
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", }}>
         <View style={styles.profilePic}>
-          <MaterialIcons name="face-5" size={30} color="black" />
+          <MaterialIcons name="face-5" size={40} color="black" />
         </View>
         <Text style={{ marginLeft: 10, marginRight: 40}}>Dr. John E. Sins{"\n"}Regular Check-up</Text>
-        <Entypo name="chevron-thin-right" size={30} color="lightgrey" style={{ marginLeft: "auto" }}/>
-      </View>    
+        <Entypo name="chevron-thin-right" size={30} color="lightgrey"/>
+        
+      </View>
+      
     </View>
   )
 }
@@ -24,9 +26,10 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
     marginTop: 10,
+    borderWidth: 2,
     borderColor: "#02D6B6",
     borderRadius: 15,
-    height: 130,
+    height: 150,
     padding: 20,
     shadowColor: '#000000',
     shadowOffset: {
@@ -39,8 +42,8 @@ const styles = StyleSheet.create({
   profilePic: {
     marginTop: 10,
     borderWidth: 2,
-    height: 55,
-    width: 55,
+    height: 65,
+    width: 65,
     alignItems: "center",
     justifyContent: "center",
     borderColor: "#02D6B6",

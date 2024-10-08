@@ -221,7 +221,7 @@ const SignIn = () => {
         <Animated.View entering={FadeInDown.duration(1000).springify()}>
           <KeyboardAvoidingView style={styles.form}>
             <Text style={styles.label}>Email Address</Text>
-            <TextInput
+            <Input
               placeholder="Enter your email"
               value={email}
               onChangeText={(text: string) => setEmail(text)}

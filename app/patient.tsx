@@ -47,7 +47,7 @@ const Patient = () => {
 
   if (!patientData) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#02D6B6' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
         <View>
           <Text>Loading patient data...</Text>
         </View>
@@ -56,7 +56,7 @@ const Patient = () => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#02D6B6' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       {/* Banner */}
       <View style={styles.banner}>
         <Pressable onPress={() => router.back()}>
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 30,
     paddingHorizontal: 30,
-    paddingTop: 60,
+    paddingTop: 30,
     paddingBottom: 10,
     backgroundColor: '#00D6B5',
     flex: 0,

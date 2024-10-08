@@ -367,28 +367,32 @@ const Courses = () => {
             style={styles.courseContainer}
         >
           {(isSelected ? courses : purchasedCourses).map((course) => (
-              <Animated.View exiting={FadeOut} entering={FadeIn} >
-              <CourseComponent
-                  key={course.id}
-                  tag={course.tag}
-                  time={course.time}
-                  rating={course.rating}
-                  title={course.title}
-                  blurb={course.blurb}
-                  userId={course.userId}
-                  userPFP={course.userPFP}
-                  name={course.name}
-                  price={course.price}
-                  buttonLabel={isSelected ? `$${course.price}` : "Continue"}
-                  onPress={() =>
-                      isSelected
-                          ? handlePurchaseCourse(course)
-                          : handleCoursePress(course)
-                  }
-              />
-                </Animated.View>
+              <Animated.View
+                  key={course.id} // Moved key here
+                  exiting={FadeOut}
+                  entering={FadeIn}
+              >
+                <CourseComponent
+                    tag={course.tag}
+                    time={course.time}
+                    rating={course.rating}
+                    title={course.title}
+                    blurb={course.blurb}
+                    userId={course.userId}
+                    userPFP={course.userPFP}
+                    name={course.name}
+                    price={course.price}
+                    buttonLabel={isSelected ? `$${course.price}` : "Continue"}
+                    onPress={() =>
+                        isSelected
+                            ? handlePurchaseCourse(course)
+                            : handleCoursePress(course)
+                    }
+                />
+              </Animated.View>
           ))}
         </ScrollView>
+
 
         {/* Create Course Button */}
         <View>

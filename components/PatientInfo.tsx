@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Image, Pressable, ImageRequireSource, SafeAreaV
 import { Entypo, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import React from 'react'
 import { getNormalizedStatePath } from 'expo-router/build/LocationProvider';
-import TagsInput from '../components/TagsInput'
+import TagsInputPatient from '../components/TagsInputPatient'
 
 export interface PatientProps {
   picture: string | ImageRequireSource; // Use string for URI or ImageRequireSource for local images
@@ -31,11 +31,11 @@ const PatientInfo: React.FC<PatientProps> = ({ picture, name, gender, birthdateS
     )
   }
   return (
-    <SafeAreaView style={{backgroundColor: "#00D6B5"}}>
+    <SafeAreaView style={{backgroundColor: "#white"}}>
         <View style={styles.profile}>
             <Image 
                 source={require('../assets/images/profilePics/johnLe.jpeg')}
-                style={{height: 130, width: 130, borderRadius: 90, marginRight: 10 }}
+                style={{height: 130, width: 130, borderRadius: 90, marginRight: 10}}
             />
         </View>
         <View>
@@ -43,16 +43,18 @@ const PatientInfo: React.FC<PatientProps> = ({ picture, name, gender, birthdateS
         </View>
         <View>
             <Text style={styles.heading}>General Information</Text>
-            <Text>Name: {name}</Text>
-            <Text>Gender: {gender}</Text>
-            <Text>DOB: {birthdateString}</Text>
+            <Text style={styles.regText}>Name: {name}</Text>
+            <Text style={styles.regText}>Gender: {gender}</Text>
+            <Text style={styles.regText}>DOB: {birthdateString}</Text>
             <Text style={styles.heading}>Contact Information</Text>
-            <Text>Mobile: {mobile}</Text>
-            <Text>Email: {email}</Text>
+            <Text style={styles.regText}>Mobile: {mobile}</Text>
+            <Text style={styles.regText}>Email: {email}</Text>
             <Text style={styles.heading}>Symptoms</Text>
-            <Text>Symptoms: {symptoms.join(', ')}</Text>
+            <Text style={styles.regText}>{symptoms.join(', ')}</Text>
             <Text style={styles.heading}>Tags</Text>
-            <TagsInput/>
+            <View style={styles.tagInput}>
+              <TagsInputPatient/>
+            </View>
         </View>
     </SafeAreaView>
   )
@@ -63,16 +65,16 @@ export default PatientInfo
 const styles = StyleSheet.create({
     container: {
         paddingHorizontal: 30, 
-        backgroundColor: "#00D6B5",
+        backgroundColor: "#white",
     },
     profile: {
         justifyContent: "center",
         alignItems: "center",
-        paddingTop: 70,
+        paddingTop: 20,
     },
     nameHeader: {
         paddingTop: 5,
-        color: "#ffffff",
+        color: "#FF6231",
         fontFamily: "Lato",
         fontWeight: "900",
         fontSize: 30,
@@ -80,11 +82,21 @@ const styles = StyleSheet.create({
     },
     heading: {
         paddingTop: 15,
-        color: "#ffffff",
+        color: "#FF6231",
         fontFamily: "Lato",
         fontWeight: "900",
         fontSize: 20,
         textAlign: "left",
         paddingLeft: 20,
-    }
+    },
+    regText : {
+      paddingLeft: 20,
+      fontSize: 15,
+      color: "#7D7D7D",
+      fontWeight: "bold",
+      fontFamily: "Lato",
+    },
+    tagInput : {
+      paddingHorizontal: 20,
+    },
 })

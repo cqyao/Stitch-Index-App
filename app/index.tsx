@@ -49,14 +49,15 @@ const OnboardingScreen = () => {
   };
 
   const onViewableItemsChanged = ({
-    viewableItems,
-  }: {
+                                    viewableItems,
+                                  }: {
     viewableItems: ViewToken[];
   }) => {
-    if (viewableItems[0].index !== null) {
+    if (viewableItems.length > 0 && viewableItems[0].index !== null) {
       flatListIndex.value = viewableItems[0].index;
     }
   };
+
 
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {

@@ -3,7 +3,7 @@ import { theme } from '../constants/theme'
 import { useState } from 'react'
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 
-function TagsInput() {
+function TagsInputPatient() {
     const [tags, setTags] = useState([])
     const [input, setInput] = useState("")
 
@@ -33,15 +33,12 @@ function TagsInput() {
             <View style={styles.enteritems}>
                 <TextInput ref={input => { this.textInput = input }} onChangeText={(text) => setInput(text)} onSubmitEditing={() => {addTag()}} placeholder='Enter tag' placeholderTextColor="#666666" ></TextInput>
             </View>
-            <View style={styles.searchIcon}>
-                    <FontAwesome name="search" size={20} color="white" style={[styles.icon]}/>
-            </View>
         </View>
         
     )
 }
 
-export default TagsInput;
+export default TagsInputPatient;
 
 const styles = StyleSheet.create({
 tagsearch: {
@@ -99,19 +96,6 @@ closeText: {
     textAlign: "center",
     fontSize: 10,
 },
-searchIcon: {
-    position: "absolute",
-    alignSelf: "flex-end",
-    marginTop: 3,
-    zIndex: 2,
-    alignContent: "center",
-    alignSelf: "center",
-    left: 270,
-    backgroundColor: '#FF6231',
-    height: 30,
-    width: 30,
-    borderRadius: 8,
-  },
   icon : {
     top: 4,
     textAlign: "center",

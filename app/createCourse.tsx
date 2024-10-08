@@ -244,7 +244,7 @@ const CreateCourse = () => {
           multiline
         />
         </ScrollView>
-        <Button title="Create Course" onPress={handleCreateCourse} />
+        <Button title="Create Course" onPress={handleCreateCourse} color={"#FF6231"}/>
       </View>
     </View>
     </Pressable>

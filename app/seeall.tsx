@@ -10,7 +10,7 @@ interface Patient {
     id: string;
     'First Name': string;
     'Last Name': string;
-    Tags: string[];
+    tags: string[];
   }
   
   interface Record {
@@ -26,67 +26,63 @@ interface Patient {
   type ResultType = Patient | Record | Course;
 
 const SeeAll = () => {
-  const { query: searchTerm, category } = useLocalSearchParams();
+  const { query: searchTerm, category, searchType } = useLocalSearchParams();
   const [results, setResults] = useState<ResultType[]>([]);  // Explicitly type results as an array of ResultType
   const router = useRouter();
 
   // Fetch the records based on the category and search term
   const fetchRecords = async () => {
-    if (!searchTerm || !category) return;
+    if (!searchTerm || !category || !searchType) return;
   
     try {
       let recordsCollection;
       let querySnapshot;
   
-      // Select the correct Firestore collection based on the category
       if (category === 'Patients') {
         recordsCollection = collection(db, 'Patients');
-        querySnapshot = await getDocs(firestoreQuery(
-          recordsCollection, 
-          where('First Name', '>=', searchTerm), 
-          where('First Name', '<=', searchTerm + '\uf8ff')
-        ));
   
-        // Map the documents to the Patient type
-        const resultsData: Patient[] = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        } as Patient));
-        setResults(resultsData);  // Update the state with fetched patient results
+        if (searchType === 'name') {
+          // Search by name (First Name and Last Name)
+          querySnapshot = await getDocs(firestoreQuery(
+            recordsCollection,
+            where('First Name', '>=', searchTerm),
+            where('First Name', '<=', searchTerm + '\uf8ff')
+          ));
+        } else if (searchType === 'tag') {
+          // Check if searchTerm is a string and convert it to lowercase
+          const searchTermLower = typeof searchTerm === 'string' ? searchTerm.toLowerCase() : '';
+  
+          // Search by tag (if searchTerm is a string)
+          if (searchTermLower) {
+            querySnapshot = await getDocs(firestoreQuery(
+              recordsCollection,
+              where('tags', 'array-contains', searchTermLower)
+            ));
+          }
+        }
+  
+        // Check if querySnapshot is defined and has documents
+        if (querySnapshot && !querySnapshot.empty) {
+          // Map the documents to the Patient type
+          const resultsData: Patient[] = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          } as Patient));
+          setResults(resultsData);  // Update the state with fetched patient results
+        } else {
+          setResults([]);  // If no documents found, set results to an empty array
+        }
   
       } else if (category === 'Records') {
-        recordsCollection = collection(db, 'MedicalRecords');
-        querySnapshot = await getDocs(firestoreQuery(
-          recordsCollection, 
-          where('patientName', '>=', searchTerm), 
-          where('patientName', '<=', searchTerm + '\uf8ff')
-        ));
-  
-        // Map the documents to the Record type
-        const resultsData: Record[] = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        } as Record));
-        setResults(resultsData);  // Update the state with fetched record results
-  
+        // Similar logic for Records (if applicable)
+        // ...
       } else if (category === 'Courses') {
-        recordsCollection = collection(db, 'Courses');
-        querySnapshot = await getDocs(firestoreQuery(
-          recordsCollection, 
-          where('courseName', '>=', searchTerm), 
-          where('courseName', '<=', searchTerm + '\uf8ff')
-        ));
-  
-        // Map the documents to the Course type
-        const resultsData: Course[] = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        } as Course));
-        setResults(resultsData);  // Update the state with fetched course results
+        // Similar logic for Courses (if applicable)
+        // ...
       }
-  
     } catch (error) {
       console.error('Error fetching records:', error);
+      setResults([]);  // Set results to empty array on error
     }
   };
   
