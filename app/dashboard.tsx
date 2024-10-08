@@ -32,6 +32,8 @@ import { auth } from "@/firebaseConfig";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 import Constants from "expo-constants";
+import Markdown from 'react-native-markdown-display';
+
 
 const Dashboard = () => {
   const router = useRouter();
@@ -135,19 +137,23 @@ const Dashboard = () => {
           Authorization: `Bearer ${KEY}`,
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4o-mini",
           messages: [
             {
               role: "system",
               content:
-                  "You are a helpful, creative, clever, and friendly medical assistant.",
+                  "You are a compassionate and skilled physician discussing a complex patient case with a fellow doctor using a secure chatbot. " +
+                  "The patient has a mix of symptoms that don’t point to a clear diagnosis, and you are seeking the colleague’s input to refine your approach. " +
+                  "You explain the patient's history, current symptoms, and the tests you've run so far. " +
+                  "You ask for their thoughts on further diagnostic steps, possible differential diagnoses, and treatment options. " +
+                  "How would you collaborate to ensure the patient receives the best possible care.",
             },
             {
               role: "user",
               content: question,
             },
           ],
-          max_tokens: 100,
+          max_tokens: 500,
         }),
       });
 
@@ -288,19 +294,19 @@ const Dashboard = () => {
                 onDismiss={() => {
                   setChatVisible(false);
                   // Optionally clear the response here if desired:
-                  // setResponse("");
+                   setResponse("");
                 }}
                 contentContainerStyle={styles.chatContainer}
             >
               <View style={styles.chatHeader}>
                 <Text style={styles.chatTitle}>Medical Assistant</Text>
               </View>
-              <View style={styles.chatBody}>
+              <View >
                 <ScrollView style={styles.responseContainer}>
                   {response ? ( // Check if there is a response to display
-                      <Text style={styles.responseText}>{response}</Text>
+                      <Markdown>{response}</Markdown>
                   ) : (
-                      <Text style={styles.responseText}>No response yet.</Text>
+                      <Text style={styles.responseText}></Text>
                   )}
                 </ScrollView>
                 {loadingResponse && (
@@ -310,6 +316,8 @@ const Dashboard = () => {
 
               <View style={styles.chatFooter}>
                 <TextInput
+                    outlineColor={"#02D6B6"}
+                    activeOutlineColor={"#02D6B6"}
                     label="Ask a medical question"
                     value={question}
                     onChangeText={(text) => setQuestion(text)}
@@ -318,6 +326,7 @@ const Dashboard = () => {
                 />
                 <Button
                     mode="contained"
+                    buttonColor={"#02D6B6"}
                     onPress={() => {
                       if (question.trim() !== "") {
                         getChatGPTResponse(question);
@@ -452,7 +461,7 @@ const styles = StyleSheet.create({
   chatTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#148085",
+    color: "#02D6B6",
   },
   chatBody: {
     flex: 1,
@@ -463,7 +472,7 @@ const styles = StyleSheet.create({
   },
   responseText: {
     fontSize: 16,
-    color: "#ff0000",
+    color: "#000000",
   },
   chatFooter: {
     flexDirection: "row",
@@ -475,6 +484,7 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     justifyContent: "center",
+
   },
 });
 
