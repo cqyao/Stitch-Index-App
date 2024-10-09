@@ -161,23 +161,30 @@ const search = () => {
           </Pressable>
         </View>
 
-        <ScrollView>
-          {/* Conditionally render based on last search type */}
-          {lastSearchType === 'name' && patientResults.length > 0 ? (
-            patientResults.map((patient) => (
-              <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
-                <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title={`${patient['First Name']} ${patient['Last Name']}`} />
-              </Pressable>
-            ))
-          ) : lastSearchType === 'tag' && tagResults.length > 0 ? (
-            tagResults.map((patient) => (
-              <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
-                <EntityComponent imageSource={require("../assets/images/profilePics/dwayneJo.jpg")} title={`${patient['First Name']} ${patient['Last Name']}`} />
-              </Pressable>
-            ))
-          ) : (
-            <Text>No patients found</Text>
-          )}
+        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+          <View style={styles.section}>
+            {lastSearchType === 'name' && patientResults.length > 0 ? (
+              patientResults.map((patient) => (
+                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
+                  <EntityComponent
+                    imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
+                    title={`${patient['First Name']} ${patient['Last Name']}`}
+                  />
+                </Pressable>
+              ))
+            ) : lastSearchType === 'tag' && tagResults.length > 0 ? (
+              tagResults.map((patient) => (
+                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
+                  <EntityComponent
+                    imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
+                    title={`${patient['First Name']} ${patient['Last Name']}`}
+                  />
+                </Pressable>
+              ))
+            ) : (
+              <Text>No patients found</Text>
+            )}
+          </View>
         </ScrollView>
       </View>
 
@@ -282,6 +289,11 @@ const styles = StyleSheet.create({
     color: "#00D6B5",
     fontFamily: "Inter",
     fontWeight: "700",
+  },
+  patientRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,  
   },
   headerRow: {
     flexDirection: "row",
