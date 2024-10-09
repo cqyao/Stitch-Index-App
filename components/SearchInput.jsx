@@ -1,17 +1,21 @@
-import { StyleSheet, Text, TextInput, View, Pressable } from 'react-native'
-import React, { useState } from 'react'
+import { StyleSheet, TextInput, View, Pressable } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 
-const Input = ({ defaultValue = '', onSearch }) => {
+const Input = ({ defaultValue = '', onSearch, placeholder = 'Search...' }) => {
   const router = useRouter();
-  const [inputValue, setInputValue] = useState(defaultValue); // Initialize with defaultValue
+  const [inputValue, setInputValue] = useState(defaultValue);
+
+  // Ensure the input value updates when the defaultValue changes
+  useEffect(() => {
+    setInputValue(defaultValue);
+  }, [defaultValue]);
 
   const handleSearchSubmit = () => {
     if (inputValue.trim()) {
-      // If an `onSearch` function is passed as a prop, call it
       if (onSearch) {
-        onSearch(inputValue);
+        onSearch(inputValue);  // Trigger the onSearch function if passed as a prop
       } else {
         // Otherwise, navigate to the search page with the query as a parameter
         router.push({
@@ -26,15 +30,15 @@ const Input = ({ defaultValue = '', onSearch }) => {
     <View style={[styles.container]}>
       <TextInput
         style={{ flex: 1 }}
-        placeholder="Search..."
+        placeholder={placeholder}  // Use a custom placeholder or other will default to 'Search...'
         placeholderTextColor="#999"
         value={inputValue}
         onChangeText={setInputValue}
-        onSubmitEditing={handleSearchSubmit} 
+        onSubmitEditing={handleSearchSubmit} // Trigger search on enter
       />
       <Pressable onPress={handleSearchSubmit}>
         <View style={styles.searchIcon}>
-          <FontAwesome name="search" size={20} color="white" style={styles.icon} />
+          <FontAwesome name="search" size={20} color="white" />
         </View>
       </Pressable>
     </View>
@@ -62,8 +66,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  icon: {
-    textAlign: 'center',
   }
 });

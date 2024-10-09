@@ -1,4 +1,4 @@
-import { View, Text, Image, SafeAreaView, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, Pressable } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from "expo-router"; 
@@ -25,20 +25,19 @@ const search = () => {
   const [tagResults, setTagResults] = useState<Patient[]>([]);  
   const [lastSearchType, setLastSearchType] = useState<'name' | 'tag' | null>(null);  // Track last search type
 
+  // Pre-populate the search input from the URL query when the page loads
   useEffect(() => {
     if (typeof urlQuery === 'string') {
-      setSearchInput(urlQuery); 
+      setSearchInput(urlQuery);  // Set the search input so it shows in the search bar
     }
   }, [urlQuery]);
-
+  
   // Function to search Firestore for patients by first name and last name
   const searchPatientsByName = async () => {
     if (!searchInput.trim()) return; 
 
     try {
       const patientsCollection = collection(db, 'Patients');
-
-      // Query for First Name and Last Name
       const firstNameQuery = query(patientsCollection, where('First Name', '>=', searchInput), where('First Name', '<=', searchInput + '\uf8ff'));
       const lastNameQuery = query(patientsCollection, where('Last Name', '>=', searchInput), where('Last Name', '<=', searchInput + '\uf8ff'));
 
@@ -78,9 +77,9 @@ const search = () => {
   // Trigger regular search when `searchInput` changes
   useEffect(() => {
     if (searchInput) {
-      searchPatientsByName();
+      searchPatientsByName();    // Trigger search
     } else {
-      setPatientResults([]);  // Clear results if input is empty
+      setPatientResults([]);     // Clear results if input is empty
     }
   }, [searchInput]);
 
@@ -90,36 +89,28 @@ const search = () => {
   
     try {
       const patientsCollection = collection(db, 'Patients');
-  
-      // Convert search input to lowercase
       const lowerCaseTagSearchInput = tagSearchInput.toLowerCase();
-  
-      // Query for tags, making sure both input and stored tags are compared in lowercase
       const tagsQuery = query(
         patientsCollection,
         where('tags', 'array-contains', lowerCaseTagSearchInput)
       );
-  
       const tagSnapshot = await getDocs(tagsQuery);
-  
-      const results: Patient[] = []; // Explicitly type the results array
+      const results: Patient[] = []; 
       tagSnapshot.forEach((doc: any) => {
         results.push({ id: doc.id, ...doc.data() });
       });
-  
-      setTagResults(results); // Update the state with tag search results
-      setLastSearchType('tag');  // Set last search type to 'tag'
+      setTagResults(results); 
+      setLastSearchType('tag');
     } catch (error) {
       console.error('Error searching patients by tags:', error);
     }
   };
 
-  // Trigger tag search when `tagSearchInput` changes
   useEffect(() => {
     if (tagSearchInput) {
       searchPatientsByTag();
     } else {
-      setTagResults([]);  // Clear tag results if input is empty
+      setTagResults([]);  
     }
   }, [tagSearchInput]);
 
