@@ -3,8 +3,8 @@ import {
   Text,
   StyleSheet,
   Image,
-  ScrollView,
   Pressable,
+  FlatList
 } from "react-native";
 import React, { useRef, useState, useEffect, } from "react";
 import { Calendar } from "react-native-calendars";
@@ -18,7 +18,7 @@ import { db } from "../firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
-import { TZDate } from '@date-fns/tz';
+import { toZonedTime, format } from 'date-fns-tz';
 
 type AppointmentProps = {
   id: string; // Include the ID for each appointment
@@ -29,9 +29,10 @@ type AppointmentProps = {
 };
 
 export default function CalendarPage() {
+  const timeZone = 'Australia/Sydney';
   const currentDate = new Date()
-  const auTz = new TZDate(currentDate, "Australia/Sydney")
-  const formattedCurrentDate = auTz.toISOString().split('T')[0];
+  const zonedDate = toZonedTime(currentDate, timeZone)
+  const formattedCurrentDate = format(zonedDate, 'yyyy-MM-dd', { timeZone });
   const router = useRouter();
   // Date states
   const [selectedDate, setSelectedDate] = useState(formattedCurrentDate);
@@ -51,9 +52,7 @@ export default function CalendarPage() {
   const fetchImageUrl = async (userID: string) => {
     try {
       const url = await fetchImageFromFirebase(`pfp/${userID}`);
-      if (url) {
-        setImageUrl(url);
-      }
+      if (url) setImageUrl(url); 
     } catch (error) {
       console.error("Error fetching image URL:", error);
     }
@@ -91,14 +90,16 @@ export default function CalendarPage() {
       const appointmentsCollection = collection(db, "Appointments");
       const querySnapshot = await getDocs(appointmentsCollection);
 
-      const appointments: AppointmentProps[] = querySnapshot.docs.map(
+      const appointmentsList: AppointmentProps[] = querySnapshot.docs.map(
         (doc) => ({
           id: doc.id,
           ...doc.data(),
         })
       ) as AppointmentProps[];
 
-      setAppointments(appointments);
+      setAppointments(appointmentsList);
+      setFilteredAppointments(appointmentsList.filter(appointment => appointment.status === false));
+
     } catch (error) {
       console.error("Error fetching Appointments: ", error);
     }
@@ -112,8 +113,9 @@ export default function CalendarPage() {
   // Fetch userId from AsyncStorage
   useEffect(() => {
     fetchAllAppointments();
+    filterAppointmentsByStatus(false);
     getUserIdFromAsyncStorage();
-  })
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#02D6B6" }}>
@@ -126,11 +128,13 @@ export default function CalendarPage() {
           resizeMode="contain"
           style={styles.logo}
         />
-        <Animated.Image
-          entering={FadeIn.delay(500)}
-          source={{ uri: imageUrl || undefined }}
-          style={{ height: 45, width: 45, borderRadius: 90 }}
-        />
+        {imageUrl && (
+          <Animated.Image
+            entering={FadeIn.delay(500)}
+            source={{ uri: imageUrl || undefined }}
+            style={{ height: 45, width: 45, borderRadius: 90 }}
+          />
+        )}
       </View>
       <Calendar
         // Style
@@ -173,7 +177,7 @@ export default function CalendarPage() {
         // On Date Changed Functions -> We can use this to gather the current selectd date to search for appointments
         onDayPress={(day) => {
           console.log("selected day", day);
-          console.log("current day: ", currentDate)
+          console.log("formatted: ", formattedCurrentDate)
           setSelectedDate(day.dateString);
         }}
         onMonthChange={(month) => {
@@ -234,20 +238,20 @@ export default function CalendarPage() {
             </View>
           </View>
 
-          {/*This is the beginning of the scroll view*/}
-          <ScrollView>
-            {filteredAppointments.map((appointment) => {
-              return (
-                <AppointmentCard
-                  key={appointment.id}
-                  patientId={appointment.patientId}
-                  status={appointment.status}
-                  time={appointment.time.toString()}
-                  type={appointment.type}
-                />
-              );
-            })}
-          </ScrollView>
+          {/*This is the beginning of the appointments list*/}
+          <FlatList
+            data={filteredAppointments}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <AppointmentCard
+                key={item.id}
+                patientId={item.patientId}
+                status={item.status}
+                time={item.time.toString()}
+                type={item.type}
+              />
+            )}
+          />
         </BottomSheetView>
       </BottomSheet>
     </View>
