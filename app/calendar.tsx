@@ -6,7 +6,7 @@ import {
   ScrollView,
   Pressable,
 } from "react-native";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, } from "react";
 import { Calendar } from "react-native-calendars";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import MainButton from "../components/Button";
@@ -73,23 +73,18 @@ export default function CalendarPage() {
     }
   };
 
-  // Fetch userId from AsyncStorage
-  useEffect(() => {
-    const getUserIdFromAsyncStorage = async () => {
-      try {
-        const userString = await AsyncStorage.getItem("user");
-        if (userString) {
-          const userData = JSON.parse(userString);
-          setUserId(userData.uid);
-          await fetchImageUrl(userData.uid);
-        }
-      } catch (error) {
-        console.error("Error fetching user ID from AsyncStorage", error);
+  const getUserIdFromAsyncStorage = async () => {
+    try {
+      const userString = await AsyncStorage.getItem("user");
+      if (userString) {
+        const userData = JSON.parse(userString);
+        setUserId(userData.uid);
+        await fetchImageUrl(userData.uid);
       }
-    };
-
-    getUserIdFromAsyncStorage();
-  }, []);
+    } catch (error) {
+      console.error("Error fetching user ID from AsyncStorage", error);
+    }
+  };
 
   const fetchAllAppointments = async () => {
     try {
@@ -108,15 +103,17 @@ export default function CalendarPage() {
       console.error("Error fetching Appointments: ", error);
     }
   };
-
-  useEffect(() => {
-    fetchAllAppointments();
-  }, []);
-
+  
   const filterAppointmentsByStatus = (status: boolean) => {
     const filteredAppointments = appointments.filter(appointment => appointment.status === status);
     setFilteredAppointments(filteredAppointments)
   };
+
+  // Fetch userId from AsyncStorage
+  useEffect(() => {
+    fetchAllAppointments();
+    getUserIdFromAsyncStorage();
+  })
 
   return (
     <View style={{ flex: 1, backgroundColor: "#02D6B6" }}>
