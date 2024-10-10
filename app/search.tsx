@@ -37,7 +37,7 @@ const search = () => {
   // Helper function to fetch the image URL from Firebase Storage
   const getImageUrl = async (patientId: string): Promise<string | undefined> => {
     try {
-      const imageRef = ref(storage, `paitentpfp/${patientId}.png`);
+      const imageRef = ref(storage, `patientpfp/${patientId}.png`);
       const url = await getDownloadURL(imageRef);
       return url;
     } catch (error) {
