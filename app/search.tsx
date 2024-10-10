@@ -3,16 +3,18 @@ import React, { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from "expo-router"; 
 import { collection, query, where, getDocs } from 'firebase/firestore';  
-import { db } from '../firebaseConfig';  
+import { getDownloadURL, ref } from "firebase/storage";  // Import Firebase Storage
+import { db, storage } from '../firebaseConfig';  // Ensure storage is imported from firebaseConfig
 import EntityComponent from '@/components/entitycomponent';
 import Input from '../components/SearchInput';  
 
 // Define a Patient interface for the results
 interface Patient {
   id: string;
-  'First Name': string;
-  'Last Name': string;
-  tags: string[];
+  fname: string;
+  lname: string;
+  tag: string[];
+  pictureUrl?: string | null;  // Optional URL for the picture
 }
 
 const search = () => {
@@ -31,6 +33,18 @@ const search = () => {
       setSearchInput(urlQuery);  // Set the search input so it shows in the search bar
     }
   }, [urlQuery]);
+
+  // Helper function to fetch the image URL from Firebase Storage
+  const getImageUrl = async (patientId: string): Promise<string | undefined> => {
+    try {
+      const imageRef = ref(storage, `paitentpfp/${patientId}.png`);
+      const url = await getDownloadURL(imageRef);
+      return url;
+    } catch (error) {
+      console.error(`Error fetching image for ${patientId}:`, error);
+      return undefined;  // Return undefined if the image doesn't exist
+    }
+  };
   
   // Function to search Firestore for patients by first name and last name
   const searchPatientsByName = async () => {
@@ -38,8 +52,8 @@ const search = () => {
 
     try {
       const patientsCollection = collection(db, 'Patients');
-      const firstNameQuery = query(patientsCollection, where('First Name', '>=', searchInput), where('First Name', '<=', searchInput + '\uf8ff'));
-      const lastNameQuery = query(patientsCollection, where('Last Name', '>=', searchInput), where('Last Name', '<=', searchInput + '\uf8ff'));
+      const firstNameQuery = query(patientsCollection, where('fname', '>=', searchInput), where('fname', '<=', searchInput + '\uf8ff'));
+      const lastNameQuery = query(patientsCollection, where('lname', '>=', searchInput), where('lname', '<=', searchInput + '\uf8ff'));
 
       const [firstNameSnapshot, lastNameSnapshot] = await Promise.all([
         getDocs(firstNameQuery),
@@ -48,17 +62,20 @@ const search = () => {
 
       const results: Patient[] = [];
       const seen = new Set<string>();  // Track unique IDs
-      const addResults = (snapshot: any) => {
-        snapshot.forEach((doc: any) => {
+      const addResults = async (snapshot: any) => {
+        for (const doc of snapshot.docs) {
           if (!seen.has(doc.id)) {
             seen.add(doc.id);
-            results.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            const pictureUrl = await getImageUrl(doc.id);  // Fetch image URL or undefined
+            results.push({ id: doc.id, ...data, pictureUrl });  // Add the result with pictureUrl
           }
-        });
+        }
       };
+      
 
-      addResults(firstNameSnapshot);
-      addResults(lastNameSnapshot);
+      await addResults(firstNameSnapshot);
+      await addResults(lastNameSnapshot);
 
       setPatientResults(results);  // Update the state with fetched results
       setLastSearchType('name');  // Set last search type to 'name'
@@ -83,7 +100,7 @@ const search = () => {
     }
   }, [searchInput]);
 
-  // Function to search Firestore for patients by tags
+  // Function to search Firestore for patients by tag
   const searchPatientsByTag = async () => {
     if (!tagSearchInput.trim()) return;
   
@@ -92,14 +109,24 @@ const search = () => {
       const lowerCaseTagSearchInput = tagSearchInput.toLowerCase();
       const tagsQuery = query(
         patientsCollection,
-        where('tags', 'array-contains', lowerCaseTagSearchInput)
+        where('tag', 'array-contains', lowerCaseTagSearchInput)
       );
       const tagSnapshot = await getDocs(tagsQuery);
-      const results: Patient[] = []; 
-      tagSnapshot.forEach((doc: any) => {
-        results.push({ id: doc.id, ...doc.data() });
-      });
-      setTagResults(results); 
+      const results: Patient[] = [];
+  
+      for (const doc of tagSnapshot.docs) {
+        const data = doc.data();
+  
+        // Make sure data has the required fields before adding to the results array
+        if (data.fname && data.lname && data.tag) {
+          const pictureUrl = await getImageUrl(doc.id);  // Fetch image URL
+          results.push({ id: doc.id, fname: data.fname, lname: data.lname, tag: data.tag, pictureUrl });
+        } else {
+          console.warn(`Document ${doc.id} is missing required fields (fname, lname, or tag).`);
+        }
+      }
+      
+      setTagResults(results);
       setLastSearchType('tag');
     } catch (error) {
       console.error('Error searching patients by tags:', error);
@@ -165,19 +192,19 @@ const search = () => {
           <View style={styles.section}>
             {lastSearchType === 'name' && patientResults.length > 0 ? (
               patientResults.map((patient) => (
-                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
+                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientid=${patient.id}`)}>
                   <EntityComponent
-                    imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
-                    title={`${patient['First Name']} ${patient['Last Name']}`}
+                    imageSource={patient.pictureUrl ? { uri: patient.pictureUrl } : require("../assets/images/profilePics/dwayneJo.jpg")}  // Use pictureUrl if available
+                    title={`${patient.fname} ${patient.lname}`}
                   />
                 </Pressable>
               ))
             ) : lastSearchType === 'tag' && tagResults.length > 0 ? (
               tagResults.map((patient) => (
-                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
+                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientid=${patient.id}`)}>
                   <EntityComponent
-                    imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
-                    title={`${patient['First Name']} ${patient['Last Name']}`}
+                    imageSource={patient.pictureUrl ? { uri: patient.pictureUrl } : require("../assets/images/profilePics/dwayneJo.jpg")}  // Use pictureUrl if available
+                    title={`${patient.fname} ${patient.lname}`}
                   />
                 </Pressable>
               ))
