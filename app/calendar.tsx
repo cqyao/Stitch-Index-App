@@ -46,6 +46,7 @@ export default function CalendarPage() {
   const snapPoints = ["45%", "90%"];
   const [appointments, setAppointments] = useState<AppointmentProps[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<AppointmentProps[]>([]);
+  const [bgColor, setBgColor] = useState("white");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -106,8 +107,11 @@ export default function CalendarPage() {
   };
   
   const filterAppointmentsByStatus = (status: boolean) => {
-    const filteredAppointments = appointments.filter(appointment => appointment.status === status);
-    setFilteredAppointments(filteredAppointments)
+    const filteredAppointments = appointments.filter(appointment => {
+      const appointmentDate = appointment.time.split("T")[0]; // Extract the date part from the appointment's time
+      return appointment.status === status && appointmentDate === selectedDate;
+    });
+    setFilteredAppointments(filteredAppointments);
   };
 
   // Fetch userId from AsyncStorage
@@ -151,7 +155,7 @@ export default function CalendarPage() {
           dayTextColor: "#ffffff",
           textDisabledColor: "#d9e1e8",
           dotColor: "#00adf5",
-          selectedDotColor: "#ffffff",
+          selectedDotColor: "#02D6B6",
           arrowColor: "#ffffff",
           disabledArrowColor: "#d9e1e8",
           monthTextColor: "#ffffff",
@@ -168,20 +172,24 @@ export default function CalendarPage() {
         }}
         // Setup the marked dates feature to be the date selected by user (NOTE** We will also have to set up marked dates for appoinment dates)
         markedDates={{
-          [selectedDate || ""]: {
-            selected: true,
-            marked: false,
-            selectedColor: "#ffffff",
-          },
+           [selectedDate]: {
+             selected: true,
+             selectedColor: bgColor,
+             dotColor: "#00D6B5",
+         },
+        ...appointments.reduce((acc, appointment) => {
+          acc[appointment.time] = { marked: true, dotColor: 'white' };
+          return acc;
+        }, {})
         }}
         // On Date Changed Functions -> We can use this to gather the current selectd date to search for appointments
         onDayPress={(day) => {
-          console.log("selected day", day);
-          console.log("formatted: ", formattedCurrentDate)
+          console.log("Selected day: ", day.dateString);
           setSelectedDate(day.dateString);
+          setBgColor("white");
         }}
         onMonthChange={(month) => {
-          console.log("month changed", month);
+          console.log("Month changed to: ", month);
         }}
         onPressArrowLeft={(subtractMonth) => subtractMonth()}
         onPressArrowRight={(addMonth) => addMonth()}
@@ -278,6 +286,7 @@ const styles = StyleSheet.create({
     borderRadius: 90,
     height: 40,
     alignItems: "center",
+    alignSelf: "center",
   },
   container: {
     backgroundColor: "#ffffff",

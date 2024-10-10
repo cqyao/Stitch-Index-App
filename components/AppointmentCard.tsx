@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { PatientProps } from '@/components/PatientInfo';
+import { ActivityIndicator } from 'react-native-paper';
 
 interface AppointmentProps {
   patientId: string;
@@ -35,7 +36,7 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
           tags: data.tags,
         };
         setPatientData(formattedData);  // Set the patient data
-        console.log(patientData);
+        console.log(patientData)
       } else {
         console.log('No such document!');
       }
@@ -53,11 +54,12 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
   // Check if patient data has been fetched and render loading state if null
   if (!patientData) {
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#02D6B6' }}>
-          <View>
-            <Text>Loading patient data...</Text>
-          </View>
-        </SafeAreaView>
+      <SafeAreaView style={ styles.container }>
+        <ActivityIndicator 
+          animating={true}
+          size='large'  
+        />
+      </SafeAreaView>
     );
   }
 
@@ -65,10 +67,10 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
     const serializedData = JSON.stringify(patientData);
 
     router.push({
-      pathname: '../appointment',
-      params: {
+      pathname: "../appointment",
+      params: { 
         patientId: patientId,
-        time: time,
+        time: time, 
         type: type,
         data: serializedData
       },
@@ -76,20 +78,20 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
   };
 
   return (
-      <View style={styles.container}>
-        <View style={{ flexDirection: 'row' }}>
-          <MaterialIcons style={{ padding: 1 }} name="access-time" size={15} color="#7D7D7D" />
-          <Text style={styles.timeText}>{time}</Text>
-        </View>
-        <View style={{ flexDirection: 'row' }}>
-          <Text style={[styles.timeText, { marginTop: 20, marginLeft: 10 }]}>{patientData.name}</Text>
-          <Text>{status ? "Completed" : "Upcoming"}</Text>
-          <TouchableOpacity style={{ marginTop: 20, marginLeft: 'auto' }} onPress={navigate}>
-            <MaterialIcons name="arrow-forward-ios" size={30} color="#808080" />
-          </TouchableOpacity>
-        </View>
-        <Text style={[styles.timeText, { marginLeft: 10, color: '#808080', fontWeight: 'normal' }]}>{type}</Text>
+    <View style={styles.container}>
+      <View style={{ flexDirection: "row" }}>
+        <MaterialIcons style={{ padding: 1 }} name="access-time" size={15} color="#7D7D7D" />
+        <Text style={styles.timeText}>{time}</Text>
       </View>
+      <View style={{ flexDirection: "row" }}>
+        <Text style={[styles.timeText, { marginTop: 20, marginLeft: 10 }]}>{patientData.name}</Text>
+        <Text>{status}</Text>
+        <TouchableOpacity style={{ marginTop: 20, marginLeft: "auto" }} onPress={navigate}>
+          <MaterialIcons name="arrow-forward-ios" size={30} color="#808080" />
+        </TouchableOpacity>
+      </View>
+      <Text style={[styles.timeText, { marginLeft: 10, color: '#808080', fontWeight: 'normal' }]}>{type}</Text>
+    </View>
   );
 };
 
@@ -99,7 +101,8 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     marginHorizontal: 30,
-    borderColor: '#02D6B6',
+    borderColor: "#02D6B6",
+    borderWidth: 2,
     paddingBottom: 20,
     marginVertical: 15,
     shadowColor: '#000000',
