@@ -106,8 +106,11 @@ export default function CalendarPage() {
   };
   
   const filterAppointmentsByStatus = (status: boolean) => {
-    const filteredAppointments = appointments.filter(appointment => appointment.status === status);
-    setFilteredAppointments(filteredAppointments)
+    const filteredAppointments = appointments.filter(appointment => {
+      const appointmentDate = appointment.time.split("T")[0]; // Extract the date part from the appointment's time
+      return appointment.status === status && appointmentDate === selectedDate;
+    });
+    setFilteredAppointments(filteredAppointments);
   };
 
   // Fetch userId from AsyncStorage
@@ -168,20 +171,23 @@ export default function CalendarPage() {
         }}
         // Setup the marked dates feature to be the date selected by user (NOTE** We will also have to set up marked dates for appoinment dates)
         markedDates={{
-          [selectedDate || ""]: {
-            selected: true,
-            marked: false,
-            selectedColor: "#ffffff",
-          },
+           [selectedDate]: {
+             selected: true,
+             selectedColor: "white",
+             dotColor: 'pink',
+         },
+        ...appointments.reduce((acc, appointment) => {
+          acc[appointment.time] = { selected: false, marked: true, dotColor: 'pink'};
+          return acc;
+        }, {})
         }}
         // On Date Changed Functions -> We can use this to gather the current selectd date to search for appointments
         onDayPress={(day) => {
-          console.log("selected day", day);
-          console.log("formatted: ", formattedCurrentDate)
+          console.log("Selected day: ", day.dateString);
           setSelectedDate(day.dateString);
         }}
         onMonthChange={(month) => {
-          console.log("month changed", month);
+          console.log("Month changed to: ", month);
         }}
         onPressArrowLeft={(subtractMonth) => subtractMonth()}
         onPressArrowRight={(addMonth) => addMonth()}

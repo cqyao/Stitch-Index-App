@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { PatientProps } from '@/components/PatientInfo';
+import { ActivityIndicator } from 'react-native-paper';
 
 interface AppointmentProps {
   patientId: string;
@@ -53,10 +54,11 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
   // Check if patient data has been fetched and render loading state if null
   if (!patientData) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#02D6B6' }}>
-        <View>
-          <Text>Loading patient data...</Text>
-        </View>
+      <SafeAreaView style={ styles.container }>
+        <ActivityIndicator 
+          animating={true}
+          size='large'  
+        />
       </SafeAreaView>
     );
   }
