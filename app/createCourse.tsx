@@ -16,8 +16,8 @@ import {
   ScrollView,
 } from "react-native";
 import { useNavigation, useRouter } from "expo-router";
-import { auth } from "@/firebaseConfig";
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import {auth, storage} from "@/firebaseConfig";
+import {getStorage, ref, getDownloadURL, uploadBytes} from "firebase/storage";
 import { User } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -27,12 +27,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 import { FirebaseError } from "firebase/app";
+import * as ImagePicker from "expo-image-picker";
 
 const CreateCourse = () => {
   const router = useRouter();
   const navigation = useNavigation();
 
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [PFPUrl, setPFPUrl] = useState<string | null>(null);
+
   const [user, setUser] = useState<User | null>(null);
   const [loadingImage, setLoadingImage] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,8 @@ const CreateCourse = () => {
   const [price, setPrice] = useState("");
   const [author, setAuthor] = useState<string | null>(null);
   const [userID, setUserID] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null);
+
 
   const checkUserInAsyncStorage = async () => {
     try {
@@ -96,12 +100,25 @@ const CreateCourse = () => {
     try {
       const url = await fetchImageFromFirebase(`pfp/${user.uid}`);
       if (url) {
-        setImageUrl(url);
+        setPFPUrl(url);
       }
     } catch (error) {
       console.error("Error fetching image URL:", error);
     } finally {
       setLoadingImage(false);
+    }
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setImage(result.assets[0].uri);
     }
   };
 
@@ -131,6 +148,18 @@ const CreateCourse = () => {
         return;
       }
 
+
+      let imageUrl = "";
+      if (image) {
+          // Upload image to Firebase Storage
+          const response = await fetch(image);
+          const blob = await response.blob();
+          const imageRef = ref(storage, `courseImages/${Date.now()}`);
+          await uploadBytes(imageRef, blob);
+          imageUrl = await getDownloadURL(imageRef);
+      }
+
+
       const newCourse = {
         title,
         blurb,
@@ -138,8 +167,9 @@ const CreateCourse = () => {
         time,
         price: parseFloat(price),
         userId: userID,
-        userPFP: imageUrl || "",
+        userPFP: PFPUrl || "",
         name: author || "Anonymous",
+        imageUrl,
       };
 
       await addDoc(collection(db, "courses"), newCourse);
@@ -185,8 +215,8 @@ const CreateCourse = () => {
         <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
           {loadingImage ? (
             <ActivityIndicator size="small" color="#02D6B6" />
-          ) : imageUrl ? (
-            <Image source={{ uri: imageUrl }} style={styles.profileImage} />
+          ) : PFPUrl ? (
+            <Image source={{ uri: PFPUrl }} style={styles.profileImage} />
           ) : (
             <MaterialIcons name="face" size={40} color="black" />
           )}
@@ -244,6 +274,11 @@ const CreateCourse = () => {
           multiline
         />
         </ScrollView>
+        {image && <Image source={{ uri: image }} style={styles.previewImage} />}
+        <Button
+            onPress={pickImage}
+            title={"Pick an Image"}
+        />
         <Button title="Create Course" onPress={handleCreateCourse} color={"#FF6231"}/>
       </View>
     </View>
@@ -300,5 +335,10 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     height: 200,
     textAlign: "left",
+  },
+  previewImage: {
+    width: "100%",
+    height: 200,
+    marginBottom: 15,
   },
 });

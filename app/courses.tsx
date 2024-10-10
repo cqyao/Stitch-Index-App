@@ -1,3 +1,6 @@
+// courses.tsx
+
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,9 +12,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import React, { useEffect, useState } from "react";
 import TagsInput from "../components/TagsInput";
-import CourseComponent from "../components/CourseComponent";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation, useRouter } from "expo-router";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
@@ -33,9 +34,9 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 import LottieView from "lottie-react-native";
-import {AnimatedView} from "react-native-reanimated/lib/typescript/reanimated2/component/View";
+import Slider from "@/components/Slider";
 
-interface Course {
+export interface Course {
   id: string;
   tag: string;
   time: string;
@@ -360,39 +361,15 @@ const Courses = () => {
           </Pressable>
         </View>
 
-        {/* Courses List */}
-        <ScrollView
-            showsHorizontalScrollIndicator={false}
-            horizontal={false}
-            style={styles.courseContainer}
-        >
-          {(isSelected ? courses : purchasedCourses).map((course) => (
-              <Animated.View
-                  key={course.id} // Moved key here
-                  exiting={FadeOut}
-                  entering={FadeIn}
-              >
-                <CourseComponent
-                    tag={course.tag}
-                    time={course.time}
-                    rating={course.rating}
-                    title={course.title}
-                    blurb={course.blurb}
-                    userId={course.userId}
-                    userPFP={course.userPFP}
-                    name={course.name}
-                    price={course.price}
-                    buttonLabel={isSelected ? `$${course.price}` : "Continue"}
-                    onPress={() =>
-                        isSelected
-                            ? handlePurchaseCourse(course)
-                            : handleCoursePress(course)
-                    }
-                />
-              </Animated.View>
-          ))}
-        </ScrollView>
-
+        {/* Slider Component */}
+        <View style={styles.sliderContainer}>
+          <Slider
+              itemList={isSelected ? courses : purchasedCourses}
+              isSelected={isSelected}
+              handleCoursePress={handleCoursePress}
+              handlePurchaseCourse={handlePurchaseCourse}
+          />
+        </View>
 
         {/* Create Course Button */}
         <View>
@@ -459,8 +436,9 @@ const styles = StyleSheet.create({
     width: 2,
     backgroundColor: "#FF6231",
   },
-  courseContainer: {
-    top: 25,
+  sliderContainer: {
+    marginTop: 25,
+    height: 500, // Adjust as needed
   },
   createButton: {
     alignSelf: "center",
@@ -479,5 +457,5 @@ const styles = StyleSheet.create({
   lottie: {
     width: 150,
     height: 150,
-  }
+  },
 });

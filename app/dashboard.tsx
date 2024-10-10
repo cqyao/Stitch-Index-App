@@ -227,7 +227,16 @@ const Dashboard = () => {
               />
             </View>
 
+            {/*<View>*/}
+            {/*  <FlatList style={{height: 500}}*/}
+            {/*      data={ImageSlider}*/}
+            {/*      renderItem={({ item, index }) => <SliderItem item={item} index={index} />}*/}
+            {/*      horizontal*/}
+            {/*      showsHorizontalScrollIndicator={false}*/}
+            {/*      pagingEnabled*/}
+            {/*  />*/}
 
+            {/*</View>*/}
 
             <View style={styles.features}>
               <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
@@ -235,7 +244,7 @@ const Dashboard = () => {
 
 
               <View style={styles.row}>
-                <ScrollView horizontal>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <Pressable
                       style={styles.featurePressable}
                       onPress={() => router.push({ pathname: "./patient" })}
