@@ -46,6 +46,7 @@ export default function CalendarPage() {
   const snapPoints = ["45%", "90%"];
   const [appointments, setAppointments] = useState<AppointmentProps[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<AppointmentProps[]>([]);
+  const [bgColor, setBgColor] = useState("white");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -154,7 +155,7 @@ export default function CalendarPage() {
           dayTextColor: "#ffffff",
           textDisabledColor: "#d9e1e8",
           dotColor: "#00adf5",
-          selectedDotColor: "#ffffff",
+          selectedDotColor: "#02D6B6",
           arrowColor: "#ffffff",
           disabledArrowColor: "#d9e1e8",
           monthTextColor: "#ffffff",
@@ -190,6 +191,7 @@ export default function CalendarPage() {
         onDayPress={(day) => {
           console.log("Selected day: ", day.dateString);
           setSelectedDate(day.dateString);
+          setBgColor("white");
         }}
         onMonthChange={(month) => {
           console.log("Month changed to: ", month);
@@ -289,6 +291,7 @@ const styles = StyleSheet.create({
     borderRadius: 90,
     height: 40,
     alignItems: "center",
+    alignSelf: "center",
   },
   container: {
     backgroundColor: "#ffffff",
