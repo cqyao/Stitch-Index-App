@@ -171,15 +171,20 @@ export default function CalendarPage() {
         }}
         // Setup the marked dates feature to be the date selected by user (NOTE** We will also have to set up marked dates for appoinment dates)
         markedDates={{
-           [selectedDate]: {
-             selected: true,
-             selectedColor: "white",
-             dotColor: 'pink',
-         },
-        ...appointments.reduce((acc, appointment) => {
-          acc[appointment.time] = { selected: false, marked: true, dotColor: 'pink'};
-          return acc;
-        }, {})
+          [selectedDate]: {
+            selected: true,
+            selectedColor: "white",
+          },
+          ...appointments.reduce((acc, appointment) => {
+            const appointmentDate = appointment.time.split("T")[0];
+            acc[appointmentDate] = {
+              marked: true,
+              dotColor: "pink",
+              selected: appointmentDate === selectedDate,
+              selectedColor: appointmentDate === selectedDate ? "white" : undefined,
+            };
+            return acc;
+          }, {})
         }}
         // On Date Changed Functions -> We can use this to gather the current selectd date to search for appointments
         onDayPress={(day) => {

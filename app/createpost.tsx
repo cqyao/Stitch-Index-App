@@ -160,8 +160,8 @@ const CreatePost = ({}) => {
       </Button>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 20 }}>
-        <Button textColor={"white"} buttonColor="#77DBCB" mode={"contained"} onPress={handleSubmit}>    Post    </Button>
-        <Button textColor={"white"} buttonColor="#77DBCB" mode={"contained"} onPress={router.back}>    Cancel    </Button>
+        <Button style={styles.actionBtn} textColor={"white"} buttonColor="#77DBCB" mode={"contained"} onPress={handleSubmit}>Post</Button>
+        <Button style={styles.actionBtn} textColor={"white"} buttonColor="#77DBCB" mode={"contained"} onPress={router.back}>Cancel</Button>
       </View>
 
 
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     borderColor: "#CCC",
     borderWidth: 1,
     borderRadius: 5,
-    padding: 10,
+    padding: 1,
     marginBottom: 15,
   },
   imagePicker: {
@@ -214,4 +214,7 @@ const styles = StyleSheet.create({
     height: 200,
     marginBottom: 15,
   },
+  actionBtn: {
+    width: "40%"
+  }
 });
