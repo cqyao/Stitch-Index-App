@@ -10,9 +10,8 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  TextInput,
-  Button,
   Keyboard,
+  KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
 import { useNavigation, useRouter } from "expo-router";
@@ -22,6 +21,7 @@ import { User } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
+import { TextInput, Button} from 'react-native-paper';
 
 // Import Firestore functions
 import { collection, addDoc } from "firebase/firestore";
@@ -192,60 +192,92 @@ const CreateCourse = () => {
           )}
         </TouchableOpacity>
       </View>
+
+      <ScrollView
+          contentContainerStyle={{ padding: 16 }}
+          keyboardShouldPersistTaps="handled"
+      >
       {/* Form */}
       <View style={styles.form}>
         <TextInput
-          style={styles.input}
-          placeholder="Course Title"
-          placeholderTextColor="#7D7D7D"
-          value={title}
-          onChangeText={setTitle}
-          maxLength={25}
+            style={styles.input}
+            label="Course Title"
+            placeholderTextColor="#7D7D7D"
+            value={title}
+            mode="outlined"
+            onChangeText={setTitle}
+            maxLength={25}
+            activeOutlineColor="#FF6231"
+            outlineColor="#ccc"
         />
         <TextInput
-          style={styles.input}
-          placeholder="Blurb"
-          placeholderTextColor="#7D7D7D"
-          value={blurb}
-          onChangeText={setBlurb}
-          maxLength={99}
+            style={styles.input}
+            label="Blurb"
+            placeholderTextColor="#7D7D7D"
+            value={blurb}
+            mode="outlined"
+            onChangeText={setBlurb}
+            maxLength={99}
+            activeOutlineColor="#FF6231"
+            outlineColor="#ccc"
         />
         <TextInput
-          style={styles.input}
-          placeholder="Tag"
-          placeholderTextColor="#7D7D7D"
-          value={tag}
-          onChangeText={setTag}
+            style={styles.input}
+            label="Tag"
+            placeholderTextColor="#7D7D7D"
+            value={tag}
+            mode="outlined"
+            onChangeText={setTag}
+            activeOutlineColor="#FF6231"
+            outlineColor="#ccc"
         />
         <TextInput
-          style={styles.input}
-          placeholder="Time (minutes)"
-          placeholderTextColor="#7D7D7D"
-          value={time}
-          onChangeText={setTime}
-          keyboardType="numeric"
-          maxLength={3}
+            style={styles.input}
+            label="Time (minutes)"
+            placeholderTextColor="#7D7D7D"
+            value={time}
+            mode="outlined"
+            onChangeText={setTime}
+            keyboardType="numeric"
+            maxLength={3}
+            activeOutlineColor="#FF6231"
+            outlineColor="#ccc"
         />
         <TextInput
-          style={styles.input}
-          placeholder="Price"
-          placeholderTextColor="#7D7D7D"
-          value={price}
-          onChangeText={setPrice}
-          keyboardType="numeric"
+            style={styles.input}
+            label="Price"
+            placeholderTextColor="#7D7D7D"
+            value={price}
+            mode="outlined"
+            onChangeText={setPrice}
+            keyboardType="numeric"
+            activeOutlineColor="#FF6231"
+            outlineColor="#ccc"
         />
         <ScrollView automaticallyAdjustKeyboardInsets={true}>
-        <TextInput
-          style={styles.inputContents}
-          placeholder="Course Contents"
-          placeholderTextColor="#7D7D7D"
-          returnKeyType="send"
-          blurOnSubmit={false}
-          multiline
-        />
+          <TextInput
+              style={[styles.inputContents, { textAlignVertical: 'top' }]}
+              label="Course Contents"
+              placeholderTextColor="#7D7D7D"
+              returnKeyType="send"
+              blurOnSubmit={false}
+              multiline
+              mode="outlined"
+              activeOutlineColor="#FF6231"
+              outlineColor="#ccc"
+          />
+          <Button
+              mode="contained"
+              onPress={handleCreateCourse}
+              buttonColor="#FF6231" // Use buttonColor for background color
+              textColor="#FFFFFF"   // Optional: Set text color if needed
+              style={{ marginVertical: 10 }}
+          >
+            Create Course
+          </Button>
         </ScrollView>
-        <Button title="Create Course" onPress={handleCreateCourse} color={"#FF6231"}/>
       </View>
+      </ScrollView>
     </View>
     </Pressable>
   );
@@ -286,14 +318,14 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   input: {
-    borderWidth: 1,
+    //borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,
     marginVertical: 5,
   },
   inputContents: {
-    borderWidth: 1,
+    //borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,
