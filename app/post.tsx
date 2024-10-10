@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   TextInput,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
@@ -270,16 +271,18 @@ const Post = () => {
           </Pressable>
         </View>
         <Text>{post.commentsCount || 0} Comments</Text>
-        <Animated.View entering={FadeIn.delay(300)}>
-          {comments.map((comment) => (
-            <Comment
-              key={comment.id}
-              username={comment.author}
-              date={comment.timestamp ? comment.timestamp.toDate() : undefined}
-              content={comment.content}
-            />
-          ))}
-        </Animated.View>
+        <ScrollView>
+          <Animated.View entering={FadeIn.delay(300)}>
+            {comments.map((comment) => (
+              <Comment
+                key={comment.id}
+                username={comment.author}
+                date={comment.timestamp ? comment.timestamp.toDate() : undefined}
+                content={comment.content}
+              />
+            ))}
+          </Animated.View>
+        </ScrollView>
       </View>
     </View>
   );
