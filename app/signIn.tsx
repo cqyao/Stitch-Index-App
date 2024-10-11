@@ -18,6 +18,7 @@ import MainButton from "../components/Button";
 import Input from "../components/Input";
 import { auth } from "@/firebaseConfig";
 import {
+  GoogleAuthProvider,
   signInWithEmailAndPassword,
   onAuthStateChanged,
   User,
@@ -25,14 +26,12 @@ import {
 import { FirebaseError } from "@firebase/app";
 import Animated, {
   FadeIn,
-  FadeOut,
   FadeInUp,
   FadeInDown,
 } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig"; // Update the path according to your project
-import { TextInput } from 'react-native-paper';
 
 
 const SignIn = () => {
@@ -41,6 +40,8 @@ const SignIn = () => {
   const [isSignUp, setIsSignUp] = useState(false); // Add a state to switch between sign up and login
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(false);
+
 
   const checkUserInAsyncStorage = async () => {
     try {
@@ -199,16 +200,16 @@ const SignIn = () => {
           entering={FadeInUp.delay(600).duration(1000).springify()}
           style={styles.form}
         >
-          <Image
-            style={styles.google}
-            source={require("../assets/images/Google.png")}
-          />
-          <Button
-            title={`Sign in With Google`}
-            onPress={() => {}}
-            buttonStyle={undefined}
-            textStyle={undefined}
-          />
+        {/* Google sign-in */}
+        <Image
+          style={styles.google}
+          source={require("../assets/images/Google.png")}
+        />
+        <Button
+          title={`Sign in With Google`}
+          buttonStyle={undefined}
+          textStyle={undefined}
+        />
         </Animated.View>
         <Animated.View
           entering={FadeIn.delay(200).duration(1000).springify()}

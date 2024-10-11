@@ -27,13 +27,13 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
         const data = docSnap.data();
         const formattedData: PatientProps = {
           picture: require('../assets/images/profilePics/johnLe.jpeg'), // Replace with real image if available
-          name: `${data['First Name']} ${data['Last Name']}`,
-          gender: data.Gender,
-          birthdateString: data.birthdateString,
-          mobile: data['Mobile'],
-          email: data.Email,
-          symptoms: data.Symptoms,
-          tags: data.tags,
+          name: `${data['fname']} ${data['lname']}`,
+          gender: data.gender,
+          birthdateString: data.birthdate,
+          mobile: data['phone'],
+          email: data.email,
+          symptoms: data.symptoms,
+          tags: data.tag,
         };
         setPatientData(formattedData);  // Set the patient data
       } else {
