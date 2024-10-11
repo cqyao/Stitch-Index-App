@@ -2,9 +2,9 @@ import { View, Text, Image, StyleSheet, ScrollView, Pressable } from 'react-nati
 import React, { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from "expo-router"; 
-import { collection, query, where, getDocs } from 'firebase/firestore';  
-import { getDownloadURL, ref } from "firebase/storage";  // Import Firebase Storage
-import { db, storage } from '../firebaseConfig';  // Ensure storage is imported from firebaseConfig
+import { collection, query, where, getDocs, getDoc, doc } from 'firebase/firestore';  
+import { getDownloadURL, ref } from "firebase/storage";  
+import { db, storage, auth } from '../firebaseConfig'; // Make sure auth is imported
 import EntityComponent from '@/components/entitycomponent';
 import Input from '../components/SearchInput';  
 
@@ -14,13 +14,33 @@ interface Patient {
   fname: string;
   lname: string;
   tag: string[];
-  pictureUrl?: string | null;  // Optional URL for the picture
+  pictureUrl?: string | null;
 }
 
 // Define a Course interface for the results
 interface Course {
   id: string;
   title: string;
+}
+
+// Define an Appointment interface for the results
+interface Appointment {
+  id: string;
+  patientId: string;
+  type: string;
+  time: string;
+  status: boolean;
+  patientPFP?: string;
+  patientName?: string;
+}
+
+interface SectionComponentProps {
+  title: string;
+  seeAllRoute: { pathname: string, params?: Record<string, any> } | null; 
+  results: any[];
+  loading: boolean;
+  noResultText: string;
+  renderItem: (item: any) => React.ReactNode;
 }
 
 const search = () => {
@@ -31,17 +51,37 @@ const search = () => {
   const [tagSearchInput, setTagSearchInput] = useState<string>('');  
   const [patientResults, setPatientResults] = useState<Patient[]>([]);  
   const [tagResults, setTagResults] = useState<Patient[]>([]);  
-  const [courseResults, setCourseResults] = useState<Course[]>([]);  // State for course search results
-  const [lastSearchType, setLastSearchType] = useState<'name' | 'tag' | 'course' | null>(null);  // Track last search type
+  const [courseResults, setCourseResults] = useState<Course[]>([]);  
+  const [appointmentResults, setAppointmentResults] = useState<Appointment[]>([]);
+  const [lastSearchType, setLastSearchType] = useState<'name' | 'tag' | 'course' | null>(null);  
+  const [loading, setLoading] = useState<boolean>(false);  
+  const [imageUrl, setImageUrl] = useState<string | null>(null); // Add state for user image
 
-  // Pre-populate the search input from the URL query when the page loads
   useEffect(() => {
     if (typeof urlQuery === 'string') {
-      setSearchInput(urlQuery);  // Set the search input so it shows in the search bar
+      setSearchInput(urlQuery);
     }
   }, [urlQuery]);
 
-  // Helper function to fetch the image URL from Firebase Storage
+  // Fetch user profile picture from Firebase Storage using current user's UID
+  useEffect(() => {
+    const fetchUserProfilePicture = async () => {
+      try {
+        const user = auth.currentUser; // Get the currently authenticated user
+        if (user) {
+          const imageRef = ref(storage, `pfp/${user.uid}`); 
+          const url = await getDownloadURL(imageRef);
+          setImageUrl(url); // Set the fetched URL to the state
+        }
+      } catch (error) {
+        console.error("Error fetching user profile picture: ", error);
+        setImageUrl(null); // Fallback to null if there's an error
+      }
+    };
+
+    fetchUserProfilePicture();
+  }, []);
+
   const getImageUrl = async (patientId: string): Promise<string | undefined> => {
     try {
       const imageRef = ref(storage, `patientpfp/${patientId}.png`);
@@ -49,14 +89,14 @@ const search = () => {
       return url;
     } catch (error) {
       console.error(`Error fetching image for ${patientId}:`, error);
-      return undefined;  // Return undefined if the image doesn't exist
+      return undefined;
     }
   };
 
-  // Function to search Firestore for patients by first name and last name
   const searchPatientsByName = async () => {
-    if (!searchInput.trim()) return; 
-
+    if (!searchInput.trim()) return;
+    setPatientResults([]);
+    setLoading(true);
     try {
       const patientsCollection = collection(db, 'Patients');
       const firstNameQuery = query(patientsCollection, where('fname', '>=', searchInput), where('fname', '<=', searchInput + '\uf8ff'));
@@ -68,14 +108,14 @@ const search = () => {
       ]);
 
       const results: Patient[] = [];
-      const seen = new Set<string>();  // Track unique IDs
+      const seen = new Set<string>();
       const addResults = async (snapshot: any) => {
         for (const doc of snapshot.docs) {
           if (!seen.has(doc.id)) {
             seen.add(doc.id);
             const data = doc.data();
-            const pictureUrl = await getImageUrl(doc.id);  // Fetch image URL or undefined
-            results.push({ id: doc.id, ...data, pictureUrl });  // Add the result with pictureUrl
+            const pictureUrl = await getImageUrl(doc.id);
+            results.push({ id: doc.id, ...data, pictureUrl });
           }
         }
       };
@@ -83,62 +123,49 @@ const search = () => {
       await addResults(firstNameSnapshot);
       await addResults(lastNameSnapshot);
 
-      setPatientResults(results);  // Update the state with fetched results
-      setLastSearchType('name');  // Set last search type to 'name'
+      setPatientResults(results);
+      setLastSearchType('name');
+      searchAppointmentsByPatientIds(results.map(patient => patient.id), results);
     } catch (error) {
       console.error('Error searching patients by name:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Function to search Firestore for courses by title
-  const searchCoursesByTitle = async () => {
-    if (!searchInput.trim()) return; 
-
+  const searchAppointmentsByPatientIds = async (patientIds: string[], patientDetails: Patient[]) => {
+    setAppointmentResults([]);
+    if (patientIds.length === 0) return;
     try {
-      const coursesCollection = collection(db, 'courses');
-      const coursesQuery = query(coursesCollection, where('title', '>=', searchInput), where('title', '<=', searchInput + '\uf8ff'));
+      const appointmentsCollection = collection(db, 'Appointments');
+      const appointmentsQuery = query(appointmentsCollection, where('patientId', 'in', patientIds));
+      const appointmentsSnapshot = await getDocs(appointmentsQuery);
 
-      const coursesSnapshot = await getDocs(coursesQuery);
-      const courseResults: Course[] = [];
-
-      coursesSnapshot.forEach((doc) => {
+      const results: Appointment[] = [];
+      appointmentsSnapshot.forEach((doc) => {
         const data = doc.data();
-        courseResults.push({
+        const patient = patientDetails.find(p => p.id === data.patientId);
+        results.push({
           id: doc.id,
-          title: data.title
+          patientId: data.patientId,
+          type: data.type,
+          time: data.time,
+          status: data.status,
+          patientPFP: patient?.pictureUrl || undefined,
+          patientName: `${patient?.fname} ${patient?.lname}`
         });
       });
 
-      setCourseResults(courseResults);  // Update state with fetched course results
-      setLastSearchType('course');  // Set last search type to 'course'
+      setAppointmentResults(results);
     } catch (error) {
-      console.error('Error searching courses:', error);
+      console.error('Error searching appointments:', error);
     }
   };
 
-  // Automatically search when the page loads if there’s a query in the URL
-  useEffect(() => {
-    if (typeof searchInput === 'string' && searchInput) {
-      searchPatientsByName();
-      searchCoursesByTitle();  // Trigger search for courses as well
-    }
-  }, [searchInput]);
-
-  // Trigger regular search when `searchInput` changes
-  useEffect(() => {
-    if (searchInput) {
-      searchPatientsByName();    // Trigger search for patients
-      searchCoursesByTitle();    // Trigger search for courses
-    } else {
-      setPatientResults([]);     // Clear results if input is empty
-      setCourseResults([]);      // Clear course results if input is empty
-    }
-  }, [searchInput]);
-
-  // Function to search Firestore for patients by tag
   const searchPatientsByTag = async () => {
     if (!tagSearchInput.trim()) return;
-  
+    setTagResults([]);
+    setLoading(true);
     try {
       const patientsCollection = collection(db, 'Patients');
       const lowerCaseTagSearchInput = tagSearchInput.toLowerCase();
@@ -151,30 +178,131 @@ const search = () => {
   
       for (const doc of tagSnapshot.docs) {
         const data = doc.data();
-  
-        // Make sure data has the required fields before adding to the results array
         if (data.fname && data.lname && data.tag) {
-          const pictureUrl = await getImageUrl(doc.id);  // Fetch image URL
+          const pictureUrl = await getImageUrl(doc.id);
           results.push({ id: doc.id, fname: data.fname, lname: data.lname, tag: data.tag, pictureUrl });
-        } else {
-          console.warn(`Document ${doc.id} is missing required fields (fname, lname, or tag).`);
         }
       }
       
       setTagResults(results);
       setLastSearchType('tag');
+      searchAppointmentsByPatientIds(results.map(patient => patient.id), results);
     } catch (error) {
       console.error('Error searching patients by tags:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const searchCoursesByTitle = async () => {
+    if (!searchInput.trim()) return; 
+    setLoading(true);
+    try {
+      const coursesCollection = collection(db, 'courses');
+      const coursesQuery = query(coursesCollection, where('title', '>=', searchInput), where('title', '<=', searchInput + '\uf8ff'));
+
+      const coursesSnapshot = await getDocs(coursesQuery);
+      const courseResults: Course[] = [];
+
+      coursesSnapshot.forEach((doc) => {
+        const data = doc.data();
+        courseResults.push({
+          id: doc.id,
+          ...data,
+          title: data.title
+        });
+      });
+
+      setCourseResults(courseResults);
+      setLastSearchType('course');
+    } catch (error) {
+      console.error('Error searching courses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const searchCoursesByTag = async () => {
+    if (!tagSearchInput.trim()) return;
+  
+    setLoading(true);  // Start loading
+  
+    try {
+      const coursesCollection = collection(db, 'courses');
+      const coursesQuery = query(
+        coursesCollection,
+        where('tag', '==', tagSearchInput.toLowerCase()) 
+      );
+  
+      const coursesSnapshot = await getDocs(coursesQuery);
+      const courseResults: Course[] = [];
+  
+      coursesSnapshot.forEach((doc) => {
+        const data = doc.data();
+        courseResults.push({
+          id: doc.id,
+          ...data,
+          title: data.title
+        });
+      });
+  
+      setCourseResults(courseResults); // Update state with fetched course results
+      setLastSearchType('course');  // Set last search type to 'course'
+    } catch (error) {
+      console.error('Error searching courses by tag:', error);
+    } finally {
+      setLoading(false);  // End loading
     }
   };
 
   useEffect(() => {
+    if (typeof searchInput === 'string' && searchInput) {
+      searchPatientsByName();
+      searchCoursesByTitle();
+    }
+  }, [searchInput]);
+
+  useEffect(() => {
     if (tagSearchInput) {
-      searchPatientsByTag();
+      searchPatientsByTag();  // Existing patient tag search
+      searchCoursesByTag();   // New course tag search
     } else {
-      setTagResults([]);  
+      setTagResults([]);
+      setCourseResults([]);   // Clear course results when no tag input
     }
   }, [tagSearchInput]);
+
+  // Component for rendering sections (Patients, Courses, Appointments)
+  const SectionComponent: React.FC<SectionComponentProps> = ({ 
+    title, 
+    seeAllRoute, 
+    results, 
+    loading, 
+    noResultText, 
+    renderItem 
+  }) => (
+    <View>
+      <View style={styles.headerRow}>
+        <Text style={styles.titles}>{title}</Text>
+        {seeAllRoute && (
+          <Pressable onPress={() => router.push(seeAllRoute as any)}>
+            <Text style={styles.seeall}> See All</Text>
+          </Pressable>
+        )}
+      </View>
+      <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+        <View style={styles.section}>
+          {loading ? (
+            <Text style={styles.centeredText}>Searching...</Text>
+          ) : results.length > 0 ? (
+            results.map(renderItem)
+          ) : (
+            <Text style={styles.centeredText}>{noResultText}</Text>
+          )}
+        </View>
+      </ScrollView>
+    </View>
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: 'white' }}>
@@ -183,7 +311,7 @@ const search = () => {
           <Ionicons name="chevron-back" size={35} color="black" />
         </Pressable>
         <Image 
-          source={require('../assets/images/profilePics/dwayneJo.jpg')}
+          source={imageUrl ? { uri: imageUrl } : require('../assets/images/profilePics/dwayneJo.jpg')} // Use fetched image
           style={{ height: 45, width: 45, borderRadius: 90 }}
         />
       </View>
@@ -191,8 +319,8 @@ const search = () => {
       {/* Search Input for Regular Search */}
       <View style={styles.searchInput}>
         <Input
-          defaultValue={searchInput}  // Prepopulate the search input with the query
-          onSearch={(value: React.SetStateAction<string>) => setSearchInput(value)}  // Update searchInput when a new search is performed
+          defaultValue={searchInput}
+          onSearch={(value: React.SetStateAction<string>) => setSearchInput(value)}
         />
       </View>
 
@@ -206,100 +334,110 @@ const search = () => {
       {/* Tags Search Input */}
       <View style={styles.searchInput}>
         <Input
-          defaultValue={tagSearchInput}  // Prepopulate the search input with the tag search query
-          onSearch={(value: React.SetStateAction<string>) => setTagSearchInput(value)}  // Update tagSearchInput when a new search is performed
+          defaultValue={tagSearchInput}
+          onSearch={(value: React.SetStateAction<string>) => setTagSearchInput(value)}
         />
       </View>
 
       {/* Patients Search Results */}
-      <View>
-        <View style={styles.headerRow}>
-          <Text style={styles.titles}> Patients</Text>
-          <Pressable onPress={() => router.push({
-            pathname: '/seeall',
-            params: { query: lastSearchType === 'name' ? searchInput : tagSearchInput, category: 'Patients', searchType: lastSearchType }
-          })}>
-            <Text style={styles.seeall}> See All</Text>
-          </Pressable>
-        </View>
-
-        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-          <View style={styles.section}>
-            {lastSearchType === 'name' && patientResults.length > 0 ? (
-              patientResults.map((patient) => (
-                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientid=${patient.id}`)}>
-                  <EntityComponent
-                    imageSource={patient.pictureUrl ? { uri: patient.pictureUrl } : require("../assets/images/profilePics/dwayneJo.jpg")}  // Use pictureUrl if available
-                    title={`${patient.fname} ${patient.lname}`}
-                  />
-                </Pressable>
-              ))
-            ) : lastSearchType === 'tag' && tagResults.length > 0 ? (
-              tagResults.map((patient) => (
-                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientid=${patient.id}`)}>
-                  <EntityComponent
-                    imageSource={patient.pictureUrl ? { uri: patient.pictureUrl } : require("../assets/images/profilePics/dwayneJo.jpg")}  // Use pictureUrl if available
-                    title={`${patient.fname} ${patient.lname}`}
-                  />
-                </Pressable>
-              ))
-            ) : (
-              <Text>No patients found</Text>
-            )}
-          </View>
-        </ScrollView>
-      </View>
+      <SectionComponent
+      title="Patients"
+      seeAllRoute={{
+        pathname: '/patient' // Navigate to '/patients' without any parameters
+      }}
+      results={lastSearchType === 'name' ? patientResults : tagResults}
+      loading={loading}
+      noResultText="No patients found"
+      renderItem={(patient) => (
+        <Pressable key={patient.id} onPress={() => router.push(`/PatientDetails?id=${patient.id}`)}>
+          <EntityComponent
+            imageSource={patient.pictureUrl ? { uri: patient.pictureUrl } : require("../assets/images/profilePics/dwayneJo.jpg")}
+            title={`${patient.fname} ${patient.lname}`}
+          />
+        </Pressable>
+      )}
+    />
 
       {/* Courses Search Results */}
-      <View>
-        <View style={styles.headerRow}>
-          <Text style={styles.titles}> Courses</Text>
-          <Pressable onPress={() => router.push({
-            pathname: '/seeall',
-            params: { query: searchInput, category: 'Courses' }
-          })}>
-            <Text style={styles.seeall}> See All</Text>
+      <SectionComponent
+        title="Courses"
+        seeAllRoute={{
+          pathname: '/courses' // Navigate to '/courses' without any parameters
+        }}
+        results={courseResults}
+        loading={loading}
+        noResultText="No courses found"
+        renderItem={(course) => (
+          <Pressable key={course.id} onPress={() => router.push(`/courses?courseid=${course.id}`)}>
+            <EntityComponent
+              imageSource={course.imageUrl ? { uri: course.imageUrl } : require("../assets/images/courses.png")}
+              title={course.title}
+            />
           </Pressable>
-        </View>
+        )}
+      />
 
-        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-          <View style={styles.section}>
-            {courseResults.length > 0 ? (
-              courseResults.map((course) => (
-                <Pressable key={course.id} onPress={() => router.push(`/courses?courseid=${course.id}`)}>
-                  <EntityComponent
-                    imageSource={require("../assets/images/courses.png")}  
-                    title={course.title}
-                  />
-                </Pressable>
-              ))
-            ) : (
-              <Text>No courses found</Text>
-            )}
-          </View>
-        </ScrollView>
-      </View>
+      {/* Appointments Search Results */}
+      <SectionComponent
+        title="Appointments"
+        seeAllRoute={{
+          pathname: '/calendar'  // Navigates to /calendar for the "See All" button
+        }}
+        results={appointmentResults}
+        loading={loading}
+        noResultText="No appointments found"
+        renderItem={(appointment) => (
+          <Pressable
+            key={appointment.id}
+            onPress={async () => {
+              try {
+                // Fetch the patient data based on patientId
+                const patientDocRef = doc(db, "Patients", appointment.patientId);
+                const patientDocSnap = await getDoc(patientDocRef);
 
-      {/* Static Records Section */}
-      <View>
-        <View style={styles.headerRow}>
-          <Text style={styles.titles}> Records</Text>
-          <Pressable onPress={() => ({})}>
-            <Text style={styles.seeall}> See All</Text>
+                if (patientDocSnap.exists()) {
+                  const patientData = patientDocSnap.data();
+
+                  // Navigate to the appointment page with patient data and appointment info
+                  router.push({
+                    pathname: "/appointment",
+                    params: {
+                      patientId: appointment.patientId,
+                      time: appointment.time,
+                      type: appointment.type,
+                      data: JSON.stringify({
+                        name: `${patientData.fname} ${patientData.lname}`,
+                        symptoms: patientData.symptoms || [], // Ensure symptoms is an array
+                        email: patientData.email || '', // Fetch email from patient
+                        mobile: patientData.phone || '', // Fetch phone/mobile from patient
+                      }),
+                    },
+                  });
+                } else {
+                  console.log("No patient found!");
+                }
+              } catch (error) {
+                console.error("Error fetching patient details: ", error);
+              }
+            }}
+          >
+            <View style={styles.appointmentContainer}>
+              <Image
+                source={
+                  appointment.patientPFP
+                    ? { uri: appointment.patientPFP }
+                    : require("../assets/images/profilePics/dwayneJo.jpg")
+                }
+                style={styles.appointmentImage}
+              />
+              <Text style={styles.appointmentText}>{appointment.patientName}</Text>
+              <Text style={styles.appointmentDate}>
+                {new Date(appointment.time).toLocaleDateString()}
+              </Text>
+            </View>
           </Pressable>
-        </View>
-        <View style={styles.section}>
-          <Pressable onPress={() => ({})}>
-            <EntityComponent imageSource={require("../assets/images/medical-records.png")} title="Dr. John Le Records"/>
-          </Pressable>
-          <Pressable onPress={() => ({})}>
-            <EntityComponent imageSource={require("../assets/images/medical-records.png")} title="Aneta Guzowska Records"/>
-          </Pressable>
-          <Pressable onPress={() => ({})}>
-            <EntityComponent imageSource={require("../assets/images/medical-records.png")} title="Drake Graham Records"/>
-          </Pressable>
-        </View>
-      </View>
+        )}
+      />
     </View>
   );
 };
@@ -319,12 +457,6 @@ const styles = StyleSheet.create({
   searchInput: {
     marginTop: 5,
     marginHorizontal: 30,
-  },
-  inputField: {
-    borderColor: '#ccc',
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 10,
   },
   line: {
     flex: 1,
@@ -366,5 +498,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingBottom: 5,
-  }
+  },
+  appointmentContainer: {
+    width: 100,
+    marginHorizontal: 10,
+    alignItems: 'center',
+  },
+  appointmentImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: '#FF6231',
+    marginBottom: 5,
+  },
+  appointmentText: {
+    textAlign: 'center',
+    fontSize: 14,
+    flexWrap: 'wrap',
+    width: '100%',
+  },
+  appointmentDate: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#666',
+  },
+  centeredText: {
+    marginHorizontal: 25,
+    textAlign: 'center',
+  },
 });

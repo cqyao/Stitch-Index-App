@@ -44,7 +44,7 @@ const Appointment = () => {
 
   const fetchPatientImageUrl = async (patientID: string) => {
     try {
-      const url = await fetchImageFromFirebase(`pfp/${patientID}.jpg`);
+      const url = await fetchImageFromFirebase(`patientpfp/${patientID}.jpg`);
       if (url) {
         setPatientUrl(url);
       }
