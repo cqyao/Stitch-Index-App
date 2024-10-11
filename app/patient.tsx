@@ -23,7 +23,7 @@ const Patient = () => {
         const data = docSnap.data();
         
         // Get image URL from Firebase Storage
-        const storageRef = ref(storage, `paitentpfp/${id}.png`);  // Reference to the image based on patient ID
+        const storageRef = ref(storage, `patientpfp/${id}.png`);  // Reference to the image based on patient ID
         const imageUrl = await getDownloadURL(storageRef);  // Get the download URL
 
         const formattedData: PatientProps = {
