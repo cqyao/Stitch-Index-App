@@ -64,6 +64,7 @@ const SliderItem = ({
 
     const handlePress = () => {
         if (isSelected) {
+            console.log(item.image);
             handlePurchaseCourse(item);
         } else {
             handleCoursePress(item);
@@ -74,10 +75,11 @@ const SliderItem = ({
         <Animated.View style={[styles.ItemContainer, rnAnimatedStyle]}>
             <TouchableOpacity onPress={handlePress} activeOpacity={60}>
                 {/* Display course image if available */}
-                {item.userPFP ? (
-                    <Image source={{ uri: item.userPFP }} style={styles.image} />
+                {item.image ? (
+                    <Image source={{ uri: item.image }} style={styles.image} />
+
                 ) : (
-                    <View style={styles.placeholderImage}>
+                    <View style={styles.image}>
                         <Ionicons name="image-outline" size={100} color="#ccc" />
                     </View>
                 )}
