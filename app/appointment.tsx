@@ -115,7 +115,7 @@ const Appointment = () => {
       </View>
       <View style={styles.card}>
         <View style={styles.time}>
-          <FontAwesome5 name="clock" size={20} color="grey" />
+          <FontAwesome5 name="clock" size={25} color="grey" />
           <Text style={styles.timeText}>{params.time}</Text>
         </View>
         <View style={styles.lineStyle} />
@@ -144,6 +144,9 @@ const Appointment = () => {
           <Text style={styles.h2}>Online</Text>
         </View>
         <View style={styles.lineStyle} />
+        <Text style={styles.h1}>Contact info</Text>
+        <Text style={styles.h2}>{patientData.email}</Text>
+        <Text style={styles.h2}>{patientData.mobile}</Text>
       </View>
     </View>
   );
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   timeText: {
-    fontSize: 15,
+    fontSize: 18,
     marginLeft: 10,
     color: "grey",
   },
