@@ -35,7 +35,7 @@ export default function CalendarPage() {
   const formattedCurrentDate = format(zonedDate, 'yyyy-MM-dd', { timeZone });
   const router = useRouter();
   // Date states
-  const [selectedDate, setSelectedDate] = useState(formattedCurrentDate);
+  const [selectedDate, setSelectedDate] = useState<string>(formattedCurrentDate);
   // Fold up menu states
   const sheetRef = useRef<BottomSheet>(null);
   // for determining whether the fold up menu is open or not
@@ -110,19 +110,17 @@ export default function CalendarPage() {
       const appointmentDate = appointment.time.split("T")[0]; // Extract the date part from the appointment's time
       return appointment.status === status && appointmentDate === selectedDate;
     });
-    console.log("Filtered app'ts: ", filteredAppointments)
     setFilteredAppointments(filteredAppointments);
   };
 
   useEffect(() => {
     fetchAllAppointments();
-    filterAppointmentsByStatus(false);
     getUserIdFromAsyncStorage();
   }, []);
 
   useEffect(() => {
     filterAppointmentsByStatus(isSelected);
-  }, [selectedDate])
+  }, [appointments, isSelected, selectedDate])
 
   return (
     <View style={{ flex: 1, backgroundColor: "#02D6B6" }}>
@@ -257,7 +255,6 @@ export default function CalendarPage() {
           <FlatList
             data={filteredAppointments}
             keyExtractor={(item) => item.id}
-            extraData={filteredAppointments}
             renderItem={({ item }) => (
               <AppointmentCard
                 key={item.id}
