@@ -3,16 +3,24 @@ import React, { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from "expo-router"; 
 import { collection, query, where, getDocs } from 'firebase/firestore';  
-import { db } from '../firebaseConfig';  
+import { getDownloadURL, ref } from "firebase/storage";  // Import Firebase Storage
+import { db, storage } from '../firebaseConfig';  // Ensure storage is imported from firebaseConfig
 import EntityComponent from '@/components/entitycomponent';
 import Input from '../components/SearchInput';  
 
 // Define a Patient interface for the results
 interface Patient {
   id: string;
-  'First Name': string;
-  'Last Name': string;
-  tags: string[];
+  fname: string;
+  lname: string;
+  tag: string[];
+  pictureUrl?: string | null;  // Optional URL for the picture
+}
+
+// Define a Course interface for the results
+interface Course {
+  id: string;
+  title: string;
 }
 
 const search = () => {
@@ -23,7 +31,8 @@ const search = () => {
   const [tagSearchInput, setTagSearchInput] = useState<string>('');  
   const [patientResults, setPatientResults] = useState<Patient[]>([]);  
   const [tagResults, setTagResults] = useState<Patient[]>([]);  
-  const [lastSearchType, setLastSearchType] = useState<'name' | 'tag' | null>(null);  // Track last search type
+  const [courseResults, setCourseResults] = useState<Course[]>([]);  // State for course search results
+  const [lastSearchType, setLastSearchType] = useState<'name' | 'tag' | 'course' | null>(null);  // Track last search type
 
   // Pre-populate the search input from the URL query when the page loads
   useEffect(() => {
@@ -31,15 +40,27 @@ const search = () => {
       setSearchInput(urlQuery);  // Set the search input so it shows in the search bar
     }
   }, [urlQuery]);
-  
+
+  // Helper function to fetch the image URL from Firebase Storage
+  const getImageUrl = async (patientId: string): Promise<string | undefined> => {
+    try {
+      const imageRef = ref(storage, `patientpfp/${patientId}.png`);
+      const url = await getDownloadURL(imageRef);
+      return url;
+    } catch (error) {
+      console.error(`Error fetching image for ${patientId}:`, error);
+      return undefined;  // Return undefined if the image doesn't exist
+    }
+  };
+
   // Function to search Firestore for patients by first name and last name
   const searchPatientsByName = async () => {
     if (!searchInput.trim()) return; 
 
     try {
       const patientsCollection = collection(db, 'Patients');
-      const firstNameQuery = query(patientsCollection, where('First Name', '>=', searchInput), where('First Name', '<=', searchInput + '\uf8ff'));
-      const lastNameQuery = query(patientsCollection, where('Last Name', '>=', searchInput), where('Last Name', '<=', searchInput + '\uf8ff'));
+      const firstNameQuery = query(patientsCollection, where('fname', '>=', searchInput), where('fname', '<=', searchInput + '\uf8ff'));
+      const lastNameQuery = query(patientsCollection, where('lname', '>=', searchInput), where('lname', '<=', searchInput + '\uf8ff'));
 
       const [firstNameSnapshot, lastNameSnapshot] = await Promise.all([
         getDocs(firstNameQuery),
@@ -48,17 +69,19 @@ const search = () => {
 
       const results: Patient[] = [];
       const seen = new Set<string>();  // Track unique IDs
-      const addResults = (snapshot: any) => {
-        snapshot.forEach((doc: any) => {
+      const addResults = async (snapshot: any) => {
+        for (const doc of snapshot.docs) {
           if (!seen.has(doc.id)) {
             seen.add(doc.id);
-            results.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            const pictureUrl = await getImageUrl(doc.id);  // Fetch image URL or undefined
+            results.push({ id: doc.id, ...data, pictureUrl });  // Add the result with pictureUrl
           }
-        });
+        }
       };
-
-      addResults(firstNameSnapshot);
-      addResults(lastNameSnapshot);
+      
+      await addResults(firstNameSnapshot);
+      await addResults(lastNameSnapshot);
 
       setPatientResults(results);  // Update the state with fetched results
       setLastSearchType('name');  // Set last search type to 'name'
@@ -67,23 +90,52 @@ const search = () => {
     }
   };
 
+  // Function to search Firestore for courses by title
+  const searchCoursesByTitle = async () => {
+    if (!searchInput.trim()) return; 
+
+    try {
+      const coursesCollection = collection(db, 'courses');
+      const coursesQuery = query(coursesCollection, where('title', '>=', searchInput), where('title', '<=', searchInput + '\uf8ff'));
+
+      const coursesSnapshot = await getDocs(coursesQuery);
+      const courseResults: Course[] = [];
+
+      coursesSnapshot.forEach((doc) => {
+        const data = doc.data();
+        courseResults.push({
+          id: doc.id,
+          title: data.title
+        });
+      });
+
+      setCourseResults(courseResults);  // Update state with fetched course results
+      setLastSearchType('course');  // Set last search type to 'course'
+    } catch (error) {
+      console.error('Error searching courses:', error);
+    }
+  };
+
   // Automatically search when the page loads if there’s a query in the URL
   useEffect(() => {
     if (typeof searchInput === 'string' && searchInput) {
       searchPatientsByName();
+      searchCoursesByTitle();  // Trigger search for courses as well
     }
   }, [searchInput]);
 
   // Trigger regular search when `searchInput` changes
   useEffect(() => {
     if (searchInput) {
-      searchPatientsByName();    // Trigger search
+      searchPatientsByName();    // Trigger search for patients
+      searchCoursesByTitle();    // Trigger search for courses
     } else {
       setPatientResults([]);     // Clear results if input is empty
+      setCourseResults([]);      // Clear course results if input is empty
     }
   }, [searchInput]);
 
-  // Function to search Firestore for patients by tags
+  // Function to search Firestore for patients by tag
   const searchPatientsByTag = async () => {
     if (!tagSearchInput.trim()) return;
   
@@ -92,14 +144,24 @@ const search = () => {
       const lowerCaseTagSearchInput = tagSearchInput.toLowerCase();
       const tagsQuery = query(
         patientsCollection,
-        where('tags', 'array-contains', lowerCaseTagSearchInput)
+        where('tag', 'array-contains', lowerCaseTagSearchInput)
       );
       const tagSnapshot = await getDocs(tagsQuery);
-      const results: Patient[] = []; 
-      tagSnapshot.forEach((doc: any) => {
-        results.push({ id: doc.id, ...doc.data() });
-      });
-      setTagResults(results); 
+      const results: Patient[] = [];
+  
+      for (const doc of tagSnapshot.docs) {
+        const data = doc.data();
+  
+        // Make sure data has the required fields before adding to the results array
+        if (data.fname && data.lname && data.tag) {
+          const pictureUrl = await getImageUrl(doc.id);  // Fetch image URL
+          results.push({ id: doc.id, fname: data.fname, lname: data.lname, tag: data.tag, pictureUrl });
+        } else {
+          console.warn(`Document ${doc.id} is missing required fields (fname, lname, or tag).`);
+        }
+      }
+      
+      setTagResults(results);
       setLastSearchType('tag');
     } catch (error) {
       console.error('Error searching patients by tags:', error);
@@ -165,24 +227,54 @@ const search = () => {
           <View style={styles.section}>
             {lastSearchType === 'name' && patientResults.length > 0 ? (
               patientResults.map((patient) => (
-                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
+                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientid=${patient.id}`)}>
                   <EntityComponent
-                    imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
-                    title={`${patient['First Name']} ${patient['Last Name']}`}
+                    imageSource={patient.pictureUrl ? { uri: patient.pictureUrl } : require("../assets/images/profilePics/dwayneJo.jpg")}  // Use pictureUrl if available
+                    title={`${patient.fname} ${patient.lname}`}
                   />
                 </Pressable>
               ))
             ) : lastSearchType === 'tag' && tagResults.length > 0 ? (
               tagResults.map((patient) => (
-                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientId=${patient.id}`)}>
+                <Pressable key={patient.id} onPress={() => router.push(`/patient?patientid=${patient.id}`)}>
                   <EntityComponent
-                    imageSource={require("../assets/images/profilePics/dwayneJo.jpg")}
-                    title={`${patient['First Name']} ${patient['Last Name']}`}
+                    imageSource={patient.pictureUrl ? { uri: patient.pictureUrl } : require("../assets/images/profilePics/dwayneJo.jpg")}  // Use pictureUrl if available
+                    title={`${patient.fname} ${patient.lname}`}
                   />
                 </Pressable>
               ))
             ) : (
               <Text>No patients found</Text>
+            )}
+          </View>
+        </ScrollView>
+      </View>
+
+      {/* Courses Search Results */}
+      <View>
+        <View style={styles.headerRow}>
+          <Text style={styles.titles}> Courses</Text>
+          <Pressable onPress={() => router.push({
+            pathname: '/seeall',
+            params: { query: searchInput, category: 'Courses' }
+          })}>
+            <Text style={styles.seeall}> See All</Text>
+          </Pressable>
+        </View>
+
+        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+          <View style={styles.section}>
+            {courseResults.length > 0 ? (
+              courseResults.map((course) => (
+                <Pressable key={course.id} onPress={() => router.push(`/courses?courseid=${course.id}`)}>
+                  <EntityComponent
+                    imageSource={require("../assets/images/courses.png")}  
+                    title={course.title}
+                  />
+                </Pressable>
+              ))
+            ) : (
+              <Text>No courses found</Text>
             )}
           </View>
         </ScrollView>
@@ -205,27 +297,6 @@ const search = () => {
           </Pressable>
           <Pressable onPress={() => ({})}>
             <EntityComponent imageSource={require("../assets/images/medical-records.png")} title="Drake Graham Records"/>
-          </Pressable>
-        </View>
-      </View>
-
-      {/* Static Courses Section */}
-      <View>
-        <View style={styles.headerRow}>
-          <Text style={styles.titles}> Courses</Text>
-          <Pressable onPress={() => ({})}>
-            <Text style={styles.seeall}> See All</Text>
-          </Pressable>
-        </View>
-        <View style={styles.section}>
-          <Pressable onPress={() => ({})}>
-            <EntityComponent imageSource={require("../assets/images/courses.png")} title="Anatomy Foundations"/>
-          </Pressable>
-          <Pressable onPress={() => ({})}>
-            <EntityComponent imageSource={require("../assets/images/courses.png")} title="Optometry For Beginners"/>
-          </Pressable>
-          <Pressable onPress={() => ({})}>
-            <EntityComponent imageSource={require("../assets/images/courses.png")} title="Identifying Cancer"/>
           </Pressable>
         </View>
       </View>
@@ -289,11 +360,6 @@ const styles = StyleSheet.create({
     color: "#00D6B5",
     fontFamily: "Inter",
     fontWeight: "700",
-  },
-  patientRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,  
   },
   headerRow: {
     flexDirection: "row",

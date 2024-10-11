@@ -4,13 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import PatientInfo from '@/components/PatientInfo';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { getDownloadURL, ref } from 'firebase/storage'; // Import from firebase storage
+import { db, storage } from '../firebaseConfig';  // Make sure storage is initialized in firebaseConfig
 import { PatientProps } from '@/components/PatientInfo'; 
 import { useLocalSearchParams } from 'expo-router';  
 
 const Patient = () => {
   const [patientData, setPatientData] = useState<PatientProps | null>(null);
-  const { patientId } = useLocalSearchParams();  
+  const { patientid } = useLocalSearchParams();  
   const router = useRouter(); // For navigation and back button
 
   const fetchPatientData = async (id: string) => {
@@ -20,15 +21,20 @@ const Patient = () => {
 
       if (docSnap.exists()) {
         const data = docSnap.data();
+        
+        // Get image URL from Firebase Storage
+        const storageRef = ref(storage, `patientpfp/${id}.png`);  // Reference to the image based on patient ID
+        const imageUrl = await getDownloadURL(storageRef);  // Get the download URL
+
         const formattedData: PatientProps = {
-          picture: require('../assets/images/profilePics/johnLe.jpeg'), 
-          name: `${data['First Name']} ${data['Last Name']}`, 
-          gender: data.Gender,
-          birthdateString: data.birthdateString, 
-          mobile: data['Mobile'], 
-          email: data.Email, 
-          symptoms: data.Symptoms, 
-          tags: data.tags, 
+          picture: { uri: imageUrl },  // Use the image URL from storage
+          name: `${data['fname']} ${data['lname']}`, 
+          gender: data.gender,
+          birthdateString: data.birthdate, 
+          mobile: data['phone'], 
+          email: data.email, 
+          symptoms: data.symptoms, 
+          tags: data.tag, 
         };
         setPatientData(formattedData); 
       } else {
@@ -40,10 +46,10 @@ const Patient = () => {
   };
 
   useEffect(() => {
-    if (patientId) {
-      fetchPatientData(patientId as string);  // fetching data based on patient id
+    if (patientid) {
+      fetchPatientData(patientid as string);  // fetching data based on patient id
     }
-  }, [patientId]);
+  }, [patientid]);
 
   if (!patientData) {
     return (

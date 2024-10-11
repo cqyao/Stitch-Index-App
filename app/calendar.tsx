@@ -14,7 +14,7 @@ import { useRouter } from "expo-router";
 import AppointmentCard from "@/components/AppointmentCard";
 import { Ionicons } from "@expo/vector-icons";
 import { doc, getDocs, collection } from "firebase/firestore";
-import { db } from "../firebaseConfig";
+import { app, db } from "../firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
@@ -35,7 +35,7 @@ export default function CalendarPage() {
   const formattedCurrentDate = format(zonedDate, 'yyyy-MM-dd', { timeZone });
   const router = useRouter();
   // Date states
-  const [selectedDate, setSelectedDate] = useState(formattedCurrentDate);
+  const [selectedDate, setSelectedDate] = useState<string>(formattedCurrentDate);
   // Fold up menu states
   const sheetRef = useRef<BottomSheet>(null);
   // for determining whether the fold up menu is open or not
@@ -46,7 +46,6 @@ export default function CalendarPage() {
   const snapPoints = ["45%", "90%"];
   const [appointments, setAppointments] = useState<AppointmentProps[]>([]);
   const [filteredAppointments, setFilteredAppointments] = useState<AppointmentProps[]>([]);
-  const [bgColor, setBgColor] = useState("white");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -99,14 +98,14 @@ export default function CalendarPage() {
       ) as AppointmentProps[];
 
       setAppointments(appointmentsList);
-      setFilteredAppointments(appointmentsList.filter(appointment => appointment.status === false));
-
+      setFilteredAppointments(appointmentsList.filter(appointment => appointment.status === isSelected));
     } catch (error) {
       console.error("Error fetching Appointments: ", error);
     }
   };
   
-  const filterAppointmentsByStatus = (status: boolean) => {
+  const filterAppointmentsByStatus = async (status: boolean) => {
+    //console.log("Status: ", status, " Appointments: ", appointments)
     const filteredAppointments = appointments.filter(appointment => {
       const appointmentDate = appointment.time.split("T")[0]; // Extract the date part from the appointment's time
       return appointment.status === status && appointmentDate === selectedDate;
@@ -114,12 +113,14 @@ export default function CalendarPage() {
     setFilteredAppointments(filteredAppointments);
   };
 
-  // Fetch userId from AsyncStorage
   useEffect(() => {
     fetchAllAppointments();
-    filterAppointmentsByStatus(false);
     getUserIdFromAsyncStorage();
   }, []);
+
+  useEffect(() => {
+    filterAppointmentsByStatus(isSelected);
+  }, [appointments, isSelected, selectedDate])
 
   return (
     <View style={{ flex: 1, backgroundColor: "#02D6B6" }}>
@@ -172,21 +173,25 @@ export default function CalendarPage() {
         }}
         // Setup the marked dates feature to be the date selected by user (NOTE** We will also have to set up marked dates for appoinment dates)
         markedDates={{
-           [selectedDate]: {
-             selected: true,
-             selectedColor: bgColor,
-             dotColor: "#00D6B5",
-         },
-        ...appointments.reduce((acc, appointment) => {
-          acc[appointment.time] = { marked: true, dotColor: 'white' };
-          return acc;
-        }, {})
+          [selectedDate]: {
+            selected: true,
+            selectedColor: "white",
+          },
+          ...appointments.reduce((acc, appointment) => {
+            const appointmentDate = appointment.time.split("T")[0];
+            acc[appointmentDate] = {
+              marked: true,
+              dotColor: "pink",
+              selected: appointmentDate === selectedDate,
+              selectedColor: appointmentDate === selectedDate ? "white" : undefined,
+            };
+            return acc;
+          }, {})
         }}
         // On Date Changed Functions -> We can use this to gather the current selectd date to search for appointments
         onDayPress={(day) => {
           console.log("Selected day: ", day.dateString);
           setSelectedDate(day.dateString);
-          setBgColor("white");
         }}
         onMonthChange={(month) => {
           console.log("Month changed to: ", month);

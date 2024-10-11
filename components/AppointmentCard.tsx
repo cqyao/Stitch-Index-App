@@ -36,7 +36,6 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
           tags: data.tags,
         };
         setPatientData(formattedData);  // Set the patient data
-        console.log(patientData)
       } else {
         console.log('No such document!');
       }
