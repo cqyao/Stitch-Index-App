@@ -25,16 +25,16 @@ interface ResearchPostProps {
 }
 
 const ResearchPost: React.FC<ResearchPostProps> = ({
-                                                     postId,
-                                                     name,
-                                                     likes,
-                                                     comments,
-                                                     imageSource,
-                                                     title,
-                                                     content,
-                                                     userId,
-                                                     userPFP,
-                                                   }) => {
+  postId,
+  name,
+  likes,
+  comments,
+  imageSource,
+  title,
+  content,
+  userId,
+  userPFP,
+}) => {
   const [liked, setLiked] = useState<boolean>(false);
   const [likesCount, setLikesCount] = useState<number>(likes);
 
@@ -101,43 +101,43 @@ const ResearchPost: React.FC<ResearchPostProps> = ({
   }
 
   return (
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Image
-                source={{ uri: userPFP }}
-                style={{ height: 35, width: 35, borderRadius: 90, marginRight: 10 }}
-            />
-            <Text style={styles.h3}>{name}</Text>
-          </View>
-          <Entypo name="dots-three-vertical" size={20} color="#7D7D7D" />
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Image
+            source={{ uri: userPFP }}
+            style={{ height: 35, width: 35, borderRadius: 90, marginRight: 10 }}
+          />
+          <Text style={styles.h3}>{name}</Text>
         </View>
-        {/* Body */}
-        <Pressable onPress={expandPost}>
-          <View>
-            <Text style={styles.title}>{title}</Text>
-            <Text>{content}</Text>
-            {imageSource ? (
-                <Image
-                    source={{ uri: imageSource }}
-                    style={{ height: 200, width: '100%', borderRadius: 10, marginTop: 10 }}
-                />
-            ) : null}
-          </View>
+        <Entypo name="dots-three-vertical" size={20} color="#7D7D7D" />
+      </View>
+      {/* Body */}
+      <Pressable onPress={expandPost}>
+        <View>
+          <Text style={styles.title}>{title}</Text>
+          <Text>{content}</Text>
+          {imageSource ? (
+            <Image
+              source={{ uri: imageSource }}
+              style={{ height: 200, width: '100%', borderRadius: 10, marginTop: 10 }}
+            />
+          ) : null}
+        </View>
+      </Pressable>
+      {/* Interactions */}
+      <View style={styles.interactions}>
+        <Pressable onPress={handleLike} style={styles.interactionItem}>
+          <Ionicons name={liked ? 'heart' : 'heart-outline'} size={20} color="red" />
+          <Text style={styles.interactionText}>{likesCount} Likes</Text>
         </Pressable>
-        {/* Interactions */}
-        <View style={styles.interactions}>
-          <Pressable onPress={handleLike} style={styles.interactionItem}>
-            <Ionicons name={liked ? 'heart' : 'heart-outline'} size={20} color="red" />
-            <Text style={styles.interactionText}>{likesCount} Likes</Text>
-          </Pressable>
-          <View style={styles.interactionItem}>
-            <Ionicons name="chatbubble-outline" size={20} color="gray" />
-            <Text style={styles.interactionText}>{comments} Comments</Text>
-          </View>
+        <View style={styles.interactionItem}>
+          <Ionicons name="chatbubble-outline" size={20} color="gray" />
+          <Text style={styles.interactionText}>{comments} Comments</Text>
         </View>
       </View>
+    </View>
   );
 };
 

@@ -8,13 +8,14 @@ import { PatientProps } from '@/components/PatientInfo';
 import { ActivityIndicator } from 'react-native-paper';
 
 interface AppointmentProps {
+  id: string;
   patientId: string;
   status: boolean;
   time: string;
   type: string;
 }
 
-const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, type }) => {
+const AppointmentCard: React.FC<AppointmentProps> = ({ id, patientId, status, time, type }) => {
   const [patientData, setPatientData] = useState<PatientProps | null>(null);
 
   // Function to get patient info based on patient ID
@@ -26,6 +27,7 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
       if (docSnap.exists()) {
         const data = docSnap.data();
         const formattedData: PatientProps = {
+          id: data.id,
           picture: require('../assets/images/profilePics/johnLe.jpeg'), // Replace with real image if available
           name: `${data['fname']} ${data['lname']}`,
           gender: data.gender,
@@ -34,6 +36,7 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
           email: data.email,
           symptoms: data.symptoms,
           tags: data.tag,
+          pronouns: data.pronouns
         };
         setPatientData(formattedData);  // Set the patient data
       } else {
@@ -64,14 +67,17 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
 
   const navigate = () => {
     const serializedData = JSON.stringify(patientData);
+    const apptStatus = status.toString()
 
     router.push({
       pathname: "../appointment",
       params: { 
+        id: id,
         patientId: patientId,
+        status: apptStatus,
         time: time, 
         type: type,
-        data: serializedData
+        data: serializedData,
       },
     });
   };

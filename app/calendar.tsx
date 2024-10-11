@@ -19,6 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import { toZonedTime, format } from 'date-fns-tz';
+import { useIsFocused } from "@react-navigation/native";
 
 type AppointmentProps = {
   id: string; // Include the ID for each appointment
@@ -48,6 +49,7 @@ export default function CalendarPage() {
   const [filteredAppointments, setFilteredAppointments] = useState<AppointmentProps[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const isFocused = useIsFocused();
 
   const fetchImageUrl = async (userID: string) => {
     try {
@@ -116,7 +118,7 @@ export default function CalendarPage() {
   useEffect(() => {
     fetchAllAppointments();
     getUserIdFromAsyncStorage();
-  }, []);
+  }, [isFocused]);
 
   useEffect(() => {
     filterAppointmentsByStatus(isSelected);
@@ -258,6 +260,7 @@ export default function CalendarPage() {
             renderItem={({ item }) => (
               <AppointmentCard
                 key={item.id}
+                id={item.id}
                 patientId={item.patientId}
                 status={item.status}
                 time={item.time.toString()}

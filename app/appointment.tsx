@@ -3,22 +3,24 @@ import {
   Text,
   StyleSheet,
   Image,
-  TouchableOpacity,
   Pressable,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { FontAwesome5, MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import Animated, { FadeIn } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PatientProps } from "@/components/PatientInfo";
-import { FirebaseError } from "firebase/app";
+import { AnimatedFAB } from "react-native-paper";
+import { updateDoc, doc } from "firebase/firestore";
+import { db } from '@/firebaseConfig';
 
 const Appointment = () => {
   const params = useLocalSearchParams<{
+    id: string;
     patientId: string;
+    status: string;
     time: string;
     type: string;
     data: string;
@@ -26,6 +28,7 @@ const Appointment = () => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [ patientUrl, setPatientUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  let status = (params.status === "true")
 
   const patientData: PatientProps = params.data
     ? JSON.parse(params.data)
@@ -94,7 +97,15 @@ const Appointment = () => {
       };
     } 
     getPatientImage();
-  }, [])
+  }, []);
+
+  const updateStatus = async() => {
+    console.log(params.id)
+    await updateDoc(doc(db, 'Appointments', params.id), {
+      status: true,
+    });
+    router.back();
+  }
 
   return (
     <View style={styles.screen}>
@@ -147,7 +158,17 @@ const Appointment = () => {
         <Text style={styles.h1}>Contact info</Text>
         <Text style={styles.h2}>{patientData.email}</Text>
         <Text style={styles.h2}>{patientData.mobile}</Text>
+        <AnimatedFAB 
+        visible={!status}
+        style={styles.fab}
+        icon={"check"}
+        label={"Mark as completed"}
+        extended={true}
+        animateFrom="right"
+        onPress={updateStatus}
+      />
       </View>
+      
     </View>
   );
 };
@@ -179,7 +200,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 20,
     borderRadius: 15,
-    height: 500,
+    height: 600,
     width: "85%",
     shadowColor: "grey",
     shadowOffset: { width: 5, height: 5 },
@@ -232,5 +253,12 @@ const styles = StyleSheet.create({
     fontWeight: "300",
     marginLeft: 20,
     color: "grey",
+  },
+  fab: {
+    position: "absolute",
+    margin: 16,
+    right: 10,
+    bottom: 0,
+    backgroundColor: "#00D6B5",
   },
 });
