@@ -1,10 +1,16 @@
-# Stitch Index App
+<h1 align="center">
+  Stitch Index App
+  <br>
+  <img src="https://raw.githubusercontent.com/cqyao/Stitch-Index-App/refs/heads/main/assets/images/Logo.png" alt="stitch logo" title="stitch logo" width="200">
+  <br>
+</h1>
+<p align="center" style="font-size: 1.2rem;">Mobile platform designed to streamline and support the professional needs of doctors.</p>
+
+<hr />
 
 [![Expo](https://img.shields.io/badge/Expo-v51.0.36-blue.svg)](https://expo.dev/)
 [![React Native](https://img.shields.io/badge/React%20Native-v0.74.5-blue.svg)](https://reactnative.dev/)
 [![Firebase](https://img.shields.io/badge/Firebase-Firestore-orange.svg)](https://firebase.google.com/)
-
-The **Stitch Index App** is a mobile platform designed to streamline and support the professional needs of doctors. It allows medical professionals to manage their appointments, track patient information, collaborate with peers through forums, and create or access medical content and courses.
 
 ## Features
 
@@ -17,7 +23,7 @@ The **Stitch Index App** is a mobile platform designed to streamline and support
 
 ### Prerequisites
 
-- **Node.js** (>=14.x.x)
+- **Node.js** (>=22.x.x)
 - **Expo CLI** (>=6.x.x)
 - **Firebase Project**
 

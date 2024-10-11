@@ -9,7 +9,7 @@ import { db, auth } from '../firebaseConfig';
 import { PatientProps } from '@/components/PatientInfo';
 import { Card } from 'react-native-paper';
 import LottieView from 'lottie-react-native';
-import Animated, {FadeIn} from "react-native-reanimated"; // Import LottieView
+import Animated, { FadeIn } from "react-native-reanimated"; // Import LottieView
 
 const Patient = () => {
   const [patientsData, setPatientsData] = useState<PatientProps[]>([]);
@@ -86,66 +86,66 @@ const Patient = () => {
 
   if (patientsData.length === 0) {
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-          <View style={styles.loadingContainer}>
-            <LottieView
-                source={require('../assets/Animations/loading.json')}
-                autoPlay
-                loop
-                style={styles.lottie}
-            />
-          </View>
-        </SafeAreaView>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+        <View style={styles.loadingContainer}>
+          <LottieView
+            source={require('../assets/Animations/loading.json')}
+            autoPlay
+            loop
+            style={styles.lottie}
+          />
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-        {/* Banner */}
-        <View style={styles.banner}>
-          <Pressable onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={35} color="white" />
-          </Pressable>
-          <View style={styles.logoContainer}>
-            <Image
-                source={require('../assets/images/LogoWhite.png')}
-                resizeMode='contain'
-                style={styles.logo}
-            />
-          </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#02D6B6' }}>
+      {/* Banner */}
+      <View style={styles.banner}>
+        <Pressable onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={35} color="white" />
+        </Pressable>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../assets/images/LogoWhite.png')}
+            resizeMode='contain'
+            style={styles.logo}
+          />
         </View>
-        {/* End of Banner */}
-
+      </View>
+      {/* End of Banner */}
+      <View style={{ backgroundColor: "white" }}>
         <Animated.ScrollView>
           {patientsData.map((patientData, index) => (
-              <Animated.View
-                  key={index}
-                  entering={FadeIn.delay(index * 100)} // Adjust delay based on index
+            <Animated.View
+              key={index}
+              entering={FadeIn.delay(index * 100)} // Adjust delay based on index
+            >
+              <Card
+                onPress={() => router.push({ pathname: '/PatientDetails', params: { id: patientData.id } })}
+                style={styles.card}
+                mode={'outlined'}
               >
-                <Card
-                    onPress={() => router.push({ pathname: '/PatientDetails', params: { id: patientData.id } })}
-                    style={styles.card}
-                    mode={'outlined'}
-                >
-                  <PatientInfo
-                      id={patientData.id}
-                      picture={patientData.picture}
-                      name={patientData.name}
-                      gender={patientData.gender}
-                      pronouns={patientData.pronouns}
-                      birthdateString={patientData.birthdateString}
-                      mobile={patientData.mobile}
-                      email={patientData.email}
-                      symptoms={patientData.symptoms}
-                      PatientReport={patientData.PatientReport}
-                      tags={patientData.tags}
-                  />
-                </Card>
-              </Animated.View>
+                <PatientInfo
+                  id={patientData.id}
+                  picture={patientData.picture}
+                  name={patientData.name}
+                  gender={patientData.gender}
+                  pronouns={patientData.pronouns}
+                  birthdateString={patientData.birthdateString}
+                  mobile={patientData.mobile}
+                  email={patientData.email}
+                  symptoms={patientData.symptoms}
+                  PatientReport={patientData.PatientReport}
+                  tags={patientData.tags}
+                />
+              </Card>
+            </Animated.View>
           ))}
         </Animated.ScrollView>
-
-      </SafeAreaView>
+      </View>
+    </SafeAreaView>
   );
 };
 
