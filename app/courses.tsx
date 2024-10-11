@@ -13,7 +13,7 @@ import React, { useEffect, useState } from "react";
 import TagsInput from "../components/TagsInput";
 import CourseComponent from "../components/CourseComponent";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useNavigation, useRouter } from "expo-router";
+import { useNavigation, useRouter, useLocalSearchParams } from "expo-router";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -25,6 +25,7 @@ import {
   doc,
   setDoc,
   onSnapshot,
+  getDoc,
   getDocs,
   arrayUnion,
   query,
@@ -63,6 +64,7 @@ const Courses = () => {
   const [purchasedCoursesLoading, setPurchasedCoursesLoading] = useState(true);
 
   const router = useRouter();
+  const { courseid } = useLocalSearchParams();
   const navigation = useNavigation();
 
   // Check if user is logged in
@@ -121,36 +123,67 @@ const Courses = () => {
   };
 
   // Fetch courses from Firestore in real-time
-  const fetchCourses = () => {
+  const fetchCourses = async (courseid?: string) => {
     setCoursesLoading(true); // Start loading courses
-    const coursesRef = collection(db, "courses");
-    const unsubscribe = onSnapshot(
-        coursesRef,
-        async (snapshot) => {
-          const coursePromises = snapshot.docs.map(async (doc) => {
-            const data = doc.data();
-            const courseId = doc.id;
-            const ratingsArray = await getCourseRatings(courseId);
-
-            return {
-              id: courseId,
-              ...data,
-              ratings: ratingsArray,
-              rating: calculateAverageRating(ratingsArray),
-            } as Course;
-          });
-
-          const resolvedCourses = await Promise.all(coursePromises);
-          setCourses(resolvedCourses);
-          setCoursesLoading(false); // Courses are loaded
-        },
-        (error) => {
-          console.error("Error fetching courses:", error);
-          setCoursesLoading(false); // Stop loading on error
+  
+    try {
+      if (courseid) {
+        // If a courseId is provided, fetch only that specific course
+        const courseRef = doc(db, "courses", courseid);
+        const courseDoc = await getDoc(courseRef);
+  
+        if (courseDoc.exists()) {
+          const data = courseDoc.data();
+          const ratingsArray = await getCourseRatings(courseid); // Fetch ratings for the course
+  
+          const fetchedCourse: Course = {
+            id: courseDoc.id,
+            ...data,
+            ratings: ratingsArray,
+            rating: calculateAverageRating(ratingsArray),
+            tag: data.tag || "",
+            time: data.time || "",
+            title: data.title || "",
+            blurb: data.blurb || "",
+            userId: data.userId || "",
+            userPFP: data.userPFP || "",
+            name: data.name || "",
+            price: data.price || 0
+          };
+  
+          setCourses([fetchedCourse]); // Set the specific course in the state
+        } else {
+          console.log(`Course with ID ${courseid} not found`);
         }
-    );
-
-    return unsubscribe;
+      } else {
+        // If no courseId is provided, fetch all courses
+        const coursesRef = collection(db, "courses");
+        const coursePromises: any[] = [];
+  
+        const snapshot = await getDocs(coursesRef);
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const courseId = doc.id;
+  
+          const coursePromise = getCourseRatings(courseId).then((ratingsArray) => ({
+            id: courseId,
+            ...data,
+            ratings: ratingsArray,
+            rating: calculateAverageRating(ratingsArray),
+          }));
+  
+          coursePromises.push(coursePromise);
+        });
+  
+        const resolvedCourses = await Promise.all(coursePromises);
+        setCourses(resolvedCourses); // Set all fetched courses in the state
+      }
+  
+      setCoursesLoading(false); // Courses are loaded
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      setCoursesLoading(false); // Stop loading on error
+    }
   };
 
   // Fetch user's purchased courses from Firestore in real-time
@@ -211,6 +244,39 @@ const Courses = () => {
     return unsubscribe;
   };
 
+const fetchSpecificCourse = async (courseId: string) => {
+  try {
+    const courseRef = doc(db, "courses", courseId);
+    const courseDoc = await getDoc(courseRef);
+
+    if (courseDoc.exists()) {
+      const data = courseDoc.data();
+
+      // Ensure you include all the fields required by the Course interface
+      const fetchedCourse = {
+        id: courseDoc.id,
+        tag: data?.tag ?? "",  // Fallback to empty string if not found
+        time: data?.time ?? "",
+        title: data?.title ?? "",
+        blurb: data?.blurb ?? "",
+        userId: data?.userId ?? "",
+        userPFP: data?.userPFP ?? "",
+        name: data?.name ?? "",
+        price: data?.price ?? 0,
+        ratings: await getCourseRatings(courseId), // Fetch ratings for the course
+        rating: calculateAverageRating(await getCourseRatings(courseId)), // Calculate average rating
+      };
+
+      // Update your state with this specific course
+      setCourses([fetchedCourse]);
+    } else {
+      console.log(`Course with ID ${courseId} not found`);
+    }
+  } catch (error) {
+    console.error(`Error fetching course with ID ${courseId}:`, error);
+  }
+};
+
   // Calculate average rating
   const calculateAverageRating = (ratingsArray: { userId: string; rating: number }[]) => {
     if (!ratingsArray || ratingsArray.length === 0) return 0;
@@ -253,7 +319,7 @@ const Courses = () => {
   // Retrieve user UID from AsyncStorage and fetch image URL
   useEffect(() => {
     checkUserInAsyncStorage();
-
+  
     const fetchUserUid = async () => {
       try {
         const userString = await AsyncStorage.getItem("user");
@@ -261,14 +327,14 @@ const Courses = () => {
           const user = JSON.parse(userString);
           setUser(user);
           await fetchImageUrl(user);
-
-          // Set up real-time listeners
-          const unsubscribeCourses = fetchCourses();
+  
+          // Pass courseId to fetchCourses if it exists
+          fetchCourses(courseid?.toString()); // If courseId is passed, it will fetch that course
+  
+          // Set up real-time listeners for purchased courses
           const unsubscribePurchasedCourses = fetchPurchasedCourses(user.uid);
-
-          // Cleanup function to unsubscribe
+  
           return () => {
-            if (unsubscribeCourses) unsubscribeCourses();
             if (unsubscribePurchasedCourses) unsubscribePurchasedCourses();
           };
         } else {
