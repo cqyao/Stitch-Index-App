@@ -12,23 +12,23 @@ const data: OnboardingData[] = [
     {
         id: 1,
         animation: require('../assets/Animations/Lottie1.json'),
-        text: 'lemme put my ballws in yooo jawwss',
-        textColor: '#005b4f',
-        backgroundColor: '#e4e5df',
+        text: 'One app ,                       One Account',
+        textColor: '#67beb1',
+        backgroundColor: '#efefef',
     },
     {
         id: 2,
         animation: require('../assets/Animations/Lottie2.json'),
-        text: '(yo balls)',
+        text: 'Your meetings,                  calendars ',
         textColor: '#1e2169',
         backgroundColor: '#bae4fd',
     },
     {
         id: 3,
         animation: require('../assets/Animations/Lottie3.json'),
-        text: 'balls in yo jawws',
-        textColor: '#F15937',
-        backgroundColor: '#faeb8a',
+        text: 'Consultations and Records',
+        textColor: '#FF6231',
+        backgroundColor: '#84d9ca',
     },
 ];
 

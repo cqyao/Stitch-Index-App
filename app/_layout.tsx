@@ -43,6 +43,7 @@ export default function RootLayout() {
           <Stack.Screen options={{ headerShown: showHeader }} name="courseContents" />
           <Stack.Screen options={{ headerShown: showHeader }} name="createCourse" />
           <Stack.Screen options={{ headerShown: showHeader }} name="patient" />
+          <Stack.Screen options={{ headerShown: showHeader }} name="PatientDetails" />
           <Stack.Screen options={{ headerShown: showHeader }} name="createpost" />
         </Stack>
       </GestureHandlerRootView>

@@ -18,7 +18,7 @@ import Animated, {
     useAnimatedStyle,
 } from 'react-native-reanimated';
 import { Course } from '../app/courses';
-import {StarRatingDisplay} from "react-native-star-rating-widget";
+import { StarRatingDisplay } from 'react-native-star-rating-widget';
 
 type SliderProps = {
     item: Course;
@@ -28,8 +28,6 @@ type SliderProps = {
     handleCoursePress: (course: Course) => void;
     handlePurchaseCourse: (course: Course) => void;
 };
-
-
 
 const { width } = Dimensions.get('window');
 
@@ -64,7 +62,6 @@ const SliderItem = ({
         };
     });
 
-
     const handlePress = () => {
         if (isSelected) {
             handlePurchaseCourse(item);
@@ -89,9 +86,10 @@ const SliderItem = ({
                     style={styles.background}
                 >
                     <View style={styles.topIcons}>
-                        <TouchableOpacity>
-                            <Text style={styles.description}>{item.time + " min" + "                                        " + "$" + item.price + "   "}</Text>
-                        </TouchableOpacity>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.time}>{item.time} min</Text>
+                            <Text style={styles.price}>${item.price}</Text>
+                        </View>
                     </View>
                     <View style={styles.text}>
                         <Text style={styles.description}>{item.tag}</Text>
@@ -159,5 +157,24 @@ const styles = StyleSheet.create({
     },
     star: {
         left: -6,
+    },
+    infoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+        marginBottom: 5,
+    },
+    time: {
+        color: '#fff',
+        fontSize: 12,
+        width: 80, // Fixed width for time to prevent stretching
+        textAlign: 'left',
+        right: 100,
+    },
+    price: {
+        color: '#fff',
+        fontSize: 12,
+        width: 80, // Fixed width for price to prevent stretching
+        textAlign: 'right',
     },
 });

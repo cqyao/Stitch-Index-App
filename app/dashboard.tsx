@@ -33,8 +33,6 @@ import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 import Constants from "expo-constants";
 import Markdown from 'react-native-markdown-display';
-import {ImageSlider} from "@/components/SliderData";
-import SliderItem from "@/components/SliderItem";
 import {LinearGradient} from "expo-linear-gradient";
 
 
@@ -243,7 +241,7 @@ const Dashboard = () => {
 
 
 
-              <View style={styles.row}>
+              <View style={[styles.row, styles.featherEffect]}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <Pressable
                       style={styles.featurePressable}
@@ -271,6 +269,7 @@ const Dashboard = () => {
                   </Pressable>
                 </ScrollView>
               </View>
+
             </View>
 
             <View style={styles.appointments}>
@@ -332,9 +331,9 @@ const Dashboard = () => {
                       <Text style={styles.responseText}></Text>
                   )}
                 </ScrollView>
-                {loadingResponse && (
-                    <ActivityIndicator size="small" color="#02D6B6" />
-                )}
+                {/*{loadingResponse && (*/}
+                {/*    <ActivityIndicator size="small" color="#02D6B6" />*/}
+                {/*)}*/}
                 <LinearGradient
                     colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 1)']}
                     style={styles.featherBottom}
@@ -354,6 +353,7 @@ const Dashboard = () => {
                 <Button
                     mode="contained"
                     buttonColor={"#02D6B6"}
+                    loading={loadingResponse}
                     onPress={() => {
                       if (question.trim() !== "") {
                         getChatGPTResponse(question);
@@ -428,10 +428,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 40,
     marginTop: 20,
   },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
+
   appointments: {
     marginHorizontal: 40,
     marginTop: 20,
@@ -463,10 +460,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     overflow: "hidden",
   },
-  featurePressable: {
-    width: 150,
-    paddingHorizontal: 2,
-  },
+
   fab: {
     position: "absolute",
     margin: 16,
@@ -528,6 +522,26 @@ const styles = StyleSheet.create({
     right: 0,
     height: 20, // Adjust this value for feather size
     zIndex: 1,
+  },
+row: {
+    flexDirection: "row",
+    marginVertical: 20,
+    paddingHorizontal: 10,
+  },
+  featurePressable: {
+    marginRight: 15,
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+  },
+  featherEffect: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 }, // Subtle vertical offset
+    shadowOpacity: 0.2, // Feather-like transparency
+    shadowRadius: 10, // Feather-like blur
+    elevation: 5, // Adds depth on Android
+    backgroundColor: "#fff", // Ensure the background is visible over the shadow
+    borderRadius: 15, // Rounding the edges for a soft feather-like appearance
   },
 });
 

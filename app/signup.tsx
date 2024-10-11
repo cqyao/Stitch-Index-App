@@ -45,12 +45,29 @@ const Signup = () => {
   const [loading, setLoading] = useState(false); // Loading state
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
+  function generateRandomNumbers(): number[] {
+    const randomNumbers: number[] = [];
+
+    while (randomNumbers.length < 6) {
+      const randomNum = Math.floor(Math.random() * 20) + 1; // Generates a random number between 1 and 20
+      if (!randomNumbers.includes(randomNum)) {
+        randomNumbers.push(randomNum);
+      }
+    }
+
+    return randomNumbers;
+  }
+
+
+  const randomArray = generateRandomNumbers();
+
   interface UserData {
     firstName: string;
     lastName: string;
     email: string | null;
     uid: string;
     createdAt: Date;
+    patients: string[];
   }
 
   const saveUserToAsyncStorage = async (user: UserData) => {
@@ -100,6 +117,7 @@ const Signup = () => {
         email: user.email,
         uid: user.uid,
         createdAt: new Date(),
+        patients: randomArray.map((num) => `${num}`),
       };
 
       await saveUserToAsyncStorage(userData);
