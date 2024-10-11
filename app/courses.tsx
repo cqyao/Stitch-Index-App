@@ -46,6 +46,7 @@ export interface Course {
   blurb: string;
   userId: string;
   userPFP: string;
+  image: string;
   name: string;
   price: number;
   ratings: { userId: string; rating: number }[];
@@ -136,7 +137,7 @@ const Courses = () => {
         if (courseDoc.exists()) {
           const data = courseDoc.data();
           const ratingsArray = await getCourseRatings(courseid); // Fetch ratings for the course
-  
+
           const fetchedCourse: Course = {
             id: courseDoc.id,
             ...data,
@@ -148,9 +149,13 @@ const Courses = () => {
             blurb: data.blurb || "",
             userId: data.userId || "",
             userPFP: data.userPFP || "",
+            image: data.imageUrl || "",
             name: data.name || "",
             price: data.price || 0
           };
+
+
+          console.log("imageurl: " + data.imageUrl)
   
           setCourses([fetchedCourse]); // Set the specific course in the state
         } else {
@@ -160,22 +165,24 @@ const Courses = () => {
         // If no courseId is provided, fetch all courses
         const coursesRef = collection(db, "courses");
         const coursePromises: any[] = [];
-  
+
         const snapshot = await getDocs(coursesRef);
         snapshot.forEach((doc) => {
           const data = doc.data();
           const courseId = doc.id;
-  
+
           const coursePromise = getCourseRatings(courseId).then((ratingsArray) => ({
             id: courseId,
             ...data,
             ratings: ratingsArray,
             rating: calculateAverageRating(ratingsArray),
+            image: data.imageUrl || "", // Ensure 'image' is assigned
           }));
-  
+
           coursePromises.push(coursePromise);
         });
-  
+
+
         const resolvedCourses = await Promise.all(coursePromises);
         setCourses(resolvedCourses); // Set all fetched courses in the state
       }
@@ -256,17 +263,20 @@ const fetchSpecificCourse = async (courseId: string) => {
       // Ensure you include all the fields required by the Course interface
       const fetchedCourse = {
         id: courseDoc.id,
-        tag: data?.tag ?? "",  // Fallback to empty string if not found
+        tag: data?.tag ?? "",
         time: data?.time ?? "",
         title: data?.title ?? "",
         blurb: data?.blurb ?? "",
         userId: data?.userId ?? "",
         userPFP: data?.userPFP ?? "",
+        image: data?.imageUrl ?? "", // Updated line
         name: data?.name ?? "",
         price: data?.price ?? 0,
-        ratings: await getCourseRatings(courseId), // Fetch ratings for the course
-        rating: calculateAverageRating(await getCourseRatings(courseId)), // Calculate average rating
+        ratings: await getCourseRatings(courseId),
+        rating: calculateAverageRating(await getCourseRatings(courseId)),
       };
+
+
 
       // Update your state with this specific course
       setCourses([fetchedCourse]);
@@ -491,7 +501,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   titleText: {
-    fontFamily: "inter",
+    // fontFamily: "inter",
     fontWeight: "bold",
     fontSize: 25,
     color: "#FF6231",

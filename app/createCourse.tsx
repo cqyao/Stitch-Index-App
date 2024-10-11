@@ -296,18 +296,27 @@ const CreateCourse = () => {
               activeOutlineColor="#FF6231"
               outlineColor="#ccc"
           />
+          {image && <Image source={{ uri: image }} style={styles.previewImage} />}
+          <Button
+              mode="contained"
+              onPress={pickImage}
+              buttonColor="#00d4b5"
+              textColor="#fff"
+              style={{ marginVertical: 10 }}
+          >
+            Pick Image
+          </Button>
           <Button
               mode="contained"
               onPress={handleCreateCourse}
-              buttonColor="#FF6231" // Use buttonColor for background color
-              textColor="#FFFFFF"   // Optional: Set text color if needed
-              style={{ marginVertical: 10 }}
+              buttonColor="#FF6231"
+              textColor="#FFFFFF"
+              style={{ marginVertical: 5 }}
           >
             Create Course
           </Button>
         </ScrollView>
-          {image && <Image source={{ uri: image }} style={styles.previewImage} />}
-          {/*<Button title="Create Course" onPress={handleCreateCourse} color={"#FF6231"}/>*/}
+        {/*<Button title="Create Course" onPress={handleCreateCourse} color={"#FF6231"}/>*/}
       </View>
       </ScrollView>
     </View>
