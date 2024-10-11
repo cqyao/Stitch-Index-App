@@ -12,7 +12,8 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-  Dimensions, FlatList,
+  Dimensions,
+  FlatList,
 } from "react-native";
 import {
   Provider,
@@ -20,10 +21,11 @@ import {
   Portal,
   Modal,
   TextInput,
-  Button, List,
+  Button,
+  List,
 } from "react-native-paper";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import Input from "../components/SearchInput";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Features from "../components/Features";
@@ -32,13 +34,14 @@ import { auth } from "@/firebaseConfig";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 import Constants from "expo-constants";
-import Markdown from 'react-native-markdown-display';
-import {LinearGradient} from "expo-linear-gradient";
-
-
+import Markdown from "react-native-markdown-display";
+import { LinearGradient } from "expo-linear-gradient";
+import { useDrawerStatus } from "@react-navigation/drawer";
+import { DrawerActions } from "@react-navigation/native";
 
 const Dashboard = () => {
   const router = useRouter();
+  const navigation = useNavigation();
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -53,7 +56,9 @@ const Dashboard = () => {
   const [loadingResponse, setLoadingResponse] = useState(false);
 
   // Function to fetch image URL from Firebase Storage
-  const fetchImageFromFirebase = async (path: string): Promise<string | null> => {
+  const fetchImageFromFirebase = async (
+    path: string
+  ): Promise<string | null> => {
     try {
       const storage = getStorage();
       const imageRef = ref(storage, path);
@@ -132,31 +137,34 @@ const Dashboard = () => {
     setLoadingResponse(true);
 
     try {
-      const apiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content:
+      const apiResponse = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${KEY}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content:
                   "A compassionate and skilled physician is discussing a complex patient case with a fellow doctor using a secure chatbot. " +
                   "The patient presents with a mix of symptoms that don’t point to a clear diagnosis, prompting the physician to seek their colleague’s input to refine the approach. " +
                   "The physician explains the patient's history, current symptoms, and the tests conducted so far, then requests thoughts on further diagnostic steps, possible differential diagnoses, and treatment options. " +
                   "Together, the doctors collaborate to ensure the patient receives the best possible care.",
-            },
-            {
-              role: "user",
-              content: question,
-            },
-          ],
-          max_tokens: 500,
-        }),
-      });
+              },
+              {
+                role: "user",
+                content: question,
+              },
+            ],
+            max_tokens: 500,
+          }),
+        }
+      );
 
       const data = await apiResponse.json();
 
@@ -166,8 +174,8 @@ const Dashboard = () => {
       if (!apiResponse.ok) {
         console.error("Error from OpenAI API:", data);
         Alert.alert(
-            "Error",
-            data.error?.message || "An error occurred with OpenAI API"
+          "Error",
+          data.error?.message || "An error occurred with OpenAI API"
         );
         setLoadingResponse(false);
         return;
@@ -190,186 +198,193 @@ const Dashboard = () => {
   };
 
   return (
-      <Provider>
-        <SafeAreaView style={styles.container}>
-          <View style={styles.stitch}>
-            <Image
-                resizeMode="contain"
-                source={require("../assets/images/backgroundimage.png")}
+    <Provider>
+      <View style={styles.container}>
+        <View style={styles.stitch}>
+          <Image
+            resizeMode="contain"
+            source={require("../assets/images/backgroundimage.png")}
+          />
+        </View>
+
+        <View style={styles.banner}>
+          <Text></Text>
+          <TouchableOpacity
+            style={styles.profilePic}
+            onPress={() => {
+              navigation.dispatch(DrawerActions.toggleDrawer());
+            }}
+          >
+            {loadingImage ? (
+              <ActivityIndicator size="small" color="#02D6B6" />
+            ) : imageUrl ? (
+              <Image source={{ uri: imageUrl }} style={styles.profileImage} />
+            ) : (
+              <MaterialIcons name="face" size={40} color="black" />
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.panel}>
+          <View style={styles.searchInput}>
+            <Input
+              defaultValue={searchQuery}
+              onSearch={(value: any) => {
+                router.push({
+                  pathname: "./search",
+                  params: { query: value },
+                });
+              }}
             />
           </View>
 
-          <View style={styles.banner}>
-            <Text></Text>
-            <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
-              {loadingImage ? (
-                  <ActivityIndicator size="small" color="#02D6B6" />
-              ) : imageUrl ? (
-                  <Image source={{ uri: imageUrl }} style={styles.profileImage} />
-              ) : (
-                  <MaterialIcons name="face" size={40} color="black" />
-              )}
-            </TouchableOpacity>
+          {/*<View>*/}
+          {/*  <FlatList style={{height: 500}}*/}
+          {/*      data={ImageSlider}*/}
+          {/*      renderItem={({ item, index }) => <SliderItem item={item} index={index} />}*/}
+          {/*      horizontal*/}
+          {/*      showsHorizontalScrollIndicator={false}*/}
+          {/*      pagingEnabled*/}
+          {/*  />*/}
+
+          {/*</View>*/}
+
+          <View style={styles.features}>
+            <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
+
+            <View style={[styles.row, styles.featherEffect]}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <Pressable
+                  style={styles.featurePressable}
+                  onPress={() => router.push({ pathname: "./patient" })}
+                >
+                  <Features name="My Patients" icon="user" />
+                </Pressable>
+                <Pressable
+                  style={styles.featurePressable}
+                  onPress={() => router.push({ pathname: "./research" })}
+                >
+                  <Features name="Research" icon="book" />
+                </Pressable>
+                <Pressable
+                  style={styles.featurePressable}
+                  onPress={() => router.push({ pathname: "./calendar" })}
+                >
+                  <Features name="Calendar" icon="calendar" />
+                </Pressable>
+                <Pressable
+                  style={styles.featurePressable}
+                  onPress={() => router.push({ pathname: "./courses" })}
+                >
+                  <Features name="Courses" icon="graduation-cap" />
+                </Pressable>
+              </ScrollView>
+            </View>
           </View>
 
-          <View style={styles.panel}>
-            <View style={styles.searchInput}>
-              <Input
-                  defaultValue={searchQuery}
-                  onSearch={(value: any) => {
-                    router.push({
-                      pathname: "./search",
-                      params: { query: value },
-                    });
-                  }}
-              />
-            </View>
-
-            {/*<View>*/}
-            {/*  <FlatList style={{height: 500}}*/}
-            {/*      data={ImageSlider}*/}
-            {/*      renderItem={({ item, index }) => <SliderItem item={item} index={index} />}*/}
-            {/*      horizontal*/}
-            {/*      showsHorizontalScrollIndicator={false}*/}
-            {/*      pagingEnabled*/}
-            {/*  />*/}
-
-            {/*</View>*/}
-
-            <View style={styles.features}>
-              <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
-
-
-
-              <View style={[styles.row, styles.featherEffect]}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <Pressable
-                      style={styles.featurePressable}
-                      onPress={() => router.push({ pathname: "./patient" })}
-                  >
-                    <Features name="My Patients" icon="user" />
-                  </Pressable>
-                  <Pressable
-                      style={styles.featurePressable}
-                      onPress={() => router.push({ pathname: "./research" })}
-                  >
-                    <Features name="Research" icon="book" />
-                  </Pressable>
-                  <Pressable
-                      style={styles.featurePressable}
-                      onPress={() => router.push({ pathname: "./calendar" })}
-                  >
-                    <Features name="Calendar" icon="calendar" />
-                  </Pressable>
-                  <Pressable
-                      style={styles.featurePressable}
-                      onPress={() => router.push({ pathname: "./courses" })}
-                  >
-                    <Features name="Courses" icon="graduation-cap" />
-                  </Pressable>
-                </ScrollView>
-              </View>
-
-            </View>
-
-            <View style={styles.appointments}>
-              <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "baseline",
-                  }}
+          <View style={styles.appointments}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+              }}
+            >
+              <Text style={[styles.h2, { color: "#148085" }]}>
+                Appointments
+              </Text>
+              <Pressable
+                onPress={() => router.push({ pathname: "./calendar" })}
               >
-                <Text style={[styles.h2, { color: "#148085" }]}>
-                  Appointments
-                </Text>
-                <Pressable onPress={() => router.push({ pathname: "./calendar"})}>
                 <Text
-                    style={[styles.h3, { color: "#02D6B6", fontWeight: "600" }]}
+                  style={[styles.h3, { color: "#02D6B6", fontWeight: "600" }]}
                 >
                   See All
                 </Text>
-                </Pressable>
-              </View>
-              <View>
-                <Appointment date="Fri Nov 1" timeFrom={"8:30"} timeTo={"9:30"} />
-              </View>
+              </Pressable>
+            </View>
+            <View>
+              <Appointment date="Fri Nov 1" timeFrom={"8:30"} timeTo={"9:30"} />
             </View>
           </View>
+        </View>
 
-          {/* Floating Action Button */}
-          <FAB
-              style={styles.fab}
-              icon="chat"
-              onPress={() => setChatVisible(true)}
-              color="#fff"
-          />
+        {/* Floating Action Button */}
+        <FAB
+          style={styles.fab}
+          icon="chat"
+          onPress={() => setChatVisible(true)}
+          color="#fff"
+        />
 
-          {/* Chat Modal */}
-          <Portal>
-            <Modal
-                visible={chatVisible}
-                onDismiss={() => {
-                  setChatVisible(false);
-                  // Optionally clear the response here if desired:
-                   setResponse("");
+        {/* Chat Modal */}
+        <Portal>
+          <Modal
+            visible={chatVisible}
+            onDismiss={() => {
+              setChatVisible(false);
+              // Optionally clear the response here if desired:
+              setResponse("");
+            }}
+            contentContainerStyle={styles.chatContainer}
+          >
+            <View style={styles.chatHeader}>
+              <Text style={styles.chatTitle}>Stitch Assistant</Text>
+            </View>
+            <View>
+              <LinearGradient
+                colors={["rgba(255, 255, 255, 1)", "rgba(255, 255, 255, 0)"]}
+                style={styles.featherTop}
+              />
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={styles.responseContainer}
+              >
+                {response ? ( // Check if there is a response to display
+                  <Markdown>{response}</Markdown>
+                ) : (
+                  <Text style={styles.responseText}></Text>
+                )}
+              </ScrollView>
+              {/*{loadingResponse && (*/}
+              {/*    <ActivityIndicator size="small" color="#02D6B6" />*/}
+              {/*)}*/}
+              <LinearGradient
+                colors={["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 1)"]}
+                style={styles.featherBottom}
+              />
+            </View>
+
+            <View style={styles.chatFooter}>
+              <TextInput
+                outlineColor={"#02D6B6"}
+                activeOutlineColor={"#02D6B6"}
+                label="Ask a medical question"
+                value={question}
+                onChangeText={(text) => setQuestion(text)}
+                style={styles.chatInput}
+                mode="outlined"
+              />
+              <Button
+                mode="contained"
+                buttonColor={"#02D6B6"}
+                loading={loadingResponse}
+                onPress={() => {
+                  if (question.trim() !== "") {
+                    getChatGPTResponse(question);
+                    setQuestion("");
+                  }
                 }}
-                contentContainerStyle={styles.chatContainer}
-            >
-              <View style={styles.chatHeader}>
-                <Text style={styles.chatTitle}>Stitch Assistant</Text>
-              </View>
-              <View >
-                <LinearGradient
-                    colors={['rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 0)']}
-                    style={styles.featherTop}
-                />
-                <ScrollView showsVerticalScrollIndicator={false} style={styles.responseContainer}>
-                  {response ? ( // Check if there is a response to display
-                      <Markdown>{response}</Markdown>
-                  ) : (
-                      <Text style={styles.responseText}></Text>
-                  )}
-                </ScrollView>
-                {/*{loadingResponse && (*/}
-                {/*    <ActivityIndicator size="small" color="#02D6B6" />*/}
-                {/*)}*/}
-                <LinearGradient
-                    colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 1)']}
-                    style={styles.featherBottom}
-                />
-              </View>
-
-              <View style={styles.chatFooter}>
-                <TextInput
-                    outlineColor={"#02D6B6"}
-                    activeOutlineColor={"#02D6B6"}
-                    label="Ask a medical question"
-                    value={question}
-                    onChangeText={(text) => setQuestion(text)}
-                    style={styles.chatInput}
-                    mode="outlined"
-                />
-                <Button
-                    mode="contained"
-                    buttonColor={"#02D6B6"}
-                    loading={loadingResponse}
-                    onPress={() => {
-                      if (question.trim() !== "") {
-                        getChatGPTResponse(question);
-                        setQuestion("");
-                      }
-                    }}
-                    disabled={loadingResponse}
-                    style={styles.sendButton}
-                >
-                  Send
-                </Button>
-              </View>
-            </Modal>
-          </Portal>
-        </SafeAreaView>
-      </Provider>
+                disabled={loadingResponse}
+                style={styles.sendButton}
+              >
+                Send
+              </Button>
+            </View>
+          </Modal>
+        </Portal>
+      </View>
+    </Provider>
   );
 };
 
@@ -506,9 +521,9 @@ const styles = StyleSheet.create({
   sendButton: {
     justifyContent: "center",
     marginTop: 7,
-
-  }, featherTop: {
-    position: 'absolute',
+  },
+  featherTop: {
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -516,14 +531,14 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   featherBottom: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     height: 20, // Adjust this value for feather size
     zIndex: 1,
   },
-row: {
+  row: {
     flexDirection: "row",
     marginVertical: 20,
     paddingHorizontal: 10,
