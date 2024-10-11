@@ -1,5 +1,3 @@
-// Dashboard.js
-
 import React, { useEffect, useState } from "react";
 import {
   Text,
@@ -12,7 +10,8 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-  Dimensions, FlatList,
+  Dimensions,
+  FlatList,
 } from "react-native";
 import {
   Provider,
@@ -20,22 +19,30 @@ import {
   Portal,
   Modal,
   TextInput,
-  Button, List,
+  Button,
 } from "react-native-paper";
-import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Input from "../components/SearchInput";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Features from "../components/Features";
-import Appointment from "../components/Appointment";
-import { auth } from "@/firebaseConfig";
+import AppointmentCard from "@/components/AppointmentCard";
+import { auth, db } from "@/firebaseConfig";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 import Constants from "expo-constants";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import Markdown from 'react-native-markdown-display';
-import {LinearGradient} from "expo-linear-gradient";
+import { LinearGradient } from "expo-linear-gradient";
 
-
+type AppointmentProps = {
+  id: string;
+  patientId: string;
+  status: boolean;
+  time: string;
+  type: string;
+  doctorId: string;
+};
 
 const Dashboard = () => {
   const router = useRouter();
@@ -45,6 +52,10 @@ const Dashboard = () => {
   const [loadingImage, setLoadingImage] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // State variables for appointments
+  const [appointments, setAppointments] = useState<AppointmentProps[]>([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<AppointmentProps[]>([]);
 
   // State variables for chat functionality
   const [chatVisible, setChatVisible] = useState(false);
@@ -79,6 +90,30 @@ const Dashboard = () => {
     }
   };
 
+  // Function to fetch appointments with real-time updates
+  const fetchAppointments = (userId: string) => {
+    const appointmentsCollection = collection(db, "Appointments");
+    const q = query(appointmentsCollection, where("doctorId", "==", userId));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const appointmentsList: AppointmentProps[] = querySnapshot.docs.map(
+          (doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })
+      ) as AppointmentProps[];
+
+      setAppointments(appointmentsList);
+
+      // Filter upcoming appointments (status: false)
+      const upcoming = appointmentsList.filter((appointment) => !appointment.status);
+      setUpcomingAppointments(upcoming);
+    });
+
+    // Return the unsubscribe function to clean up the listener
+    return unsubscribe;
+  };
+
   // Handle user sign-out
   const handleSignOut = async () => {
     try {
@@ -102,8 +137,10 @@ const Dashboard = () => {
     }
   };
 
-  // Retrieve user UID from AsyncStorage and fetch image URL
+  // Retrieve user UID from AsyncStorage and fetch image URL and appointments
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
     const initializeUser = async () => {
       setLoading(true);
       try {
@@ -112,6 +149,7 @@ const Dashboard = () => {
           const user = JSON.parse(userString);
           setUser(user);
           await fetchImageUrl(user);
+          unsubscribe = fetchAppointments(user.uid); // Set up the listener here
         } else {
           router.push({ pathname: "./signIn" });
         }
@@ -123,11 +161,18 @@ const Dashboard = () => {
       }
     };
     initializeUser();
+
+    // Clean up the listener when the component unmounts
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const KEY = Constants.expoConfig?.extra?.openAI_key;
 
-  // Function to get response from OpenAI API
+  // Function to get response from API
   const getChatGPTResponse = async (question: string) => {
     setLoadingResponse(true);
 
@@ -160,9 +205,6 @@ const Dashboard = () => {
 
       const data = await apiResponse.json();
 
-      // Log the full response for debugging purposes
-      // console.log("Full response from OpenAI:", JSON.stringify(data, null, 2));
-
       if (!apiResponse.ok) {
         console.error("Error from OpenAI API:", data);
         Alert.alert(
@@ -175,7 +217,6 @@ const Dashboard = () => {
 
       if (data.choices && data.choices.length > 0) {
         const messageContent = data.choices[0].message.content.trim();
-        // console.log("Received message content:", messageContent);
         setResponse(messageContent);
       } else {
         console.error("No choices returned from the API. Full response:", data);
@@ -225,21 +266,8 @@ const Dashboard = () => {
               />
             </View>
 
-            {/*<View>*/}
-            {/*  <FlatList style={{height: 500}}*/}
-            {/*      data={ImageSlider}*/}
-            {/*      renderItem={({ item, index }) => <SliderItem item={item} index={index} />}*/}
-            {/*      horizontal*/}
-            {/*      showsHorizontalScrollIndicator={false}*/}
-            {/*      pagingEnabled*/}
-            {/*  />*/}
-
-            {/*</View>*/}
-
             <View style={styles.features}>
               <Text style={[styles.h2, { color: "#148085" }]}>Features</Text>
-
-
 
               <View style={[styles.row, styles.featherEffect]}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -269,7 +297,6 @@ const Dashboard = () => {
                   </Pressable>
                 </ScrollView>
               </View>
-
             </View>
 
             <View style={styles.appointments}>
@@ -280,19 +307,34 @@ const Dashboard = () => {
                     alignItems: "baseline",
                   }}
               >
-                <Text style={[styles.h2, { color: "#148085" }]}>
-                  Appointments
-                </Text>
-                <Pressable onPress={() => router.push({ pathname: "./calendar"})}>
-                <Text
-                    style={[styles.h3, { color: "#02D6B6", fontWeight: "600" }]}
-                >
-                  See All
-                </Text>
+                <Text style={[styles.h2, { color: "#148085" }]}>Appointments</Text>
+                <Pressable onPress={() => router.push({ pathname: "./calendar" })}>
+                  <Text style={[styles.h3, { color: "#02D6B6", fontWeight: "600" }]}>
+                    See All
+                  </Text>
                 </Pressable>
               </View>
               <View>
-                <Appointment date="Fri Nov 1" timeFrom={"8:30"} timeTo={"9:30"} />
+                <FlatList
+                    data={upcomingAppointments}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                        <AppointmentCard
+                            key={item.id}
+                            id={item.id}
+                            patientId={item.patientId}
+                            status={item.status}
+                            time={item.time.toString()}
+                            type={item.type}
+                            // No need to pass refreshAppointments
+                        />
+                    )}
+                    ListEmptyComponent={
+                      <Text style={styles.noAppointmentsText}>
+                        No upcoming appointments.
+                      </Text>
+                    }
+                />
               </View>
             </View>
           </View>
@@ -311,31 +353,30 @@ const Dashboard = () => {
                 visible={chatVisible}
                 onDismiss={() => {
                   setChatVisible(false);
-                  // Optionally clear the response here if desired:
-                   setResponse("");
+                  setResponse("");
                 }}
                 contentContainerStyle={styles.chatContainer}
             >
               <View style={styles.chatHeader}>
                 <Text style={styles.chatTitle}>Stitch Assistant</Text>
               </View>
-              <View >
+              <View>
                 <LinearGradient
-                    colors={['rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 0)']}
+                    colors={["rgba(255, 255, 255, 1)", "rgba(255, 255, 255, 0)"]}
                     style={styles.featherTop}
                 />
-                <ScrollView showsVerticalScrollIndicator={false} style={styles.responseContainer}>
-                  {response ? ( // Check if there is a response to display
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    style={styles.responseContainer}
+                >
+                  {response ? (
                       <Markdown>{response}</Markdown>
                   ) : (
                       <Text style={styles.responseText}></Text>
                   )}
                 </ScrollView>
-                {/*{loadingResponse && (*/}
-                {/*    <ActivityIndicator size="small" color="#02D6B6" />*/}
-                {/*)}*/}
                 <LinearGradient
-                    colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 1)']}
+                    colors={["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 1)"]}
                     style={styles.featherBottom}
                 />
               </View>
@@ -506,24 +547,24 @@ const styles = StyleSheet.create({
   sendButton: {
     justifyContent: "center",
     marginTop: 7,
-
-  }, featherTop: {
-    position: 'absolute',
+  },
+  featherTop: {
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: 30, // Adjust this value for feather size
+    height: 30,
     zIndex: 1,
   },
   featherBottom: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: 20, // Adjust this value for feather size
+    height: 20,
     zIndex: 1,
   },
-row: {
+  row: {
     flexDirection: "row",
     marginVertical: 20,
     paddingHorizontal: 10,
@@ -536,12 +577,17 @@ row: {
   },
   featherEffect: {
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 }, // Subtle vertical offset
-    shadowOpacity: 0.2, // Feather-like transparency
-    shadowRadius: 10, // Feather-like blur
-    elevation: 5, // Adds depth on Android
-    backgroundColor: "#fff", // Ensure the background is visible over the shadow
-    borderRadius: 15, // Rounding the edges for a soft feather-like appearance
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
+    backgroundColor: "#fff",
+    borderRadius: 15,
+  },
+  noAppointmentsText: {
+    textAlign: "center",
+    color: "#7D7D7D",
+    marginTop: 10,
   },
 });
 

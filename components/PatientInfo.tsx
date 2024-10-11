@@ -12,7 +12,7 @@ export interface PatientProps {
     email: string,
     symptoms: string[],
     tags: string[],
-    PatientReport?: string
+    PatientReport: string
 }
 
 const PatientInfo: React.FC<PatientProps> = ({

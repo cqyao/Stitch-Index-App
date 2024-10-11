@@ -7,14 +7,12 @@ import {
   Pressable,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome5, MaterialIcons, Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import Animated, { FadeIn } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PatientProps } from "@/components/PatientInfo";
-import { FirebaseError } from "firebase/app";
 
 const Appointment = () => {
   const params = useLocalSearchParams<{
@@ -24,12 +22,13 @@ const Appointment = () => {
     data: string;
   }>();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [ patientUrl, setPatientUrl] = useState<string | null>(null);
+  const [patientUrl, setPatientUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const router = useRouter();
 
   const patientData: PatientProps = params.data
-    ? JSON.parse(params.data)
-    : null;
+      ? JSON.parse(params.data)
+      : null;
 
   const fetchImageUrl = async (userID: string) => {
     try {
@@ -44,7 +43,7 @@ const Appointment = () => {
 
   const fetchPatientImageUrl = async (patientID: string) => {
     try {
-      const url = await fetchImageFromFirebase(`patientpfp/${patientID}.jpg`);
+      const url = await fetchImageFromFirebase(`patientpfp/${patientID}.png`);
       if (url) {
         setPatientUrl(url);
       }
@@ -54,7 +53,7 @@ const Appointment = () => {
   };
 
   const fetchImageFromFirebase = async (
-    path: string
+      path: string
   ): Promise<string | null> => {
     try {
       const storage = getStorage();
@@ -92,63 +91,63 @@ const Appointment = () => {
       } catch (error) {
         console.error("Error fetching patient image: ", error);
       };
-    } 
+    }
     getPatientImage();
   }, [])
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.banner}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={35} color="white" />
-        </Pressable>
-        <Image
-          source={require("../assets/images/LogoWhite.png")}
-          resizeMode="contain"
-          style={styles.logo}
-        />
-        <Animated.Image
-          entering={FadeIn.delay(500)}
-          source={{ uri: imageUrl || undefined }}
-          style={{ height: 45, width: 45, borderRadius: 90 }}
-        />
-      </View>
-      <View style={styles.card}>
-        <View style={styles.time}>
-          <FontAwesome5 name="clock" size={25} color="grey" />
-          <Text style={styles.timeText}>{params.time}</Text>
-        </View>
-        <View style={styles.lineStyle} />
-        <View style={styles.profileView}>
-          <Animated.Image
-            entering={FadeIn.delay(250)}
-            source={{ uri: patientUrl || undefined }}
-            style={styles.profilePic}
+      <View style={styles.screen}>
+        <View style={styles.banner}>
+          <Pressable onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={35} color="white" />
+          </Pressable>
+          <Image
+              source={require("../assets/images/LogoWhite.png")}
+              resizeMode="contain"
+              style={styles.logo}
           />
-          <View>
-            <Text style={styles.profileName}>{patientData.name}</Text>
-            <Text style={styles.profileType}>{params.type}</Text>
+          <Animated.Image
+              entering={FadeIn.delay(500)}
+              source={{ uri: imageUrl || undefined }}
+              style={{ height: 45, width: 45, borderRadius: 90 }}
+          />
+        </View>
+        <View style={styles.card}>
+          <View style={styles.time}>
+            <FontAwesome5 name="clock" size={25} color="grey" />
+            <Text style={styles.timeText}>{params.time}</Text>
           </View>
+          <View style={styles.lineStyle} />
+          <View style={styles.profileView}>
+            <Animated.Image
+                entering={FadeIn.delay(250)}
+                source={{ uri: patientUrl || undefined }}
+                style={styles.profilePic}
+            />
+            <View>
+              <Text style={styles.profileName}>{patientData.name}</Text>
+              <Text style={styles.profileType}>{params.type}</Text>
+            </View>
+          </View>
+          <View>
+            <Text style={styles.h1}>Symptoms</Text>
+            {patientData.symptoms.map((symptom) => (
+                <Text key={symptom} style={styles.h2}>
+                  {symptom}
+                </Text>
+            ))}
+          </View>
+          <View style={{ marginVertical: 10 }} />
+          <View>
+            <Text style={styles.h1}>Meeting Type</Text>
+            <Text style={styles.h2}>Online</Text>
+          </View>
+          <View style={styles.lineStyle} />
+          <Text style={styles.h1}>Contact Information</Text>
+          <Text style={styles.h2}>{patientData.email}</Text>
+          <Text style={styles.h2}>{patientData.mobile}</Text>
         </View>
-        <View>
-          <Text style={styles.h1}>Symptoms</Text>
-          {patientData.symptoms.map((symptom) => (
-            <Text key={symptom} style={styles.h2}>
-              {symptom}
-            </Text>
-          ))}
-        </View>
-        <View style={{ marginVertical: 10 }} />
-        <View>
-          <Text style={styles.h1}>Meeting Type</Text>
-          <Text style={styles.h2}>Online</Text>
-        </View>
-        <View style={styles.lineStyle} />
-        <Text style={styles.h1}>Contact info</Text>
-        <Text style={styles.h2}>{patientData.email}</Text>
-        <Text style={styles.h2}>{patientData.mobile}</Text>
       </View>
-    </View>
   );
 };
 
@@ -171,7 +170,6 @@ const styles = StyleSheet.create({
   },
   screen: {
     backgroundColor: "#F2F2F2",
-    //paddingHorizontal: 30,
   },
   card: {
     backgroundColor: "white",

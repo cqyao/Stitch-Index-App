@@ -1,24 +1,33 @@
-// courseContents.tsx
-
 import React, { useEffect, useState } from "react";
 import {
-  Text,
   View,
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  TouchableOpacity,
-  Image,
   StyleSheet,
-  ScrollView,
+  SafeAreaView,
+  Pressable,
+  Image,
+  Dimensions,
 } from "react-native";
-import { useNavigation, useRouter, useLocalSearchParams } from "expo-router";
+import {
+  Avatar,
+  Button,
+  Card,
+  Title,
+  Paragraph,
+  ActivityIndicator,
+  Provider,
+} from "react-native-paper";
+import {
+  useNavigation,
+  useRouter,
+  useLocalSearchParams,
+} from "expo-router";
 import { auth } from "@/firebaseConfig";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { MaterialIcons } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, { FadeIn } from "react-native-reanimated";
+import LottieView from "lottie-react-native";
 
 // Import Firestore functions
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -165,98 +174,139 @@ const CourseContents = () => {
     fetchUserUid();
   }, [user]); // Include 'user' in dependency array
 
-  return (
-      <View style={{ flex: 1, backgroundColor: "white" }}>
-        <View style={styles.banner}>
-          <Pressable onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={35} color="black" />
-          </Pressable>
-          <TouchableOpacity style={styles.profilePic}>
-            {loadingImage ? (
-                <ActivityIndicator size="small" color="#02D6B6" />
-            ) : imageUrl ? (
-                <Image source={{ uri: imageUrl }} style={styles.profileImage} />
-            ) : (
-                <MaterialIcons name="face" size={40} color="black" />
-            )}
-          </TouchableOpacity>
-        </View>
-        {courseData ? (
-            <ScrollView style={{ padding: 20 }}>
-              <Text style={styles.courseTitle}>{courseData.title}</Text>
-              <Text style={styles.courseBlurb}>{courseData.blurb}</Text>
-              {/* Add course content here */}
-              <Text style={styles.sectionTitle}>Course Content</Text>
-              {/* Example content */}
-              <Text>{/* ... */}</Text>
-              {/* Rating */}
-              <View style={styles.ratingContainer}>
-                <Text style={styles.ratingText}>Rate this course:</Text>
-                <StarRating
-                    rating={rating}
-                    onChange={handleRating}
-                    starSize={30}
-                    color="#FF6231"
-                />
-              </View>
-              {/* Profile and Minutes */}
-              <View>
+  if (!courseData) {
+    return (
+        <SafeAreaView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <LottieView
+                source={require("../assets/Animations/loading.json")}
+                autoPlay
+                loop
+                style={styles.lottie}
+            />
+          </View>
+        </SafeAreaView>
+    );
+  }
 
-              </View>
-            </ScrollView>
-        ) : (
-            <ActivityIndicator size="large" color="#02D6B6" />
-        )}
-      </View>
+  return (
+      <Provider>
+        <SafeAreaView style={styles.container}>
+          {/* Banner */}
+          <View style={styles.banner}>
+            <Pressable onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={35} color="white" />
+            </Pressable>
+            <View style={styles.logoContainer}>
+              <Image
+                  source={require("../assets/images/LogoWhite.png")}
+                  resizeMode="contain"
+                  style={styles.logo}
+              />
+            </View>
+          </View>
+          {/* End of Banner */}
+
+          <Animated.ScrollView entering={FadeIn.delay(100)}>
+            <Card style={styles.card}>
+              <Card.Content>
+                <Title style={styles.courseTitle}>{courseData.title}</Title>
+                <Paragraph style={styles.courseBlurb}>
+                  {courseData.blurb}
+                </Paragraph>
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.card}>
+              <Card.Content>
+                <Title style={styles.sectionTitle}>Course Content</Title>
+                <Paragraph>{courseData.courseContents}</Paragraph>
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.card}>
+              <Card.Content>
+                <Image source={{ uri: imageUrl as string }} style={styles.postImage} />
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.card}>
+              <Card.Content>
+                <View style={styles.ratingContainer}>
+                  <Paragraph style={styles.ratingText}>
+                    Rate this course:
+                  </Paragraph>
+                  <StarRating
+                      rating={rating}
+                      onChange={handleRating}
+                      starSize={30}
+                      color="#FF6231"
+                  />
+                </View>
+              </Card.Content>
+            </Card>
+          </Animated.ScrollView>
+        </SafeAreaView>
+      </Provider>
   );
 };
 
 export default CourseContents;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
   banner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
-    paddingHorizontal: 30,
+    marginBottom: 20,
+    paddingHorizontal: 20,
     paddingTop: 30,
     paddingBottom: 10,
+    backgroundColor: "#00D6B5",
   },
-  profilePic: {
-    flexDirection: "row",
-    marginRight: 15,
-    borderWidth: 2,
-    height: 55,
-    width: 55,
+  logoContainer: {
+    flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    borderColor: "#02D6B6",
-    borderRadius: 27.5,
-    overflow: "hidden",
-    backgroundColor: "#fff",
   },
-  profileImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
+  logo: {
+    width: 150,
+    height: 50,
+  },
+  card: {
+    marginHorizontal: 20,
+    marginVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "#d8ebfe",
   },
   courseTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#666666",
-    marginBottom: 10,
+    color: "#2c2c2d",
+    textAlign: "center",
   },
   courseBlurb: {
     fontSize: 16,
-    color: "#7D7D7D",
-    marginBottom: 20,
+    marginTop: 5,
+    color: "#383838",
+    alignSelf: "center",
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#666666",
-    marginBottom: 10,
+    color: "#2c2c2d",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lottie: {
+    width: 200,
+    height: 200,
   },
   ratingContainer: {
     marginTop: 20,
@@ -266,5 +316,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 10,
     color: "#666666",
+  },
+  postImage: {
+    width: "100%",
+    height: 300,
+    borderRadius: 15,
+    marginVertical: 15,
   },
 });

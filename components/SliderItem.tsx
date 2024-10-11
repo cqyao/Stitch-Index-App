@@ -74,13 +74,11 @@ const SliderItem = ({
     return (
         <Animated.View style={[styles.ItemContainer, rnAnimatedStyle]}>
             <TouchableOpacity onPress={handlePress} activeOpacity={60}>
-                {/* Display course image if available */}
+                {/* Display course image if available, otherwise show a placeholder */}
                 {item.image ? (
                     <Image source={{ uri: item.image }} style={styles.image} />
-
                 ) : (
-                    <View style={styles.image}>
-                        <Ionicons name="image-outline" size={100} color="#ccc" />
+                    <View style={styles.placeholderImage}>
                     </View>
                 )}
                 <LinearGradient

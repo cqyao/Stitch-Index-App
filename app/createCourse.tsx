@@ -11,22 +11,20 @@ import {
   Image,
   StyleSheet,
   Keyboard,
-  KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
 import { useNavigation, useRouter } from "expo-router";
-import {auth, storage} from "@/firebaseConfig";
-import {getStorage, ref, getDownloadURL, uploadBytes} from "firebase/storage";
+import { auth, storage } from "@/firebaseConfig";
+import { getStorage, ref, getDownloadURL, uploadBytes } from "firebase/storage";
 import { User } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
-import { TextInput, Button} from 'react-native-paper';
+import { TextInput, Button } from 'react-native-paper';
 
 // Import Firestore functions
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
-import { FirebaseError } from "firebase/app";
 import * as ImagePicker from "expo-image-picker";
 
 const CreateCourse = () => {
@@ -45,10 +43,10 @@ const CreateCourse = () => {
   const [tag, setTag] = useState("");
   const [time, setTime] = useState("");
   const [price, setPrice] = useState("");
+  const [courseContents, setCourseContents] = useState(""); // Added state for course contents
   const [author, setAuthor] = useState<string | null>(null);
   const [userID, setUserID] = useState<string | null>(null);
   const [image, setImage] = useState<string | null>(null);
-
 
   const checkUserInAsyncStorage = async () => {
     try {
@@ -69,7 +67,6 @@ const CreateCourse = () => {
         const userData = JSON.parse(userString);
         setAuthor(`${userData.firstName} ${userData.lastName}`);
         setUserID(`${userData.uid}`);
-        // setUserPFP(await fetchImageFromFirebase(`pfp/${userData.uid}`));
       }
     } catch (error) {
       console.error("Error fetching author data from AsyncStorage", error);
@@ -78,7 +75,7 @@ const CreateCourse = () => {
 
   // Function to fetch image URL from Firebase Storage
   const fetchImageFromFirebase = async (
-    path: string
+      path: string
   ): Promise<string | null> => {
     try {
       const storage = getStorage();
@@ -143,22 +140,20 @@ const CreateCourse = () => {
         return;
       }
 
-      if (!title || !blurb || !tag || !time || !price) {
+      if (!title || !blurb || !tag || !time || !price || !courseContents) { // Added courseContents to validation
         Alert.alert("Error", "Please fill in all fields");
         return;
       }
 
-
       let imageUrl = "";
       if (image) {
-          // Upload image to Firebase Storage
-          const response = await fetch(image);
-          const blob = await response.blob();
-          const imageRef = ref(storage, `courseImages/${Date.now()}`);
-          await uploadBytes(imageRef, blob);
-          imageUrl = await getDownloadURL(imageRef);
+        // Upload image to Firebase Storage
+        const response = await fetch(image);
+        const blob = await response.blob();
+        const imageRef = ref(storage, `courseImages/${Date.now()}`);
+        await uploadBytes(imageRef, blob);
+        imageUrl = await getDownloadURL(imageRef);
       }
-
 
       const newCourse = {
         title,
@@ -170,6 +165,7 @@ const CreateCourse = () => {
         userPFP: PFPUrl || "",
         name: author || "Anonymous",
         imageUrl,
+        courseContents, // Added courseContents to the Firestore document
       };
 
       await addDoc(collection(db, "courses"), newCourse);
@@ -206,121 +202,124 @@ const CreateCourse = () => {
   }, []);
 
   return (
-    <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
-    <View style={{ flex: 1, backgroundColor: "white" }}>
-      <View style={styles.banner}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={35} color="black" />
-        </Pressable>
-        <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
-          {loadingImage ? (
-            <ActivityIndicator size="small" color="#02D6B6" />
-          ) : PFPUrl ? (
-            <Image source={{ uri: PFPUrl }} style={styles.profileImage} />
-          ) : (
-            <MaterialIcons name="face" size={40} color="black" />
-          )}
-        </TouchableOpacity>
-      </View>
+      <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1, backgroundColor: "white" }}>
+          <View style={styles.banner}>
+            <Pressable onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={35} color="black" />
+            </Pressable>
+            <TouchableOpacity style={styles.profilePic} onPress={handleSignOut}>
+              {loadingImage ? (
+                  <ActivityIndicator size="small" color="#02D6B6" />
+              ) : PFPUrl ? (
+                  <Image source={{ uri: PFPUrl }} style={styles.profileImage} />
+              ) : (
+                  <MaterialIcons name="face" size={40} color="black" />
+              )}
+            </TouchableOpacity>
+          </View>
 
-      <ScrollView
-          contentContainerStyle={{ padding: 16 }}
-          keyboardShouldPersistTaps="handled"
-      >
-      {/* Form */}
-      <View style={styles.form}>
-        <TextInput
-            style={styles.input}
-            label="Course Title"
-            placeholderTextColor="#7D7D7D"
-            value={title}
-            mode="outlined"
-            onChangeText={setTitle}
-            maxLength={25}
-            activeOutlineColor="#FF6231"
-            outlineColor="#ccc"
-        />
-        <TextInput
-            style={styles.input}
-            label="Blurb"
-            placeholderTextColor="#7D7D7D"
-            value={blurb}
-            mode="outlined"
-            onChangeText={setBlurb}
-            maxLength={99}
-            activeOutlineColor="#FF6231"
-            outlineColor="#ccc"
-        />
-        <TextInput
-            style={styles.input}
-            label="Tag"
-            placeholderTextColor="#7D7D7D"
-            value={tag}
-            mode="outlined"
-            onChangeText={setTag}
-            activeOutlineColor="#FF6231"
-            outlineColor="#ccc"
-        />
-        <TextInput
-            style={styles.input}
-            label="Time (minutes)"
-            placeholderTextColor="#7D7D7D"
-            value={time}
-            mode="outlined"
-            onChangeText={setTime}
-            keyboardType="numeric"
-            maxLength={3}
-            activeOutlineColor="#FF6231"
-            outlineColor="#ccc"
-        />
-        <TextInput
-            style={styles.input}
-            label="Price"
-            placeholderTextColor="#7D7D7D"
-            value={price}
-            mode="outlined"
-            onChangeText={setPrice}
-            keyboardType="numeric"
-            activeOutlineColor="#FF6231"
-            outlineColor="#ccc"
-        />
-        <ScrollView automaticallyAdjustKeyboardInsets={true}>
-          <TextInput
-              style={[styles.inputContents, { textAlignVertical: 'top' }]}
-              label="Course Contents"
-              placeholderTextColor="#7D7D7D"
-              returnKeyType="send"
-              blurOnSubmit={false}
-              multiline
-              mode="outlined"
-              activeOutlineColor="#FF6231"
-              outlineColor="#ccc"
-          />
-          {image && <Image source={{ uri: image }} style={styles.previewImage} />}
-          <Button
-              mode="contained"
-              onPress={pickImage}
-              buttonColor="#00d4b5"
-              textColor="#fff"
-              style={{ marginVertical: 10 }}
+          <ScrollView
+              contentContainerStyle={{ padding: 16 }}
+              keyboardShouldPersistTaps="handled"
           >
-            Pick Image
-          </Button>
-          <Button
-              mode="contained"
-              onPress={handleCreateCourse}
-              buttonColor="#FF6231"
-              textColor="#FFFFFF"
-              style={{ marginVertical: 5 }}
-          >
-            Create Course
-          </Button>
-        </ScrollView>
-        {/*<Button title="Create Course" onPress={handleCreateCourse} color={"#FF6231"}/>*/}
-      </View>
-      </ScrollView>
-    </View>
-    </Pressable>
+            {/* Form */}
+            <View style={styles.form}>
+              <TextInput
+                  style={styles.input}
+                  label="Course Title"
+                  placeholderTextColor="#7D7D7D"
+                  value={title}
+                  mode="outlined"
+                  onChangeText={setTitle}
+                  maxLength={25}
+                  activeOutlineColor="#FF6231"
+                  outlineColor="#ccc"
+              />
+              <TextInput
+                  style={styles.input}
+                  label="Blurb"
+                  placeholderTextColor="#7D7D7D"
+                  value={blurb}
+                  mode="outlined"
+                  onChangeText={setBlurb}
+                  maxLength={99}
+                  activeOutlineColor="#FF6231"
+                  outlineColor="#ccc"
+              />
+              <TextInput
+                  style={styles.input}
+                  label="Tag"
+                  placeholderTextColor="#7D7D7D"
+                  value={tag}
+                  mode="outlined"
+                  onChangeText={setTag}
+                  activeOutlineColor="#FF6231"
+                  outlineColor="#ccc"
+              />
+              <TextInput
+                  style={styles.input}
+                  label="Time (minutes)"
+                  placeholderTextColor="#7D7D7D"
+                  value={time}
+                  mode="outlined"
+                  onChangeText={setTime}
+                  keyboardType="numeric"
+                  maxLength={3}
+                  activeOutlineColor="#FF6231"
+                  outlineColor="#ccc"
+              />
+              <TextInput
+                  style={styles.input}
+                  label="Price"
+                  placeholderTextColor="#7D7D7D"
+                  value={price}
+                  mode="outlined"
+                  onChangeText={setPrice}
+                  keyboardType="numeric"
+                  activeOutlineColor="#FF6231"
+                  outlineColor="#ccc"
+              />
+              <ScrollView automaticallyAdjustKeyboardInsets={true}>
+                <TextInput
+                    style={[styles.inputContents, { textAlignVertical: 'top' }]}
+                    label="Course Contents"
+                    placeholderTextColor="#7D7D7D"
+                    value={courseContents} // Added value prop
+                    onChangeText={setCourseContents} // Added onChangeText prop
+                    returnKeyType="send"
+                    blurOnSubmit={false}
+                    multiline
+                    mode="outlined"
+                    activeOutlineColor="#FF6231"
+                    outlineColor="#ccc"
+                />
+                {image && (
+                    <Image source={{ uri: image }} style={styles.previewImage} />
+                )}
+                <Button
+                    mode="contained"
+                    onPress={pickImage}
+                    buttonColor="#00d4b5"
+                    textColor="#fff"
+                    style={{ marginVertical: 10 }}
+                >
+                  Pick Image
+                </Button>
+                <Button
+                    mode="contained"
+                    onPress={handleCreateCourse}
+                    buttonColor="#FF6231"
+                    textColor="#FFFFFF"
+                    style={{ marginVertical: 5 }}
+                >
+                  Create Course
+                </Button>
+              </ScrollView>
+            </View>
+          </ScrollView>
+        </View>
+      </Pressable>
   );
 };
 
@@ -359,14 +358,12 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   input: {
-    //borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,
     marginVertical: 5,
   },
   inputContents: {
-    //borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,

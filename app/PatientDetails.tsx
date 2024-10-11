@@ -10,8 +10,7 @@ import LottieView from 'lottie-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import Constants from 'expo-constants';
 import Markdown from 'react-native-markdown-display';
-import {LinearGradient} from "expo-linear-gradient";
-
+import { LinearGradient } from "expo-linear-gradient";
 
 interface PatientDetailsProps {
     picture: string;
@@ -27,11 +26,10 @@ interface PatientDetailsProps {
 }
 
 const PatientDetails = () => {
-    const { id } = useLocalSearchParams(); // Updated hook
+    const { id } = useLocalSearchParams(); // Patient ID
     const router = useRouter();
     const [patientData, setPatientData] = useState<PatientDetailsProps | null>(null);
 
-    // State variables for ChatGPT API
     const [loadingResponse, setLoadingResponse] = useState(false);
     const [response, setResponse] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
@@ -98,8 +96,6 @@ const PatientDetails = () => {
                     content: `Here is the patient data:\n\nName: ${patientData.name}\nGender: ${patientData.gender}\nDOB: ${patientData.birthdateString}\nPronouns: ${patientData.pronouns}\nMobile: ${patientData.mobile}\nEmail: ${patientData.email}\nSymptoms: ${patientData.symptoms.join(', ')}\nPatient Report: ${patientData.PatientReport}\nTags: ${patientData.tags.join(', ')}\n\nPlease provide your professional assessment for this patient.`
                 }
             ];
-
-
 
             const apiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
                 method: "POST",
@@ -207,7 +203,7 @@ const PatientDetails = () => {
 
                     <Card style={styles.card}>
                         <Card.Content>
-                            <Title style={styles.sectionHeader}>Patient Report</Title>
+                            <Title style={styles.sectionHeader}>Patient Note</Title>
                             <Paragraph style={styles.detailsText}>{patientData.PatientReport}</Paragraph>
                         </Card.Content>
                         <Animated.View entering={FadeIn.delay(550)}>
@@ -222,19 +218,18 @@ const PatientDetails = () => {
                                 >
                                     {loadingResponse ? "Generating..." : "Stitch Diagnosis"}
                                 </Button>
-                                {/*<Button*/}
-                                {/*    style={styles.button}*/}
-                                {/*    icon="account-details"*/}
-                                {/*    buttonColor={"#00d4b5"}*/}
-                                {/*    mode="contained"*/}
-                                {/*    onPress={() => getChatGPTResponse(patientData)}*/}
-                                {/*    disabled={loadingResponse}*/}
-                                {/*>*/}
-                                {/*    {loadingResponse ? "Booking Appointment..." : "Book Appointment"}*/}
-                                {/*</Button>*/}
+                                <Button
+                                    style={styles.button2}
+                                    icon="account"
+                                    buttonColor={"#00d4b5"}
+                                    mode="contained"
+                                    onPress={() => router.push({ pathname: './BookAppointment', params: { patientId: id } })}
+                                    disabled={loadingResponse}
+                                >
+                                    {"Book"}
+                                </Button>
                             </View>
                         </Animated.View>
-
                     </Card>
 
                     <Card style={styles.card}>
@@ -246,7 +241,6 @@ const PatientDetails = () => {
                 </Animated.ScrollView>
 
                 {/* Modal to display AI Summary */}
-
                 <Portal>
                     <Modal
                         visible={modalVisible}
@@ -369,18 +363,24 @@ const styles = StyleSheet.create({
         top: 20,
         left: 0,
         right: 0,
-        height: 30, // Slightly larger to make the feather more noticeable
+        height: 30,
         zIndex: 1,
-
-
     },
     featherBottom: {
         position: 'absolute',
         bottom: 10,
         left: 0,
         right: 0,
-        height: 20, // Adjust to give a more intense feather effect at the bottom
+        height: 20,
         zIndex: 1,
     },
-
+    button2: {
+        flexDirection: 'row',
+        marginTop: 20,
+        marginBottom: 10,
+        marginLeft: 10,
+        marginRight: 10,
+        width: 100,
+        height: 40,
+    },
 });

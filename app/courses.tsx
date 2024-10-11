@@ -1,11 +1,8 @@
-// courses.tsx
-
 import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Pressable,
   Image,
   TouchableOpacity,
@@ -18,7 +15,7 @@ import { useNavigation, useRouter, useLocalSearchParams } from "expo-router";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, { FadeOut } from "react-native-reanimated";
 
 // Import Firestore functions
 import {
@@ -36,6 +33,7 @@ import {
 import { db } from "@/firebaseConfig";
 import LottieView from "lottie-react-native";
 import Slider from "@/components/Slider";
+import { useIsFocused } from "@react-navigation/native";
 
 export interface Course {
   id: string;
@@ -43,6 +41,7 @@ export interface Course {
   time: string;
   rating: number;
   title: string;
+  content: string;
   blurb: string;
   userId: string;
   userPFP: string;
@@ -68,6 +67,7 @@ const Courses = () => {
   const router = useRouter();
   const { courseid } = useLocalSearchParams();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
 
   // Check if user is logged in
   const checkUserInAsyncStorage = async () => {
@@ -127,13 +127,13 @@ const Courses = () => {
   // Fetch courses from Firestore in real-time
   const fetchCourses = async (courseid?: string) => {
     setCoursesLoading(true); // Start loading courses
-  
+
     try {
       if (courseid) {
         // If a courseId is provided, fetch only that specific course
         const courseRef = doc(db, "courses", courseid);
         const courseDoc = await getDoc(courseRef);
-  
+
         if (courseDoc.exists()) {
           const data = courseDoc.data();
           const ratingsArray = await getCourseRatings(courseid); // Fetch ratings for the course
@@ -146,17 +146,17 @@ const Courses = () => {
             tag: data.tag || "",
             time: data.time || "",
             title: data.title || "",
+            content: data.courseContents || "",
             blurb: data.blurb || "",
             userId: data.userId || "",
             userPFP: data.userPFP || "",
             image: data.imageUrl || "",
             name: data.name || "",
-            price: data.price || 0
+            price: data.price || 0,
           };
 
+          console.log("imageurl: " + data.imageUrl);
 
-          console.log("imageurl: " + data.imageUrl)
-  
           setCourses([fetchedCourse]); // Set the specific course in the state
         } else {
           console.log(`Course with ID ${courseid} not found`);
@@ -182,11 +182,10 @@ const Courses = () => {
           coursePromises.push(coursePromise);
         });
 
-
         const resolvedCourses = await Promise.all(coursePromises);
         setCourses(resolvedCourses); // Set all fetched courses in the state
       }
-  
+
       setCoursesLoading(false); // Courses are loaded
     } catch (error) {
       console.error("Error fetching courses:", error);
@@ -223,6 +222,16 @@ const Courses = () => {
                         ...data,
                         ratings: ratingsArray,
                         rating: calculateAverageRating(ratingsArray),
+                        image: data.imageUrl || "", // Ensure 'image' is assigned
+                        tag: data.tag || "",
+                        time: data.time || "",
+                        title: data.title || "",
+                        content: data.courseContents || "",
+                        blurb: data.blurb || "",
+                        userId: data.userId || "",
+                        userPFP: data.userPFP || "",
+                        name: data.name || "",
+                        price: data.price || 0,
                       } as Course;
                     });
 
@@ -251,42 +260,6 @@ const Courses = () => {
 
     return unsubscribe;
   };
-
-const fetchSpecificCourse = async (courseId: string) => {
-  try {
-    const courseRef = doc(db, "courses", courseId);
-    const courseDoc = await getDoc(courseRef);
-
-    if (courseDoc.exists()) {
-      const data = courseDoc.data();
-
-      // Ensure you include all the fields required by the Course interface
-      const fetchedCourse = {
-        id: courseDoc.id,
-        tag: data?.tag ?? "",
-        time: data?.time ?? "",
-        title: data?.title ?? "",
-        blurb: data?.blurb ?? "",
-        userId: data?.userId ?? "",
-        userPFP: data?.userPFP ?? "",
-        image: data?.imageUrl ?? "", // Updated line
-        name: data?.name ?? "",
-        price: data?.price ?? 0,
-        ratings: await getCourseRatings(courseId),
-        rating: calculateAverageRating(await getCourseRatings(courseId)),
-      };
-
-
-
-      // Update your state with this specific course
-      setCourses([fetchedCourse]);
-    } else {
-      console.log(`Course with ID ${courseId} not found`);
-    }
-  } catch (error) {
-    console.error(`Error fetching course with ID ${courseId}:`, error);
-  }
-};
 
   // Calculate average rating
   const calculateAverageRating = (ratingsArray: { userId: string; rating: number }[]) => {
@@ -327,10 +300,15 @@ const fetchSpecificCourse = async (courseId: string) => {
     });
   };
 
+  useEffect(() => {
+    fetchCourses()
+  }, [isFocused]);
+
   // Retrieve user UID from AsyncStorage and fetch image URL
   useEffect(() => {
+
     checkUserInAsyncStorage();
-  
+
     const fetchUserUid = async () => {
       try {
         const userString = await AsyncStorage.getItem("user");
@@ -338,13 +316,13 @@ const fetchSpecificCourse = async (courseId: string) => {
           const user = JSON.parse(userString);
           setUser(user);
           await fetchImageUrl(user);
-  
+
           // Pass courseId to fetchCourses if it exists
           fetchCourses(courseid?.toString()); // If courseId is passed, it will fetch that course
-  
+
           // Set up real-time listeners for purchased courses
           const unsubscribePurchasedCourses = fetchPurchasedCourses(user.uid);
-  
+
           return () => {
             if (unsubscribePurchasedCourses) unsubscribePurchasedCourses();
           };
@@ -501,7 +479,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   titleText: {
-    // fontFamily: "inter",
     fontWeight: "bold",
     fontSize: 25,
     color: "#FF6231",
@@ -514,11 +491,12 @@ const styles = StyleSheet.create({
   },
   sliderContainer: {
     marginTop: 25,
-    height: 500, // Adjust as needed
+    height: 500,
+    width: "150%",
   },
   createButton: {
     alignSelf: "center",
-    bottom: 5,
+    bottom: -150,
     backgroundColor: "white",
     borderRadius: 12,
     borderColor: "#FF6231",

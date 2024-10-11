@@ -1,32 +1,37 @@
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { doc, getDoc } from 'firebase/firestore';
+import { useRouter } from 'expo-router';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { PatientProps } from '@/components/PatientInfo';
-import { ActivityIndicator } from 'react-native-paper';
+import { ActivityIndicator, Button } from 'react-native-paper';
 
 interface AppointmentProps {
+  id: string;
   patientId: string;
   status: boolean;
   time: string;
   type: string;
 }
 
-const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, type }) => {
+const AppointmentCard: React.FC<AppointmentProps> = ({ id, patientId, status, time, type }) => {
   const [patientData, setPatientData] = useState<PatientProps | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   // Function to get patient info based on patient ID
   const fetchPatientData = async (id: string) => {
     try {
-      const docRef = doc(db, 'Patients', id);  // Dynamic Patient ID
+      const docRef = doc(db, 'Patients', id);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
         const data = docSnap.data();
         const formattedData: PatientProps = {
-          picture: require('../assets/images/profilePics/johnLe.jpeg'), // Replace with real image if available
+          id: id,
+          pronouns: data.pronouns || '',
+          picture: require('../assets/images/profilePics/johnLe.jpeg'), // Replace with actual image if available
           name: `${data['fname']} ${data['lname']}`,
           gender: data.gender,
           birthdateString: data.birthdate,
@@ -35,7 +40,7 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
           symptoms: data.symptoms,
           tags: data.tag,
         };
-        setPatientData(formattedData);  // Set the patient data
+        setPatientData(formattedData);
       } else {
         console.log('No such document!');
       }
@@ -46,19 +51,15 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
 
   useEffect(() => {
     if (patientId) {
-      fetchPatientData(patientId);  // Fetch data based on patient ID
+      fetchPatientData(patientId);
     }
   }, [patientId]);
 
-  // Check if patient data has been fetched and render loading state if null
   if (!patientData) {
     return (
-      <SafeAreaView style={ styles.container }>
-        <ActivityIndicator 
-          animating={true}
-          size='large'  
-        />
-      </SafeAreaView>
+        <SafeAreaView style={styles.container}>
+          <ActivityIndicator animating={true} size="large" />
+        </SafeAreaView>
     );
   }
 
@@ -67,30 +68,55 @@ const AppointmentCard: React.FC<AppointmentProps> = ({ patientId, status, time, 
 
     router.push({
       pathname: "../appointment",
-      params: { 
+      params: {
         patientId: patientId,
-        time: time, 
+        time: time,
         type: type,
-        data: serializedData
+        data: serializedData,
       },
     });
   };
 
+  const markAsCompleted = async () => {
+    setLoading(true);
+    try {
+      const appointmentRef = doc(db, 'Appointments', id);
+      await updateDoc(appointmentRef, { status: true });
+      Alert.alert('Success', 'Appointment marked as completed.');
+      // No need to refresh appointments; the listener will update the list
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      Alert.alert('Error', 'Failed to update appointment status.');
+    }
+    setLoading(false);
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={{ flexDirection: "row" }}>
-        <MaterialIcons style={{ padding: 1 }} name="access-time" size={15} color="#7D7D7D" />
-        <Text style={styles.timeText}>{time}</Text>
+      <View style={styles.container}>
+        <View style={{ flexDirection: 'row' }}>
+          <MaterialIcons style={{ padding: 1 }} name="access-time" size={15} color="#7D7D7D" />
+          <Text style={styles.timeText}>{time}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={[styles.timeText, { marginTop: 20, marginLeft: 10 }]}>{patientData.name}</Text>
+          <TouchableOpacity style={{ marginTop: 20, marginLeft: 'auto' }} onPress={navigate}>
+            <MaterialIcons name="arrow-forward-ios" size={30} color="#808080" />
+          </TouchableOpacity>
+        </View>
+        <Text style={[styles.timeText, { marginLeft: 10, color: '#808080', fontWeight: 'normal' }]}>{type}</Text>
+
+        {/* Add the "Mark as Completed" button if the appointment is upcoming */}
+        {!status && (
+            <Button
+                mode="contained"
+                onPress={markAsCompleted}
+                loading={loading}
+                style={styles.completeButton}
+            >
+              Mark as Completed
+            </Button>
+        )}
       </View>
-      <View style={{ flexDirection: "row" }}>
-        <Text style={[styles.timeText, { marginTop: 20, marginLeft: 10 }]}>{patientData.name}</Text>
-        <Text>{status}</Text>
-        <TouchableOpacity style={{ marginTop: 20, marginLeft: "auto" }} onPress={navigate}>
-          <MaterialIcons name="arrow-forward-ios" size={30} color="#808080" />
-        </TouchableOpacity>
-      </View>
-      <Text style={[styles.timeText, { marginLeft: 10, color: '#808080', fontWeight: 'normal' }]}>{type}</Text>
-    </View>
   );
 };
 
@@ -100,7 +126,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     marginHorizontal: 30,
-    borderColor: "#02D6B6",
+    borderColor: '#02D6B6',
     borderWidth: 2,
     paddingBottom: 20,
     marginVertical: 15,
@@ -116,6 +142,10 @@ const styles = StyleSheet.create({
     color: '#7D7D7D',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  completeButton: {
+    marginTop: 10,
+    backgroundColor: '#02D6B6',
   },
 });
 

@@ -6,14 +6,14 @@ import {
   Pressable,
   FlatList
 } from "react-native";
-import React, { useRef, useState, useEffect, } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Calendar } from "react-native-calendars";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import MainButton from "../components/Button";
 import { useRouter } from "expo-router";
 import AppointmentCard from "@/components/AppointmentCard";
 import { Ionicons } from "@expo/vector-icons";
-import { doc, getDocs, collection } from "firebase/firestore";
+import { doc, getDocs, collection, query, where } from "firebase/firestore";
 import { app, db } from "../firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeIn } from "react-native-reanimated";
@@ -26,6 +26,7 @@ type AppointmentProps = {
   status: boolean;
   time: string;
   type: string;
+  doctorId: string;
 };
 
 export default function CalendarPage() {
@@ -52,14 +53,14 @@ export default function CalendarPage() {
   const fetchImageUrl = async (userID: string) => {
     try {
       const url = await fetchImageFromFirebase(`pfp/${userID}`);
-      if (url) setImageUrl(url); 
+      if (url) setImageUrl(url);
     } catch (error) {
       console.error("Error fetching image URL:", error);
     }
   };
 
   const fetchImageFromFirebase = async (
-    path: string
+      path: string
   ): Promise<string | null> => {
     try {
       const storage = getStorage();
@@ -86,15 +87,17 @@ export default function CalendarPage() {
   };
 
   const fetchAllAppointments = async () => {
+    if (!userId) return; // Wait until userId is loaded
     try {
       const appointmentsCollection = collection(db, "Appointments");
-      const querySnapshot = await getDocs(appointmentsCollection);
+      const q = query(appointmentsCollection, where("doctorId", "==", userId));
+      const querySnapshot = await getDocs(q);
 
       const appointmentsList: AppointmentProps[] = querySnapshot.docs.map(
-        (doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })
+          (doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })
       ) as AppointmentProps[];
 
       setAppointments(appointmentsList);
@@ -103,171 +106,175 @@ export default function CalendarPage() {
       console.error("Error fetching Appointments: ", error);
     }
   };
-  
-  const filterAppointmentsByStatus = async (status: boolean) => {
-    //console.log("Status: ", status, " Appointments: ", appointments)
+
+  const filterAppointmentsByStatus = (status: boolean) => {
     const filteredAppointments = appointments.filter(appointment => {
-      const appointmentDate = appointment.time.split("T")[0]; // Extract the date part from the appointment's time
+      const appointmentDate = appointment.time.split("T")[0];
       return appointment.status === status && appointmentDate === selectedDate;
     });
     setFilteredAppointments(filteredAppointments);
   };
 
   useEffect(() => {
-    fetchAllAppointments();
     getUserIdFromAsyncStorage();
   }, []);
 
   useEffect(() => {
+    if (userId) {
+      fetchAllAppointments();
+    }
+  }, [userId]);
+
+  useEffect(() => {
     filterAppointmentsByStatus(isSelected);
-  }, [appointments, isSelected, selectedDate])
+  }, [appointments, isSelected, selectedDate]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#02D6B6" }}>
-      <View style={styles.banner}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={35} color="white" />
-        </Pressable>
-        <Image
-          source={require("../assets/images/LogoWhite.png")}
-          resizeMode="contain"
-          style={styles.logo}
-        />
-        {imageUrl && (
-          <Animated.Image
-            entering={FadeIn.delay(500)}
-            source={{ uri: imageUrl || undefined }}
-            style={{ height: 45, width: 45, borderRadius: 90 }}
+      <View style={{ flex: 1, backgroundColor: "#02D6B6" }}>
+        <View style={styles.banner}>
+          <Pressable onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={35} color="white" />
+          </Pressable>
+          <Image
+              source={require("../assets/images/LogoWhite.png")}
+              resizeMode="contain"
+              style={styles.logo}
           />
-        )}
-      </View>
-      <Calendar
-        // Style
-        style={[styles.calendar, { opacity: isOpen ? 0.2 : 1 }]}
-        // Theme editing
-        theme={{
-          backgroundColor: "#ffffff",
-          calendarBackground: "#02D6B6",
-          textSectionTitleColor: "#ffffff",
-          textSectionTitleDisabledColor: "#d9e1e8",
-          selectedDayBackgroundColor: "#ffffff",
-          selectedDayTextColor: "#02D6B6",
-          todayTextColor: "#ffffff",
-          dayTextColor: "#ffffff",
-          textDisabledColor: "#d9e1e8",
-          dotColor: "#00adf5",
-          selectedDotColor: "#02D6B6",
-          arrowColor: "#ffffff",
-          disabledArrowColor: "#d9e1e8",
-          monthTextColor: "#ffffff",
-          indicatorColor: "#ffffff",
-          textDayFontFamily: "Inter",
-          textMonthFontFamily: "Lato",
-          textDayHeaderFontFamily: "Lato",
-          textDayFontWeight: "500",
-          textMonthFontWeight: "bold",
-          textDayHeaderFontWeight: "300",
-          textDayFontSize: 16,
-          textMonthFontSize: 26,
-          textDayHeaderFontSize: 16,
-        }}
-        // Setup the marked dates feature to be the date selected by user (NOTE** We will also have to set up marked dates for appoinment dates)
-        markedDates={{
-          [selectedDate]: {
-            selected: true,
-            selectedColor: "white",
-          },
-          ...appointments.reduce((acc, appointment) => {
-            const appointmentDate = appointment.time.split("T")[0];
-            acc[appointmentDate] = {
-              marked: true,
-              dotColor: "pink",
-              selected: appointmentDate === selectedDate,
-              selectedColor: appointmentDate === selectedDate ? "white" : undefined,
-            };
-            return acc;
-          }, {})
-        }}
-        // On Date Changed Functions -> We can use this to gather the current selectd date to search for appointments
-        onDayPress={(day) => {
-          console.log("Selected day: ", day.dateString);
-          setSelectedDate(day.dateString);
-        }}
-        onMonthChange={(month) => {
-          console.log("Month changed to: ", month);
-        }}
-        onPressArrowLeft={(subtractMonth) => subtractMonth()}
-        onPressArrowRight={(addMonth) => addMonth()}
-      />
-      {/* This is some scroll menu settings*/}
-      <BottomSheet
-        ref={sheetRef}
-        snapPoints={snapPoints}
-        style={styles.slide}
-        enablePanDownToClose={false}
-        onChange={() => (isOpen ? setIsOpen(false) : setIsOpen(true))}
-      >
-        {/* This is the scroll up menu */}
-        <BottomSheetView style={{ flex: 1 }}>
-          <View style={styles.container}>
-            <View>
-              <Text style={styles.appText}>Appointments</Text>
-            </View>
-            <View style={styles.toggle}>
-              <View>
-                <MainButton
-                  title={"Completed"}
-                  buttonStyle={[
-                    styles.buttonStyle,
-                    { backgroundColor: isSelected ? "#02D6B6" : "#d9e1e8" },
-                  ]}
-                  textStyle={[
-                    styles.buttonText,
-                    { color: isSelected ? "#ffffff" : "#808080" },
-                  ]}
-                  onPress={() => {
-                    filterAppointmentsByStatus(true);
-                    setIsSelected(true);
-                  }}
-                />
-              </View>
-              <View>
-                <MainButton
-                  title={"Upcoming"}
-                  buttonStyle={[
-                    styles.buttonStyle,
-                    { backgroundColor: isSelected ? "#d9e1e8" : "#02D6B6" },
-                  ]}
-                  textStyle={[
-                    styles.buttonText,
-                    { color: isSelected ? "#808080" : "#ffffff" },
-                  ]}
-                  onPress={() => {
-                    filterAppointmentsByStatus(false);
-                    setIsSelected(false);
-                  }}
-                />
-              </View>
-            </View>
-          </View>
-
-          {/*This is the beginning of the appointments list*/}
-          <FlatList
-            data={filteredAppointments}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <AppointmentCard
-                key={item.id}
-                patientId={item.patientId}
-                status={item.status}
-                time={item.time.toString()}
-                type={item.type}
+          {imageUrl && (
+              <Animated.Image
+                  entering={FadeIn.delay(500)}
+                  source={{ uri: imageUrl || undefined }}
+                  style={{ height: 45, width: 45, borderRadius: 90 }}
               />
-            )}
-          />
-        </BottomSheetView>
-      </BottomSheet>
-    </View>
+          )}
+        </View>
+        <Calendar
+            // Style
+            style={[styles.calendar, { opacity: isOpen ? 0.2 : 1 }]}
+            // Theme editing
+            theme={{
+              backgroundColor: "#ffffff",
+              calendarBackground: "#02D6B6",
+              textSectionTitleColor: "#ffffff",
+              textSectionTitleDisabledColor: "#d9e1e8",
+              selectedDayBackgroundColor: "#ffffff",
+              selectedDayTextColor: "#02D6B6",
+              todayTextColor: "#ffffff",
+              dayTextColor: "#ffffff",
+              textDisabledColor: "#d9e1e8",
+              dotColor: "#00adf5",
+              selectedDotColor: "#02D6B6",
+              arrowColor: "#ffffff",
+              disabledArrowColor: "#d9e1e8",
+              monthTextColor: "#ffffff",
+              indicatorColor: "#ffffff",
+              textDayFontFamily: "Inter",
+              textMonthFontFamily: "Lato",
+              textDayHeaderFontFamily: "Lato",
+              textDayFontWeight: "500",
+              textMonthFontWeight: "bold",
+              textDayHeaderFontWeight: "300",
+              textDayFontSize: 16,
+              textMonthFontSize: 26,
+              textDayHeaderFontSize: 16,
+            }}
+            // Setup the marked dates feature
+            markedDates={{
+              [selectedDate]: {
+                selected: true,
+                selectedColor: "white",
+              },
+              ...appointments.reduce((acc: Record<string, any>, appointment) => {
+                const appointmentDate = appointment.time.split("T")[0];
+                acc[appointmentDate] = {
+                  marked: true,
+                  dotColor: "pink",
+                  selected: appointmentDate === selectedDate,
+                  selectedColor: appointmentDate === selectedDate ? "white" : undefined,
+                };
+                return acc;
+              }, {})
+            }}
+
+            onDayPress={(day) => {
+              console.log("Selected day: ", day.dateString);
+              setSelectedDate(day.dateString);
+            }}
+            onMonthChange={(month) => {
+              console.log("Month changed to: ", month);
+            }}
+            onPressArrowLeft={(subtractMonth) => subtractMonth()}
+            onPressArrowRight={(addMonth) => addMonth()}
+        />
+        {/* This is some scroll menu settings*/}
+        <BottomSheet
+            ref={sheetRef}
+            snapPoints={snapPoints}
+            style={styles.slide}
+            enablePanDownToClose={false}
+            onChange={() => (isOpen ? setIsOpen(false) : setIsOpen(true))}
+        >
+          {/* This is the scroll up menu */}
+          <BottomSheetView style={{ flex: 1 }}>
+            <View style={styles.container}>
+              <View>
+                <Text style={styles.appText}>Appointments</Text>
+              </View>
+              <View style={styles.toggle}>
+                <View>
+                  <MainButton
+                      title={"Completed"}
+                      buttonStyle={[
+                        styles.buttonStyle,
+                        { backgroundColor: isSelected ? "#02D6B6" : "#d9e1e8" },
+                      ]}
+                      textStyle={[
+                        styles.buttonText,
+                        { color: isSelected ? "#ffffff" : "#808080" },
+                      ]}
+                      onPress={() => {
+                        filterAppointmentsByStatus(true);
+                        setIsSelected(true);
+                      }}
+                  />
+                </View>
+                <View>
+                  <MainButton
+                      title={"Upcoming"}
+                      buttonStyle={[
+                        styles.buttonStyle,
+                        { backgroundColor: isSelected ? "#d9e1e8" : "#02D6B6" },
+                      ]}
+                      textStyle={[
+                        styles.buttonText,
+                        { color: isSelected ? "#808080" : "#ffffff" },
+                      ]}
+                      onPress={() => {
+                        filterAppointmentsByStatus(false);
+                        setIsSelected(false);
+                      }}
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/*This is the beginning of the appointments list*/}
+            <FlatList
+                data={filteredAppointments}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                    <AppointmentCard
+                        key={item.id}
+                        patientId={item.patientId}
+                        status={item.status}
+                        time={item.time.toString()}
+                        type={item.type}
+                    />
+                )}
+            />
+          </BottomSheetView>
+        </BottomSheet>
+      </View>
   );
 }
 
@@ -320,18 +327,18 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   profilePic: {
-    position: "absolute", // Position it absolutely within its container
-    top: 55, // Adjust as needed
-    right: 25, // Adjust as needed
+    position: "absolute",
+    top: 55,
+    right: 25,
     padding: 5,
     borderColor: "#ffffff",
     borderRadius: 45,
     borderWidth: 2,
   },
   backArrow: {
-    position: "absolute", // Position it absolutely within its container
-    top: 55, // Adjust as needed
-    left: 25, // Adjust as needed
+    position: "absolute",
+    top: 55,
+    left: 25,
     padding: 5,
     color: "#ffffff",
   },
