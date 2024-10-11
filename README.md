@@ -6,6 +6,8 @@
 </h1>
 <p align="center" style="font-size: 1.2rem;">Mobile platform designed to streamline and support the professional needs of doctors.</p>
 
+<hr />
+
 [![Expo](https://img.shields.io/badge/Expo-v51.0.36-blue.svg)](https://expo.dev/)
 [![React Native](https://img.shields.io/badge/React%20Native-v0.74.5-blue.svg)](https://reactnative.dev/)
 [![Firebase](https://img.shields.io/badge/Firebase-Firestore-orange.svg)](https://firebase.google.com/)
