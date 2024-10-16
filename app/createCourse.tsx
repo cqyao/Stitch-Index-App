@@ -232,7 +232,6 @@ const CreateCourse = () => {
                   value={title}
                   mode="outlined"
                   onChangeText={setTitle}
-                  maxLength={25}
                   activeOutlineColor="#FF6231"
                   outlineColor="#ccc"
               />
@@ -243,7 +242,6 @@ const CreateCourse = () => {
                   value={blurb}
                   mode="outlined"
                   onChangeText={setBlurb}
-                  maxLength={99}
                   activeOutlineColor="#FF6231"
                   outlineColor="#ccc"
               />

@@ -1,5 +1,3 @@
-// SliderItem.tsx
-
 import React from 'react';
 import {
     StyleSheet,
@@ -92,7 +90,7 @@ const SliderItem = ({
                         </View>
                     </View>
                     <View style={styles.text}>
-                        <Text style={styles.description}>{item.tag}</Text>
+                        {/*<Text style={styles.description}>{item.tag}</Text>*/}
                         <StarRatingDisplay
                             rating={item.rating}
                             starSize={20}

@@ -282,7 +282,7 @@ const Signup = () => {
               source={
                 imageUrl
                   ? { uri: imageUrl }
-                  : require("../assets/images/club-penguin-ghosthy.gif")
+                  : require("../assets/images/pfp.png")
               }
               style={styles.pfpImage}
             />

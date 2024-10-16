@@ -426,7 +426,7 @@ const Courses = () => {
         </View>
 
         {/* Create Course Button */}
-        <View>
+        <View style={styles.createButtonContainer}>
           <Pressable
               style={styles.createButton}
               onPress={() => router.push({ pathname: "./createCourse" })}
@@ -492,15 +492,14 @@ const styles = StyleSheet.create({
   sliderContainer: {
     marginTop: 25,
     height: 500,
-    width: "150%",
   },
+
   createButton: {
-    alignSelf: "center",
-    bottom: -150,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius: 12,
-    borderColor: "#FF6231",
+    borderColor: '#FF6231',
     borderWidth: 2,
+    padding: 0,
   },
   loadingContainer: {
     flex: 1,
@@ -511,5 +510,9 @@ const styles = StyleSheet.create({
   lottie: {
     width: 150,
     height: 150,
+  },
+  createButtonContainer: {
+    alignItems: 'center',
+    marginVertical: 20,
   },
 });

@@ -6,6 +6,7 @@ import {
   Pressable,
   Image,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import {
   Avatar,
@@ -34,6 +35,9 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 
 import StarRating from "react-native-star-rating-widget";
+import Markdown from "react-native-markdown-display";
+
+const { width } = Dimensions.get("window");
 
 const CourseContents = () => {
   const router = useRouter();
@@ -63,35 +67,6 @@ const CourseContents = () => {
     setLoading(false);
   };
 
-  // Function to fetch image URL from Firebase Storage
-  const fetchImageFromFirebase = async (
-      path: string
-  ): Promise<string | null> => {
-    try {
-      const storage = getStorage();
-      const imageRef = ref(storage, path);
-      const url = await getDownloadURL(imageRef);
-      return url;
-    } catch (error) {
-      console.error("Error fetching image from Firebase Storage", error);
-      return null;
-    }
-  };
-
-  // Function to fetch and set image URL
-  const fetchImageUrl = async (user: User) => {
-    try {
-      const url = await fetchImageFromFirebase(`pfp/${user.uid}`);
-      if (url) {
-        setImageUrl(url);
-      }
-    } catch (error) {
-      console.error("Error fetching image URL:", error);
-    } finally {
-      setLoadingImage(false);
-    }
-  };
-
   // Fetch course data
   const fetchCourseData = async () => {
     try {
@@ -105,6 +80,7 @@ const CourseContents = () => {
       if (courseDoc.exists()) {
         const data = courseDoc.data();
         setCourseData(data);
+        setImageUrl(data.imageUrl);
 
         // Fetch existing rating from the 'ratings' subcollection
         if (user) {
@@ -159,7 +135,6 @@ const CourseContents = () => {
         if (userString) {
           const userData = JSON.parse(userString);
           setUser(userData);
-          await fetchImageUrl(userData);
           await fetchCourseData();
         } else {
           console.log("No user found");
@@ -207,7 +182,7 @@ const CourseContents = () => {
           </View>
           {/* End of Banner */}
 
-          <Animated.ScrollView entering={FadeIn.delay(100)}>
+          <ScrollView>
             <Card style={styles.card}>
               <Card.Content>
                 <Title style={styles.courseTitle}>{courseData.title}</Title>
@@ -219,14 +194,19 @@ const CourseContents = () => {
 
             <Card style={styles.card}>
               <Card.Content>
-                <Title style={styles.sectionTitle}>Course Content</Title>
-                <Paragraph>{courseData.courseContents}</Paragraph>
+                <Image
+                    source={{ uri: imageUrl as string }}
+                    style={styles.postImage}
+                />
               </Card.Content>
             </Card>
 
             <Card style={styles.card}>
               <Card.Content>
-                <Image source={{ uri: imageUrl as string }} style={styles.postImage} />
+                <Title style={styles.sectionTitle}>Course Content</Title>
+                <Markdown >
+                  {courseData.courseContents}
+                </Markdown>
               </Card.Content>
             </Card>
 
@@ -245,13 +225,31 @@ const CourseContents = () => {
                 </View>
               </Card.Content>
             </Card>
-          </Animated.ScrollView>
+          </ScrollView>
         </SafeAreaView>
       </Provider>
   );
 };
 
 export default CourseContents;
+
+const markdownStyles = {
+  body: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#383838",
+  },
+  heading1: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#2c2c2d",
+    marginBottom: 10,
+  },
+  paragraph: {
+    marginTop: 10,
+    marginBottom: 10,
+  },
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -277,27 +275,30 @@ const styles = StyleSheet.create({
     height: 50,
   },
   card: {
-    marginHorizontal: 20,
+    marginHorizontal: 15,
     marginVertical: 10,
     borderRadius: 10,
     backgroundColor: "#d8ebfe",
+    padding: 10,
   },
   courseTitle: {
-    fontSize: 24,
+    fontSize: 20, // Reduced from 24
     fontWeight: "bold",
     color: "#2c2c2d",
     textAlign: "center",
   },
   courseBlurb: {
-    fontSize: 16,
+    fontSize: 14, // Reduced from 16
     marginTop: 5,
     color: "#383838",
-    alignSelf: "center",
+    textAlign: "center", // Changed from alignSelf to textAlign
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
     color: "#2c2c2d",
+    marginBottom: 10,
+    textAlign: "center",
   },
   loadingContainer: {
     flex: 1,
@@ -313,13 +314,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ratingText: {
-    fontSize: 18,
+    fontSize: 16,
     marginBottom: 10,
     color: "#666666",
   },
   postImage: {
     width: "100%",
-    height: 300,
+    height: 250,
     borderRadius: 15,
     marginVertical: 15,
   },
