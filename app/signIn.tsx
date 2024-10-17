@@ -32,6 +32,9 @@ import Animated, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig"; // Update the path according to your project
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 
 const SignIn = () => {

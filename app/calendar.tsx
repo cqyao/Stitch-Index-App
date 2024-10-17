@@ -19,6 +19,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import { toZonedTime, format } from 'date-fns-tz';
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 type AppointmentProps = {
   id: string; // Include the ID for each appointment

@@ -16,6 +16,9 @@ import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { User } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeOut } from "react-native-reanimated";
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 // Import Firestore functions
 import {

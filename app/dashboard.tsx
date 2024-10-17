@@ -34,6 +34,9 @@ import Constants from "expo-constants";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import Markdown from "react-native-markdown-display";
 import { LinearGradient } from "expo-linear-gradient";
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 type AppointmentProps = {
   id: string;

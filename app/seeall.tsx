@@ -4,6 +4,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { collection, query as firestoreQuery, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import EntityComponent from '@/components/entitycomponent';
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 // Define a generic type for the results based on possible categories
 interface Patient {

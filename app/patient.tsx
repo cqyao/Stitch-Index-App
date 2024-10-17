@@ -10,6 +10,9 @@ import { PatientProps } from '@/components/PatientInfo';
 import { Card } from 'react-native-paper';
 import LottieView from 'lottie-react-native';
 import Animated, { FadeIn } from "react-native-reanimated"; // Import LottieView
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 const Patient = () => {
   const [patientsData, setPatientsData] = useState<PatientProps[]>([]);

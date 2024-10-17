@@ -14,6 +14,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { FirebaseError } from "firebase/app";
 import { TextInput, Button } from 'react-native-paper';
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 
 const CreatePost = ({}) => {

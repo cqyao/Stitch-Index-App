@@ -13,6 +13,9 @@ import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import Animated, { FadeIn } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PatientProps } from "@/components/PatientInfo";
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 const Appointment = () => {
   const params = useLocalSearchParams<{

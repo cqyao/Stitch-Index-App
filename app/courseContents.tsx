@@ -36,6 +36,9 @@ import { db } from "@/firebaseConfig";
 
 import StarRating from "react-native-star-rating-widget";
 import Markdown from "react-native-markdown-display";
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 const { width } = Dimensions.get("window");
 

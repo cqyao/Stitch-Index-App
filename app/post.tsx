@@ -28,6 +28,9 @@ import {
 import { db } from "@/firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, {FadeIn} from "react-native-reanimated";
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 const Post = () => {
   const params = useLocalSearchParams<{

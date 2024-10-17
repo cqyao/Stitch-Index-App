@@ -11,6 +11,9 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import Constants from 'expo-constants';
 import Markdown from 'react-native-markdown-display';
 import { LinearGradient } from "expo-linear-gradient";
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 interface PatientDetailsProps {
     picture: string;

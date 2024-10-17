@@ -31,6 +31,9 @@ import { pickImage, uploadImage } from "@/components/UploadScreen";
 import { FirebaseError } from "@firebase/app";
 import { getDownloadURL, ref } from "firebase/storage";
 import { storage } from "../firebaseConfig";
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -282,7 +285,7 @@ const Signup = () => {
               source={
                 imageUrl
                   ? { uri: imageUrl }
-                  : require("../assets/images/pfp.png")
+                  : { uri: "https://t3.ftcdn.net/jpg/05/16/27/58/360_F_516275801_f3Fsp17x6HQK0xQgDQEELoTuERO4SsWV.jpg" }
               }
               style={styles.pfpImage}
             />

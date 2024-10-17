@@ -26,6 +26,9 @@ import { TextInput, Button } from 'react-native-paper';
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
 import * as ImagePicker from "expo-image-picker";
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 const CreateCourse = () => {
   const router = useRouter();

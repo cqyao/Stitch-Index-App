@@ -18,6 +18,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import { AnimatedFAB } from 'react-native-paper';
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 const Research = () => {
   const [posts, setPosts] = useState<any[]>([]);

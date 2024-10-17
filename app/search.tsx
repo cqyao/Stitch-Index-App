@@ -7,6 +7,9 @@ import { getDownloadURL, ref } from "firebase/storage";
 import { db, storage, auth } from '../firebaseConfig'; // Make sure auth is imported
 import EntityComponent from '@/components/entitycomponent';
 import Input from '../components/SearchInput';  
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(['Asyncstorage: ...']);
+LogBox.ignoreAllLogs();
 
 // Define a Patient interface for the results
 interface Patient {
